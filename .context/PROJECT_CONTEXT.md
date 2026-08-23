@@ -10,7 +10,11 @@ O projeto local existe em:
 
 `C:\Users\paulo.trajano\Documents\Codex\2026-07-06\create-psychology-clinic-desktop-crie-a\outputs\clinica_psicologia_desktop`
 
-Ele ainda nao tinha repositorio Git inicializado nesta pasta quando foi identificado. Ha dependencias ja instaladas localmente em `.venv/` e `frontend/node_modules/`, alem de bancos SQLite e arquivos de licenca gerados; esses itens sao runtime/local e nao devem ser versionados.
+Repositorio publicado em `https://github.com/paul-92/clinica-Gabriela.git` na branch `main`.
+
+Commit base atual: `00939f3b39b196784c2a98647b7fc8fe5f556a66` (`chore: adicionar projeto inicial da clinica desktop`).
+
+`main` local acompanha `origin/main`, e a arvore de trabalho estava limpa apos o push. Ha dependencias ja instaladas localmente em `.venv/` e `frontend/node_modules/`, alem de bancos SQLite e arquivos de licenca gerados; esses itens sao runtime/local e nao devem ser versionados.
 
 ## Arquitetura
 
@@ -141,7 +145,7 @@ Confirmado em docs/API.md e frontend:
 
 - Frontend Electron consome API local.
 - Scripts Windows integram instalacao, execucao, build e licenciamento.
-- Repositorio GitHub pretendido: `https://github.com/paul-92/clinica-Gabriela.git`.
+- Repositorio GitHub publicado: `https://github.com/paul-92/clinica-Gabriela.git`.
 
 ## Ambiente de desenvolvimento
 
@@ -177,12 +181,14 @@ python -m pytest
 
 ## Trabalho atual
 
-Fonte de verdade corrigida para esta pasta desktop/API/frontend. Git foi inicializado nesta raiz, `origin` foi configurado e o staging inicial foi preparado sem commit e sem push.
+Fonte de verdade publicada no GitHub. O primeiro commit foi criado e enviado para `origin/main`.
 
 ## Pendencias
 
-- Aguardar autorizacao explicita do usuario para executar o primeiro commit.
-- Aguardar autorizacao separada antes de qualquer push.
+- Realizar auditoria funcional e tecnica do sistema atual.
+- Identificar gaps entre desktop, backend e frontend.
+- Priorizar bugs, divida tecnica e funcionalidades.
+- Trabalhar em branch de feature para proximas mudancas.
 - Manter `pytest` disponivel via `requirements.txt` para a suite de testes automatizados.
 
 ## Divida tecnica
@@ -194,10 +200,11 @@ Fonte de verdade corrigida para esta pasta desktop/API/frontend. Git foi inicial
 
 ## Proximos passos
 
-1. Autorizar o primeiro commit.
-2. Executar o commit inicial.
-3. Autorizar o push para GitHub.
-4. Evoluir validacoes automatizadas de lint/type checking.
+1. Criar branch de feature para a proxima frente de trabalho.
+2. Auditar fluxos desktop, backend e frontend.
+3. Mapear divergencias entre telas, endpoints, models, schemas e persistencia.
+4. Priorizar bugs, divida tecnica e funcionalidades.
+5. Evoluir validacoes automatizadas de lint/type checking.
 
 ## Arquivos criticos
 

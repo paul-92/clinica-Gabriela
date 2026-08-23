@@ -10,15 +10,17 @@ Remoto local `origin`: `https://github.com/paul-92/clinica-Gabriela.git`
 
 ## Commit atual
 
-Nenhum commit local ainda. O repositorio foi inicializado nesta raiz e ainda esta em estado de primeiro commit.
+`00939f3b39b196784c2a98647b7fc8fe5f556a66`
+
+Mensagem: `chore: adicionar projeto inicial da clinica desktop`
 
 ## Estado da arvore de trabalho
 
-Git inicializado na raiz correta, `origin` configurado e staging do primeiro commit preparado. Nao executar commit ou push sem autorizacao explicita.
+Repositorio publicado com sucesso. `main` local acompanha `origin/main`, e a arvore de trabalho estava limpa apos o push.
 
 ## Objetivo
 
-Usar esta pasta desktop/API/frontend como fonte de verdade compartilhada entre Codex, GitHub e ChatGPT, substituindo a preparacao feita anteriormente na pasta estatica. A pasta anterior teve o staging removido e nao sera usada para o primeiro commit.
+Usar esta pasta desktop/API/frontend como fonte de verdade compartilhada entre Codex, GitHub e ChatGPT.
 
 ## Estado atual da implementacao
 
@@ -36,10 +38,9 @@ Projeto funcional em camadas com desktop Tkinter, backend FastAPI, frontend Elec
 
 ## O que esta incompleto
 
-- Git ainda precisa ser inicializado nesta raiz.
-- Primeiro commit ainda nao foi criado.
-- Push para GitHub ainda nao autorizado.
 - Lint/type checking nao estao configurados de forma confirmada.
+- Auditoria funcional e tecnica completa do sistema ainda nao foi realizada apos a publicacao inicial.
+- Gaps entre desktop, backend e frontend ainda precisam ser mapeados e priorizados.
 
 ## Falhas conhecidas
 
@@ -49,7 +50,7 @@ Projeto funcional em camadas com desktop Tkinter, backend FastAPI, frontend Elec
 ## Restricoes arquiteturais
 
 - Nao versionar licencas geradas, segredos, bancos locais ou dependencias instaladas.
-- Nao fazer push sem autorizacao explicita.
+- Trabalhar em branches de feature para proximas mudancas funcionais.
 - Manter separacao em camadas.
 - Se alterar modelos ou rotas, atualizar schemas, services, repositories, frontend e docs afetados.
 
@@ -69,14 +70,16 @@ Validacao executada nesta preparacao:
 
 - `npm run build` em `frontend/`: passou.
 - `pytest>=8.0` foi adicionado a `requirements.txt` por ser necessario para a suite existente e nao havia arquivo de dependencias de desenvolvimento.
-- `.venv\Scripts\python.exe -m pytest`: executar antes do commit final.
-- Checagem direta de `hash_password`/`verify_password` com `.venv\Scripts\python.exe -c "..."`
-  passou antes da instalacao do pytest.
-- `git ls-remote --heads origin`: passou e nao retornou branches, consistente com repositorio vazio.
+- `python -m pytest`: passou com `1 passed`.
+- `git diff --cached --check`: passou antes do commit.
+- `main` remoto aponta para `00939f3b39b196784c2a98647b7fc8fe5f556a66`.
 
 ## Proximo passo recomendado
 
-Revisar a lista staged, pedir autorizacao explicita do usuario e executar o primeiro commit. Pedir autorizacao separada antes de qualquer push.
+1. Realizar auditoria funcional/tecnica do sistema atual.
+2. Identificar gaps entre desktop, backend e frontend.
+3. Priorizar bugs, divida tecnica e funcionalidades.
+4. Trabalhar em branch de feature para proximas mudancas.
 
 ## Arquivos que outra IA deve ler primeiro
 
