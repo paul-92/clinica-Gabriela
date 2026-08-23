@@ -1,0 +1,52 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+.license_secret
+license.json
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+secrets/
+credentials/
+
+# Python
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node / Electron
+frontend/node_modules/
+node_modules/
+frontend/dist/
+frontend/release/
+dist/
+build/
+release/
+
+# Local databases and runtime data
+*.db
+*.sqlite
+*.sqlite3
+data/*.db
+backend/data/*.db
+backups/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+
+# OS and editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
