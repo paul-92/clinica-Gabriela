@@ -20,5 +20,6 @@ class UserRead(ORMBase):
 
 
 class LoginResponse(BaseModel):
-    authenticated: bool
-    user: UserRead | None = None
+    access_token: str
+    token_type: str = "bearer"
+    user: UserRead
