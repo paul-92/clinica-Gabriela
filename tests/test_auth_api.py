@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -10,6 +11,7 @@ from backend.api.routes import auth
 from backend.database.session import Base, get_db
 from backend.models.user import User
 from backend.utils.security import hash_password
+from backend.utils.tokens import create_access_token
 
 
 TEST_SECRET = "segredo-de-teste-de-autenticacao-com-32-bytes"
@@ -22,6 +24,15 @@ def build_client():
         poolclass=StaticPool,
     )
 
+    from backend.models import (  # noqa: F401
+        appointment,
+        clinical_record,
+        finance,
+        patient,
+        psychologist,
+        settings,
+        user,
+    )
     Base.metadata.create_all(bind=engine)
     Session = sessionmaker(bind=engine)
 
@@ -138,6 +149,26 @@ def test_me_rejects_invalid_token(monkeypatch):
         headers={
             "Authorization": "Bearer token-invalido",
         },
+    )
+
+    assert response.status_code == 401
+
+
+def test_me_rejects_expired_token(monkeypatch):
+    monkeypatch.setenv("AUTH_SECRET", TEST_SECRET)
+
+    client = build_client()
+
+    token = create_access_token(
+        subject="1",
+        role="psychologist",
+        secret=TEST_SECRET,
+        expires_delta=timedelta(seconds=-1),
+    )
+
+    response = client.get(
+        "/auth/me",
+        headers={"Authorization": f"Bearer {token}"},
     )
 
     assert response.status_code == 401

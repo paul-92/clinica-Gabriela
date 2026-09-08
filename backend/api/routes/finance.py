@@ -4,9 +4,10 @@ from sqlalchemy.orm import Session
 from backend.database.session import get_db
 from backend.schemas.finance import ExpenseCreate, ExpenseRead, FinanceSummary, PaymentCreate, PaymentRead
 from backend.services.finance_service import FinanceService
+from backend.api.routes.auth import get_current_user
 
 
-router = APIRouter(prefix="/finance", tags=["finance"])
+router = APIRouter(prefix="/finance", tags=["finance"], dependencies=[Depends(get_current_user)])
 
 
 @router.get("/summary", response_model=FinanceSummary)

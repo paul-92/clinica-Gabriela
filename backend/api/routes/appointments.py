@@ -6,9 +6,10 @@ from sqlalchemy.orm import Session
 from backend.database.session import get_db
 from backend.schemas.appointment import AppointmentCreate, AppointmentRead, AppointmentUpdate
 from backend.services.appointment_service import AppointmentService
+from backend.api.routes.auth import get_current_user
 
 
-router = APIRouter(prefix="/appointments", tags=["appointments"])
+router = APIRouter(prefix="/appointments", tags=["appointments"], dependencies=[Depends(get_current_user)])
 
 
 @router.get("", response_model=list[AppointmentRead])

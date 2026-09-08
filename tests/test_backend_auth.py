@@ -9,6 +9,15 @@ from backend.utils.security import hash_password
 
 def make_session():
     engine = create_engine("sqlite:///:memory:")
+    from backend.models import (  # noqa: F401
+        appointment,
+        clinical_record,
+        finance,
+        patient,
+        psychologist,
+        settings,
+        user,
+    )
     Base.metadata.create_all(bind=engine)
     Session = sessionmaker(bind=engine)
     return Session()
