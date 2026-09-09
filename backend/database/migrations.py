@@ -13,13 +13,14 @@ CLINICAL_RECORD_COLUMNS = {
 }
 
 
-def run_light_migrations():
-    inspector = inspect(engine)
+def run_light_migrations(bind=None):
+    target_engine = bind or engine
+    inspector = inspect(target_engine)
     if "clinical_records" not in inspector.get_table_names():
         return
 
     existing = {column["name"] for column in inspector.get_columns("clinical_records")}
-    with engine.begin() as connection:
+    with target_engine.begin() as connection:
         for column, definition in CLINICAL_RECORD_COLUMNS.items():
             if column not in existing:
                 connection.execute(text(f"ALTER TABLE clinical_records ADD COLUMN {column} {definition}"))

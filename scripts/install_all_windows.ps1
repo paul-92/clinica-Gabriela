@@ -51,7 +51,7 @@ Write-Step "Instalando dependencias Python"
 & $Python -m pip install -r (Join-Path $Root "requirements.txt")
 
 Write-Step "Inicializando banco de dados"
-& $Python -c "from backend.database.session import init_db; from backend.database.seed import seed_database; init_db(); seed_database(); print('Banco da API pronto')"
+& $Python -c "from backend.main import bootstrap_backend; bootstrap_backend(); print('Banco da API pronto')"
 & $Python -c "from app.database.session import init_db; from app.database.seed import seed_database; init_db(); seed_database(); print('Banco desktop pronto')"
 
 if (-not (Test-Path (Join-Path $Root "license.json"))) {

@@ -60,7 +60,7 @@ run_desktop.bat
 API:
 
 ```powershell
-uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
+python -m backend.main
 ```
 
 Frontend Electron:
@@ -88,7 +88,7 @@ run_frontend.bat
 Rodar API e frontend em terminais separados:
 
 ```powershell
-uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
+python -m backend.main
 ```
 
 ```powershell

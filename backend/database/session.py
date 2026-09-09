@@ -1,26 +1,66 @@
-from pathlib import Path
+from dataclasses import dataclass
+from threading import Lock
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
+from backend.config import RuntimeSettings, get_runtime_settings
 
-BASE_DIR = Path(__file__).resolve().parents[1]
-DATA_DIR = BASE_DIR / "data"
-DATA_DIR.mkdir(exist_ok=True)
-DATABASE_PATH = DATA_DIR / "clinica_api.db"
-DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
 
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    echo=False,
-    future=True,
-)
-SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
 Base = declarative_base()
 
 
-def init_db():
+@dataclass(frozen=True)
+class DatabaseRuntime:
+    engine: object
+    session_factory: object
+
+
+def create_database_runtime(settings: RuntimeSettings) -> DatabaseRuntime:
+    database_url = f"sqlite:///{settings.database_path}"
+    runtime_engine = create_engine(
+        database_url,
+        connect_args={"check_same_thread": False},
+        echo=False,
+        future=True,
+    )
+    runtime_sessions = sessionmaker(
+        bind=runtime_engine,
+        autoflush=False,
+        autocommit=False,
+        future=True,
+    )
+    return DatabaseRuntime(runtime_engine, runtime_sessions)
+
+
+_default_settings = get_runtime_settings()
+_default_runtime = create_database_runtime(_default_settings)
+engine = _default_runtime.engine
+SessionLocal = _default_runtime.session_factory
+DATA_DIR = _default_settings.data_dir
+DATABASE_PATH = _default_settings.database_path
+DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
+_runtime_lock = Lock()
+_active_sessions = 0
+
+
+def configure_database(settings: RuntimeSettings) -> DatabaseRuntime:
+    global engine, SessionLocal, DATA_DIR, DATABASE_PATH, DATABASE_URL
+    with _runtime_lock:
+        if _active_sessions:
+            raise RuntimeError("Nao e possivel reconfigurar o banco com sessoes ativas.")
+        previous_engine = engine
+        runtime = create_database_runtime(settings)
+        engine = runtime.engine
+        SessionLocal = runtime.session_factory
+        DATA_DIR = settings.data_dir
+        DATABASE_PATH = settings.database_path
+        DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
+    previous_engine.dispose()
+    return runtime
+
+
+def init_db(bind=None):
     from backend.models import (  # noqa: F401
         appointment,
         clinical_record,
@@ -31,12 +71,25 @@ def init_db():
         user,
     )
 
-    Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=bind or engine)
 
 
 def get_db():
-    db = SessionLocal()
+    global _active_sessions
+    with _runtime_lock:
+        sessions = SessionLocal
+        _active_sessions += 1
+    try:
+        db = sessions()
+    except Exception:
+        with _runtime_lock:
+            _active_sessions -= 1
+        raise
     try:
         yield db
     finally:
-        db.close()
+        try:
+            db.close()
+        finally:
+            with _runtime_lock:
+                _active_sessions -= 1

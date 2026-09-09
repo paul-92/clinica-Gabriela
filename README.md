@@ -52,8 +52,10 @@ run_desktop.bat
 ## Executar API
 
 ```bash
-uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
+python -m backend.main
 ```
+
+O backend usa `127.0.0.1:8000` por padrao. Para ambientes de teste, os overrides explicitos sao `BACKEND_DATA_DIR`, `BACKEND_DATABASE_PATH`, `BACKEND_HOST`, `BACKEND_PORT` e `BACKEND_RELOAD`.
 
 A documentacao interativa fica em `http://127.0.0.1:8000/docs`.
 

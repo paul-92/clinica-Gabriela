@@ -11,8 +11,9 @@ from backend.utils.security import hash_password
 from app.utils.initial_admin import get_initial_admin_config
 
 
-def seed_database():
-    with SessionLocal() as session:
+def seed_database(session_factory=None):
+    sessions = session_factory or SessionLocal
+    with sessions() as session:
         if not session.query(User).first():
             initial_admin = get_initial_admin_config()
             if initial_admin:
