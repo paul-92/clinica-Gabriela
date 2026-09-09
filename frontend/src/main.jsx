@@ -19,8 +19,7 @@ import {
   UsersRound
 } from "lucide-react";
 import "./styles.css";
-
-const API_BASE = "http://127.0.0.1:8000";
+import { ApiError, apiRequest, authenticate } from "./api.js";
 
 const today = new Date().toISOString().slice(0, 10);
 
@@ -150,21 +149,6 @@ const statusLabels = {
   paid: "Pago"
 };
 
-async function request(path, options = {}, fallbackValue = null) {
-  try {
-    const response = await fetch(`${API_BASE}${path}`, {
-      headers: { "Content-Type": "application/json" },
-      ...options
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-    return await response.json();
-  } catch {
-    return fallbackValue;
-  }
-}
-
 function money(value) {
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
@@ -173,61 +157,88 @@ function money(value) {
 }
 
 function App() {
-  const [user, setUser] = useState(null);
+  const [session, setSession] = useState(null);
   const [activeView, setActiveView] = useState("dashboard");
   const [state, setState] = useState({
-    ...fallback,
+    dashboard: fallback.dashboard,
+    patients: [],
+    psychologists: [],
+    appointments: [],
+    records: [],
+    payments: [],
+    expenses: [],
+    finance: { paid: 0, pending: 0, expenses: 0, balance: 0 },
+    license: null,
     online: false,
     loading: true
   });
 
-  const loadData = async () => {
-    setState((current) => ({ ...current, loading: true }));
-    const [health, license, dashboard, patients, psychologists, appointments, records, payments, expenses, finance] =
-      await Promise.all([
-        request("/health", {}, null),
-        request("/license/status", {}, fallback.license),
-        request("/dashboard/summary", {}, fallback.dashboard),
-        request("/patients", {}, fallback.patients),
-        request("/psychologists", {}, fallback.psychologists),
-        request("/appointments", {}, fallback.appointments),
-        request("/clinical-records", {}, fallback.records),
-        request("/finance/payments", {}, fallback.payments),
-        request("/finance/expenses", {}, fallback.expenses),
-        request("/finance/summary", {}, fallback.finance)
-      ]);
-    setState({
-      license,
-      dashboard,
-      patients,
-      psychologists,
-      appointments,
-      records,
-      payments,
-      expenses,
-      finance,
-      online: Boolean(health),
+  const logout = () => {
+    setSession(null);
+    setActiveView("dashboard");
+    setState((current) => ({
+      ...current,
+      patients: [], psychologists: [], appointments: [], records: [], payments: [], expenses: [],
       loading: false
-    });
+    }));
+  };
+
+  const loadData = async (currentSession = session) => {
+    if (!currentSession) return;
+    setState((current) => ({ ...current, loading: true }));
+    try {
+      const token = currentSession.token;
+      const recordsRequest = currentSession.user.role === "psychologist"
+        ? apiRequest("/clinical-records", { token })
+        : Promise.resolve([]);
+      const [health, license, dashboard, patients, psychologists, appointments, records, payments, expenses, finance] =
+      await Promise.all([
+        apiRequest("/health"),
+        apiRequest("/license/status"),
+        apiRequest("/dashboard/summary", { token }),
+        apiRequest("/patients", { token }),
+        apiRequest("/psychologists", { token }),
+        apiRequest("/appointments", { token }),
+        recordsRequest,
+        apiRequest("/finance/payments", { token }),
+        apiRequest("/finance/expenses", { token }),
+        apiRequest("/finance/summary", { token })
+      ]);
+      setState({ license, dashboard, patients, psychologists, appointments, records, payments, expenses, finance, online: Boolean(health), loading: false });
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) logout();
+      setState((current) => ({ ...current, online: error.status !== null, loading: false }));
+    }
   };
 
   const submit = async (path, payload, method = "POST") => {
-    const result = await request(path, { method, body: JSON.stringify(payload) }, null);
-    await loadData();
-    return result;
+    try {
+      const result = await apiRequest(path, { method, body: JSON.stringify(payload), token: session.token });
+      await loadData();
+      return result;
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) logout();
+      throw error;
+    }
   };
 
   useEffect(() => {
-    loadData();
+    Promise.all([apiRequest("/health"), apiRequest("/license/status")])
+      .then(([health, license]) => setState((current) => ({ ...current, online: Boolean(health), license, loading: false })))
+      .catch(() => setState((current) => ({ ...current, online: false, license: null, loading: false })));
   }, []);
 
-  if (!user) {
-    return <LoginScreen onLogin={setUser} online={state.online} license={state.license} />;
+  useEffect(() => {
+    if (session) loadData(session);
+  }, [session]);
+
+  if (!session) {
+    return <LoginScreen onLogin={setSession} online={state.online} license={state.license} />;
   }
 
   return (
     <div className="appShell">
-      <Sidebar activeView={activeView} setActiveView={setActiveView} user={user} onLogout={() => setUser(null)} />
+      <Sidebar activeView={activeView} setActiveView={setActiveView} user={session.user} onLogout={logout} />
       <main className="workspace">
         <Topbar online={state.online} loading={state.loading} onRefresh={loadData} activeView={activeView} license={state.license} />
         <ViewRouter activeView={activeView} data={state} submit={submit} reload={loadData} />
@@ -237,8 +248,8 @@ function App() {
 }
 
 function LoginScreen({ onLogin, online, license }) {
-  const [username, setUsername] = useState("admin");
-  const [password, setPassword] = useState("admin123");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -250,21 +261,16 @@ function LoginScreen({ onLogin, online, license }) {
     }
     setLoading(true);
     setError("");
-    const result = await request("/auth/login", {
-      method: "POST",
-      body: JSON.stringify({ username, password })
-    });
-    setLoading(false);
-
-    if (result?.authenticated) {
-      onLogin(result.user);
-      return;
+    try {
+      onLogin(await authenticate(username, password));
+      setPassword("");
+    } catch (requestError) {
+      setError(requestError instanceof ApiError && requestError.status === 401
+        ? "Usuario ou senha invalidos."
+        : "Nao foi possivel conectar a API. Verifique se o servidor esta ativo.");
+    } finally {
+      setLoading(false);
     }
-    if (username === "admin" && password === "admin123") {
-      onLogin({ name: "Administrador", username: "admin", role: "admin" });
-      return;
-    }
-    setError("Usuario ou senha invalidos.");
   };
 
   return (
@@ -292,7 +298,7 @@ function LoginScreen({ onLogin, online, license }) {
         </form>
         <div className={online ? "statusPill online" : "statusPill offline"}>
           <Activity size={16} />
-          {online ? "API conectada" : "Modo local"}
+          {online ? "API conectada" : "API indisponivel"}
         </div>
         <LicenseNotice license={license} />
       </section>
@@ -316,6 +322,11 @@ function LicenseNotice({ license }) {
 }
 
 function Sidebar({ activeView, setActiveView, user, onLogout }) {
+  const visibleNavItems = navItems.filter((item) => {
+    if (item.id === "records") return user.role === "psychologist";
+    if (item.id === "settings") return user.role === "admin";
+    return true;
+  });
   return (
     <aside className="sidebar">
       <div className="sidebarBrand">
@@ -328,7 +339,7 @@ function Sidebar({ activeView, setActiveView, user, onLogout }) {
         </div>
       </div>
       <nav className="navList">
-        {navItems.map((item) => {
+        {visibleNavItems.map((item) => {
           const Icon = item.icon;
           return (
             <button
@@ -368,7 +379,7 @@ function Topbar({ online, loading, onRefresh, activeView, license }) {
       <div className="topbarActions">
         <span className={online ? "statusPill online" : "statusPill offline"}>
           <Activity size={16} />
-          {online ? "API online" : "Dados locais"}
+          {online ? "API online" : "API indisponivel"}
         </span>
         <span className={license?.valid ? "statusPill online" : "statusPill offline"}>
           {license?.valid ? `Licenca: ${license.days_left} dias` : "Licenca bloqueada"}

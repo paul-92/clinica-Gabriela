@@ -98,8 +98,17 @@ npm run dev
 
 ## Testes
 
+Backend/Python:
+
 ```powershell
 python -m pytest
+```
+
+Frontend:
+
+```powershell
+cd frontend
+npm test
 ```
 
 ## Lint
