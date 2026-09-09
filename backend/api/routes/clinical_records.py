@@ -4,9 +4,10 @@ from sqlalchemy.orm import Session
 from backend.database.session import get_db
 from backend.schemas.clinical_record import ClinicalRecordCreate, ClinicalRecordRead, ClinicalRecordUpdate
 from backend.services.clinical_record_service import ClinicalRecordService
+from backend.api.dependencies import require_psychologist
 
 
-router = APIRouter(prefix="/clinical-records", tags=["clinical-records"])
+router = APIRouter(prefix="/clinical-records", tags=["clinical-records"], dependencies=[Depends(require_psychologist)])
 
 
 @router.get("", response_model=list[ClinicalRecordRead])

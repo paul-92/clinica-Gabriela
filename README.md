@@ -86,11 +86,17 @@ Para gerar builds Windows:
 build_windows.bat
 ```
 
-## Usuarios de exemplo
+## Primeiro acesso
 
-- `admin` / `admin123`
-- `marilia` / `marilia123`
-- `recepcao` / `recepcao123`
+Em um banco novo, provisione o primeiro administrador apenas no ambiente da primeira execucao:
+
+```powershell
+$env:INITIAL_ADMIN_USERNAME = "administrador"
+$env:INITIAL_ADMIN_PASSWORD = "uma-senha-forte-com-12-ou-mais-caracteres"
+python main.py
+```
+
+As duas variaveis sao obrigatorias em conjunto e a senha deve ter ao menos 12 caracteres. Depois que o usuario for criado, remova as variaveis do ambiente. O mesmo fluxo vale para a primeira inicializacao da API. Bancos existentes nao sao alterados.
 
 ## Banco de dados
 

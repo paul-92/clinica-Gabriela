@@ -4,9 +4,10 @@ from sqlalchemy.orm import Session
 from backend.database.session import get_db
 from backend.schemas.patient import PatientCreate, PatientRead, PatientUpdate
 from backend.services.patient_service import PatientService
+from backend.api.routes.auth import get_current_user
 
 
-router = APIRouter(prefix="/patients", tags=["patients"])
+router = APIRouter(prefix="/patients", tags=["patients"], dependencies=[Depends(get_current_user)])
 
 
 @router.get("", response_model=list[PatientRead])

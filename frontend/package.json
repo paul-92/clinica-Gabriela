@@ -2,9 +2,11 @@
   "name": "clinica-psicologia-electron",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "Frontend Electron + React para clinica de psicologia.",
   "main": "electron/main.cjs",
   "scripts": {
+    "test": "node --test --test-isolation=none",
     "dev": "concurrently \"vite --host 127.0.0.1 --port 5173\" \"wait-on http://127.0.0.1:5173 && electron .\"",
     "build": "vite build",
     "dist": "npm run build && electron-builder --win --x64",

@@ -4,9 +4,10 @@ from sqlalchemy.orm import Session
 from backend.database.session import get_db
 from backend.schemas.psychologist import PsychologistCreate, PsychologistRead, PsychologistUpdate
 from backend.services.psychologist_service import PsychologistService
+from backend.api.routes.auth import get_current_user
 
 
-router = APIRouter(prefix="/psychologists", tags=["psychologists"])
+router = APIRouter(prefix="/psychologists", tags=["psychologists"], dependencies=[Depends(get_current_user)])
 
 
 @router.get("", response_model=list[PsychologistRead])

@@ -39,11 +39,7 @@ Subtitulo:
 Psicologa - CRP 11/20433 | Desenvolvimento Infantil
 ```
 
-Usuario de exemplo:
-
-```text
-marilia / marilia123
-```
+O acesso deve usar um usuario provisionado localmente; nenhuma credencial de exemplo acompanha o tema.
 
 ## Arquivos alterados
 
