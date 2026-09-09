@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { ApiError, apiRequest, authenticate } from "../src/api.js";
+import { clearFrontendSession } from "../src/session.js";
 
 function jsonResponse(body, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -60,4 +61,23 @@ test("credenciais rejeitadas nao criam sessao", async () => {
     assert.equal(error.status, 401);
     return true;
   });
+});
+
+test("logout descarta token e limpa dados da sessao", () => {
+  let session = { token: "jwt", user: { role: "psychologist" } };
+  let activeView = "records";
+  let state = {
+    patients: [1], psychologists: [1], appointments: [1], records: [1],
+    payments: [1], expenses: [1], dashboard: { active_patients: 1 }, loading: true
+  };
+  clearFrontendSession(
+    (value) => { session = value; },
+    (value) => { activeView = value; },
+    (updater) => { state = updater(state); }
+  );
+  assert.equal(session, null);
+  assert.equal(activeView, "dashboard");
+  assert.deepEqual(state.records, []);
+  assert.deepEqual(state.patients, []);
+  assert.equal(state.loading, false);
 });

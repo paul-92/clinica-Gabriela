@@ -8,34 +8,25 @@ from app.models.psychologist import Psychologist
 from app.models.settings import ClinicSettings
 from app.models.user import User, UserRole
 from app.utils.security import hash_password
+from app.utils.initial_admin import get_initial_admin_config
 
 
 def seed_database():
     with get_session() as session:
-        if session.query(User).first():
-            return
+        if not session.query(User).first():
+            initial_admin = get_initial_admin_config()
+            if initial_admin:
+                session.add(User(
+                    name=initial_admin["name"],
+                    username=initial_admin["username"],
+                    password_hash=hash_password(initial_admin["password"]),
+                    role=UserRole.ADMIN.value,
+                    active=True,
+                ))
 
-        admin = User(
-            name="Administrador",
-            username="admin",
-            password_hash=hash_password("admin123"),
-            role=UserRole.ADMIN.value,
-            active=True,
-        )
-        receptionist = User(
-            name="Recepcao",
-            username="recepcao",
-            password_hash=hash_password("recepcao123"),
-            role=UserRole.RECEPTION.value,
-            active=True,
-        )
-        psy_user = User(
-            name="Marilia Gabriela Gaspar",
-            username="marilia",
-            password_hash=hash_password("marilia123"),
-            role=UserRole.PSYCHOLOGIST.value,
-            active=True,
-        )
+        if session.query(Patient).first():
+            session.commit()
+            return
 
         psychologist = Psychologist(
             full_name="Marilia Gabriela Gaspar",
@@ -57,7 +48,7 @@ def seed_database():
             active=True,
         )
 
-        session.add_all([admin, receptionist, psy_user, psychologist, patient])
+        session.add_all([psychologist, patient])
         session.flush()
 
         appointment = Appointment(

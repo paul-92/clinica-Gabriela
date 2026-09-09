@@ -17,7 +17,7 @@ from backend.utils.tokens import create_access_token
 TEST_SECRET = "segredo-de-teste-de-autenticacao-com-32-bytes"
 
 
-def build_client():
+def build_client(active=True, role="psychologist"):
     engine = create_engine(
         "sqlite://",
         connect_args={"check_same_thread": False},
@@ -42,8 +42,8 @@ def build_client():
         name="Usuario Teste",
         username="teste",
         password_hash=hash_password("senha123"),
-        role="psychologist",
-        active=True,
+        role=role,
+        active=active,
     )
 
     db.add(user)
@@ -100,6 +100,22 @@ def test_login_rejects_invalid_password(monkeypatch):
         },
     )
 
+    assert response.status_code == 401
+
+
+def test_login_rejects_unknown_user(monkeypatch):
+    monkeypatch.setenv("AUTH_SECRET", TEST_SECRET)
+    response = build_client().post(
+        "/auth/login", json={"username": "inexistente", "password": "senha123"}
+    )
+    assert response.status_code == 401
+
+
+def test_login_rejects_inactive_user(monkeypatch):
+    monkeypatch.setenv("AUTH_SECRET", TEST_SECRET)
+    response = build_client(active=False).post(
+        "/auth/login", json={"username": "teste", "password": "senha123"}
+    )
     assert response.status_code == 401
 
 

@@ -1558,11 +1558,14 @@ Teste manual do sistema:
 run_all.bat
 ```
 
-Login de exemplo:
+Primeiro acesso em banco novo:
 
-```text
-admin / admin123
+```powershell
+$env:INITIAL_ADMIN_USERNAME = "administrador"
+$env:INITIAL_ADMIN_PASSWORD = "uma-senha-forte-com-12-ou-mais-caracteres"
 ```
+
+As credenciais iniciais devem existir apenas no ambiente da primeira execucao e ser removidas depois do provisionamento.
 
 ## 24. Erros comuns
 

@@ -134,3 +134,22 @@ def test_psychologist_cannot_access_settings():
         response = client.get("/settings")
 
     assert response.status_code == 403
+
+
+def test_admin_can_access_settings(monkeypatch):
+    monkeypatch.setattr(
+        settings.SettingsService,
+        "get_settings",
+        lambda self: {
+            "id": 1,
+            "clinic_name": "Clinica Teste",
+            "phone": "",
+            "email": "",
+            "address": "",
+            "default_session_value": 0,
+        },
+    )
+    app = build_app(make_user("admin"))
+    with TestClient(app) as client:
+        response = client.get("/settings")
+    assert response.status_code == 200

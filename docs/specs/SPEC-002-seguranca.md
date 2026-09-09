@@ -1,6 +1,6 @@
 # SPEC-002 — Autenticação e Autorização Seguras
 
-Status: READY FOR IMPLEMENTATION. Prioridade: P0.
+Status: IMPLEMENTED. Prioridade: P0.
 Branch proposta: feature/spec-002-auth-security.
 Dependência: SPEC-001.
 
@@ -57,3 +57,10 @@ Agenda, financeiro, backup, layout, migração de banco e reformulação do lice
 ## Definition of Done
 Todos os gates aprovados, evidências registradas, documentação atualizada e revisão de segredos.
 Não fazer commit/push/merge sem autorização explícita.
+
+## Checkpoint de implementação
+- Backend com JWT, autenticação obrigatória e autorização por papel.
+- Electron sem fallback de autenticação, com Bearer e limpeza verificável no logout.
+- Desktop restringe prontuário a psychologist e configurações a admin.
+- Primeiro admin provisionado por ambiente, sem senha operacional fixa versionada.
+- Testes Python/frontend, build e verificação de whitespace aprovados.

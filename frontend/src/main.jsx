@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import "./styles.css";
 import { ApiError, apiRequest, authenticate } from "./api.js";
+import { clearFrontendSession } from "./session.js";
 
 const today = new Date().toISOString().slice(0, 10);
 
@@ -174,13 +175,7 @@ function App() {
   });
 
   const logout = () => {
-    setSession(null);
-    setActiveView("dashboard");
-    setState((current) => ({
-      ...current,
-      patients: [], psychologists: [], appointments: [], records: [], payments: [], expenses: [],
-      loading: false
-    }));
+    clearFrontendSession(setSession, setActiveView, setState);
   };
 
   const loadData = async (currentSession = session) => {

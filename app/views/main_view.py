@@ -12,6 +12,17 @@ from app.views.pages import (
 )
 
 
+ROLE_MODULES = {
+    "admin": {"settings"},
+    "psychologist": {"clinical_records"},
+    "reception": set(),
+}
+
+
+def can_access_module(role, module):
+    return module in ROLE_MODULES.get(role, set())
+
+
 class MainView(AppWindow):
     def __init__(self, user):
         super().__init__("Marilia Gabriela Gaspar")
@@ -32,10 +43,12 @@ class MainView(AppWindow):
             ("Pacientes", PatientsPage(notebook)),
             ("Psicologos", PlaceholderPage(notebook, "Cadastro de psicologos")),
             ("Agenda", AgendaPage(notebook)),
-            ("Prontuario", PlaceholderPage(notebook, "Prontuario e evolucao clinica")),
             ("Financeiro", FinancePage(notebook)),
             ("Relatorios", ReportsPage(notebook)),
-            ("Configuracoes", SettingsPage(notebook)),
         ]
+        if can_access_module(self.user.role, "clinical_records"):
+            pages.insert(4, ("Prontuario", PlaceholderPage(notebook, "Prontuario e evolucao clinica")))
+        if can_access_module(self.user.role, "settings"):
+            pages.append(("Configuracoes", SettingsPage(notebook)))
         for title, page in pages:
             notebook.add(page, text=title)
