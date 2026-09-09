@@ -8,4 +8,4 @@ if (-not (Test-Path $Python)) {
 }
 
 Set-Location $Root
-& $Python -m backend.main
+& $Python -m backend.supervisor run

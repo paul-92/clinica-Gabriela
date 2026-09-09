@@ -60,7 +60,7 @@ run_desktop.bat
 API:
 
 ```powershell
-python -m backend.main
+python -m backend.supervisor run
 ```
 
 Frontend Electron:
@@ -88,7 +88,15 @@ run_frontend.bat
 Rodar API e frontend em terminais separados:
 
 ```powershell
-python -m backend.main
+python -m backend.supervisor run
+```
+
+O supervisor aguarda `GET /health` com timeout antes de confirmar a inicializacao e
+encerra somente o processo backend que ele proprio criou. Para apenas aguardar uma
+API iniciada por outro fluxo:
+
+```powershell
+python -m backend.supervisor wait
 ```
 
 ```powershell
