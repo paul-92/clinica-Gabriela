@@ -173,6 +173,12 @@ Analise read-only e privacy-safe de identidade entre os bancos:
 python scripts/sqlite_identity_analysis.py
 ```
 
+Auditoria read-only de integridade referencial dos bancos:
+
+```powershell
+python scripts/sqlite_integrity_audit.py
+```
+
 Licenca de teste:
 
 ```bat
