@@ -24,10 +24,17 @@ def can_access_module(role, module):
 
 
 class MainView(AppWindow):
-    def __init__(self, user):
+    def __init__(self, user, desktop_session=None):
         super().__init__("Marilia Gabriela Gaspar")
         self.user = user
+        self.desktop_session = desktop_session
+        self.protocol("WM_DELETE_WINDOW", self._close_session)
         self._build()
+
+    def _close_session(self):
+        if self.desktop_session is not None:
+            self.desktop_session.clear()
+        self.destroy()
 
     def _build(self):
         header = ttk.Frame(self, padding=(16, 12))
