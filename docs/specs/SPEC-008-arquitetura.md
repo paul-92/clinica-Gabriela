@@ -873,3 +873,287 @@ migração depende de aprovação explícita dos seguintes artefatos futuros:
 - workflow de revisão clínica e financeira;
 - formato e retenção do mapa de IDs/proveniência;
 - plano de backup, rollback, validação e cutover.
+
+## 53. Plano de remapeamento de identidades e FKs
+
+### 53.1 Escopo
+
+Este plano define a representação e os gates do remapeamento futuro. Não cria mapa
+concreto, não contém IDs reais, não abre os bancos de origem e não autoriza escrita
+ou migração. A implementação deverá ser precedida pela aprovação dos artefatos
+listados na seção 52.12.
+
+### 53.2 Registro conceitual do mapa
+
+Cada registro de origem deverá possuir exatamente uma entrada lógica no mapa:
+
+| Campo | Finalidade |
+|---|---|
+| `source_database` | Origem controlada: `desktop_legacy` ou `backend_legacy` |
+| `source_table` | Tabela na origem |
+| `source_id` | PK histórica, mantida apenas no artefato protegido de migração |
+| `canonical_table` | Tabela de destino aprovada |
+| `canonical_id` | Novo ID; ausente enquanto REVIEW/BLOCK não estiver resolvido |
+| `match_status` | Estado da análise de identidade |
+| `match_confidence` | Confiança da evidência de identidade |
+| `pk_relation_status` | Relação entre a PK local e a PK da outra origem, em eixo separado |
+| `decision_class` | `AUTO`, `REVIEW` ou `BLOCK` |
+| `decision_status` | `pending`, `approved` ou `rejected` |
+| `canonical_group_ref` | Referência opaca e temporária ao candidato canônico, sem PII |
+| `provenance` | Regra, versão, evidências e decisão que produziram o mapeamento |
+
+A chave única do mapa será
+`(source_database, source_table, source_id)`. `source_id` e `canonical_id` são dados
+operacionais protegidos do processo e não poderão aparecer em relatórios públicos
+ou de diagnóstico.
+
+O mapa deverá ser versionado por execução de migração, imutável após aprovação e
+reproduzível a partir dos mesmos snapshots e regras. Alteração de decisão gera nova
+versão; não reescreve silenciosamente a evidência anterior.
+
+### 53.3 Estados de identidade, confiança e PK
+
+`match_status` descreve identidade, não igualdade numérica:
+
+- `equivalent`: evidência aprovada de que registros representam a mesma entidade;
+- `exclusive`: registro encontrado em somente uma origem, preservado como entidade
+  própria;
+- `conflicting_identity`: evidências de identidade se contradizem;
+- `ambiguous`: existem múltiplos candidatos plausíveis ou evidência insuficiente
+  para decisão unívoca;
+- `unresolved`: análise ou decisão ainda não concluída.
+
+`match_confidence` possui os valores:
+
+- `high`: chave natural única e válida ou decisão humana expressa;
+- `medium`: composição relacional forte, mas ainda heurística;
+- `low`: evidência parcial, fraca ou sujeita a colisão;
+- `none`: não há evidência utilizável.
+
+Como colisão de PK é ortogonal à identidade, `pk_relation_status` possui:
+
+- `not_compared`: relação numérica ainda não avaliada;
+- `same_pk_same_identity`: mesma PK numérica e identidade equivalente;
+- `same_pk_different_identity`: mesma PK numérica ocupada por identidades
+  diferentes;
+- `different_pk_same_identity`: identidade equivalente sob PKs diferentes;
+- `different_pk_different_identity`: PKs e identidades diferentes;
+- `no_counterpart`: não há registro correspondente na outra origem.
+
+Assim, uma entrada pode ser `match_status=equivalent` e
+`pk_relation_status=different_pk_same_identity`, enquanto outra colisão é registrada
+como `same_pk_different_identity`. Uma condição não será confundida com a outra.
+
+### 53.4 Classes de decisão aplicadas ao mapa
+
+- **AUTO:** pode receber `canonical_id` quando a regra determinística, as
+  cardinalidades e todas as dependências estiverem válidas;
+- **REVIEW:** mantém `canonical_id` pendente até decisão humana aprovada. Após a
+  aprovação, a decisão e a evidência são registradas na provenance;
+- **BLOCK:** não recebe remapeamento definitivo e impede escrita da entidade e de
+  todos os dependentes afetados.
+
+Rejeitar um candidato de equivalência não significa descartar registros. Salvo
+decisão explícita em contrário, cada origem passa a ser preservada como registro
+distinto com seu próprio ID canônico.
+
+### 53.5 Grafo real e ordem de processamento
+
+O grafo foi derivado das FKs declaradas:
+
+```text
+patients ───────┬─> appointments ──> payments
+                ├─> clinical_records
+                └──────────────────> payments
+
+psychologists ──┬─> appointments
+                └─> clinical_records
+
+users             (independente do grafo de FK)
+clinic_settings   (independente; depende de REVIEW funcional)
+expenses          (independente do grafo de FK)
+```
+
+Ordem segura por fases:
+
+1. **Preparação:** schema canônico, snapshots, regras, espaço de IDs e versão do
+   mapa, sem escrita de registros canônicos;
+2. **raízes do grafo:** `patients` e `psychologists`;
+3. **independentes:** `users`, `clinic_settings` e `expenses`; podem ser analisados
+   em paralelo às raízes, mas seus REVIEW/BLOCK permanecem ativos;
+4. **dependentes de primeiro nível:** `appointments` e `clinical_records`, somente
+   após mapas unívocos de pacientes e psicólogos;
+5. **dependente de segundo nível:** `payments`, somente após mapas de pacientes e
+   appointments;
+6. **validação global:** cardinalidades, contagens, unicidade, FKs, órfãos,
+   `foreign_key_check` e aprovação.
+
+`clinical_records` não depende de `appointments` no schema atual; portanto não deve
+ser artificialmente serializado depois de appointments. `clinic_settings` não tem
+FK, mas sua decisão humana é gate funcional do cutover.
+
+### 53.6 Política por tipo de caso
+
+#### Entidade equivalente
+
+- cada entrada de origem é preservada no mapa;
+- ambas apontam para o mesmo `canonical_table + canonical_id`;
+- a cardinalidade esperada é N origens para 1 entidade canônica, normalmente 2:1
+  nesta consolidação;
+- a convergência somente é definitiva após resolver as divergências de campos;
+- REVIEW ou BLOCK pendente mantém `canonical_id` não gravável.
+
+#### Registro exclusivo
+
+- recebe ID canônico próprio;
+- mantém `match_status=exclusive`, `pk_relation_status=no_counterpart` e
+  provenance da origem;
+- não é descartado nem fundido por ausência na outra base;
+- a cardinalidade esperada é 1:1 entre origem e entidade canônica.
+
+#### Colisão de PK
+
+- `same_pk_different_identity` exige IDs canônicos distintos;
+- igualdade numérica nunca participa da escolha do pai canônico;
+- cada origem mantém entrada e provenance próprias;
+- qualquer FK é resolvida usando também `source_database` e `source_table`;
+- colisão sem separação e mapa completos é BLOCK.
+
+#### Mesma identidade com IDs diferentes
+
+- `match_status=equivalent` e `pk_relation_status=different_pk_same_identity`;
+- ambas as entradas convergem para o mesmo ID canônico após aprovação;
+- dependentes de cada banco consultam o mapa dentro da respectiva origem e passam
+  a apontar para esse mesmo pai canônico;
+- a PK histórica de nenhuma origem é preferida.
+
+#### Ambiguidade ou conflito de identidade
+
+- não gera `canonical_id` definitivo;
+- recebe REVIEW quando houver evidência que uma pessoa autorizada possa resolver;
+- recebe BLOCK quando a decisão for necessária para uma FK, deduplicação, valor
+  clínico/financeiro ou cutover;
+- nenhuma escrita destrutiva, inferência por proximidade ou descarte é permitido;
+- preservar separadamente é a alternativa segura, mas também deve ser decisão
+  explícita quando puder criar duplicidade funcional ou financeira.
+
+### 53.7 Regra de lookup e remapeamento de FKs
+
+Para cada FK não-NULL, o lookup obrigatório será:
+
+```text
+(source_database da linha filha, tabela pai, valor histórico da FK)
+→ exatamente uma entrada aprovada no mapa da tabela pai
+→ canonical_id do pai
+```
+
+É proibido procurar o pai somente pelo número da FK ou cruzar diretamente a FK de
+uma origem com a PK da outra. As regras por relação são:
+
+| FK de origem | Pré-requisito | Valor no canônico | Gate |
+|---|---|---|---|
+| `appointments.patient_id` | mapa aprovado de `patients` na mesma origem | `canonical patients.id` | Sem um único pai: BLOCK |
+| `appointments.psychologist_id` | mapa aprovado de `psychologists` na mesma origem | `canonical psychologists.id` | Sem um único pai: BLOCK |
+| `clinical_records.patient_id` | mapa aprovado de `patients` na mesma origem | `canonical patients.id` | Sem um único pai: BLOCK |
+| `clinical_records.psychologist_id` | mapa aprovado de `psychologists` na mesma origem | `canonical psychologists.id` | Sem um único pai: BLOCK |
+| `payments.patient_id` | mapa aprovado de `patients` na mesma origem | `canonical patients.id` | Sem um único pai: BLOCK |
+| `payments.appointment_id` | NULL histórico ou mapa aprovado de `appointments` na mesma origem | NULL ou `canonical appointments.id` | Não-NULL sem um único pai: BLOCK |
+
+Se dois pais históricos forem equivalentes, seus dois lookups distintos resolvem
+para o mesmo ID canônico. Se houver colisão de PK, a inclusão de `source_database`
+no lookup impede que os filhos sejam ligados à identidade errada.
+
+### 53.8 Regra especial de `payments.appointment_id`
+
+- NULL histórico é copiado como NULL e não cria entrada de lookup;
+- é proibido inferir appointment por paciente, data, valor ou proximidade;
+- não-NULL exige exatamente uma entrada aprovada do appointment da mesma origem;
+- lookup ausente, múltiplo, REVIEW pendente ou BLOCK impede escrever o pagamento;
+- a ambiguidade do matching de `payments` não altera o mapa do appointment pai;
+- pagamentos não serão deduplicados automaticamente, ainda que outros atributos
+  coincidam.
+
+### 53.9 Verificações de cardinalidade e completude
+
+O mapa somente estará completo quando todas as condições abaixo forem verdadeiras:
+
+- cada registro de cada snapshot de origem possui exatamente uma entrada pela chave
+  única `(source_database, source_table, source_id)`;
+- nenhuma entrada de origem aponta para mais de um ID canônico;
+- todo AUTO está resolvido e todo REVIEW necessário está aprovado;
+- não existe BLOCK aberto;
+- todo `canonical_id` pertence à `canonical_table` declarada;
+- grupo equivalente possui um único ID canônico e ao menos duas entradas de origem
+  aprovadas, sem candidato incompatível no mesmo grupo;
+- registro exclusivo possui exatamente um ID canônico e uma entrada de origem;
+- entradas `same_pk_different_identity` apontam para IDs canônicos distintos;
+- entradas `different_pk_same_identity` aprovadas apontam para o mesmo ID canônico;
+- toda FK obrigatória resolve para exatamente um pai canônico;
+- toda FK opcional não-NULL resolve para exatamente um pai canônico;
+- NULL opcional permanece NULL e não é contado como mapa ausente;
+- nenhum registro de origem foi perdido e nenhuma linha canônica existe sem
+  provenance;
+- contagens são reconciliáveis por fonte, tabela, status e grupo canônico;
+- a redução de contagem causada por equivalência é exatamente explicada pelos
+  grupos N:1 aprovados;
+- a expansão causada por preservação de colisões/exclusivos é exatamente explicada
+  pelas entradas 1:1;
+- somas por `equivalent`, `exclusive`, `conflicting_identity`, `ambiguous` e
+  `unresolved` correspondem ao total de entradas de origem de cada tabela.
+
+### 53.10 Invariantes antes de qualquer escrita canônica
+
+Antes do primeiro INSERT no futuro banco canônico, deverão valer:
+
+1. os dois originais estão preservados em snapshots verificáveis e read-only;
+2. schema canônico e mecanismo único de migrations estão aprovados;
+3. versão das regras e normalizações está congelada para a execução;
+4. espaço de IDs canônicos está reservado sem reutilizar PK histórica por
+   conveniência;
+5. mapa completo de todas as raízes necessárias à fase de escrita está aprovado;
+6. não há REVIEW pendente nem BLOCK na entidade ou em seus ancestrais;
+7. todas as divergências de campos possuem decisão reproduzível;
+8. credenciais, dados clínicos, financeiros e configuração possuem políticas
+   aprovadas;
+9. simulação/dry-run reconcilia todas as contagens e cardinalidades;
+10. toda FK não-NULL possui exatamente um destino canônico calculado;
+11. nenhuma regra depende apenas de igualdade de PK, row count ou `created_at`;
+12. logs e relatórios da migração não expõem PII, dados clínicos, credenciais ou
+    IDs históricos fora do artefato protegido;
+13. plano de rollback e critérios de abortar a transação estão aprovados.
+
+As invariantes devem ser reavaliadas ao fim de cada fase. Falha aborta a execução e
+impede banco parcialmente aprovado de receber cutover.
+
+### 53.11 Provenance
+
+`provenance` deverá ser metadata técnica sem PII e conter, conceitualmente:
+
+- origem controlada, tabela e referência interna protegida ao ID histórico;
+- versão do snapshot e da execução;
+- versão da regra de matching e normalização;
+- status e confiança da identidade;
+- estado ortogonal de PK;
+- classe, estado, motivo categórico e referência opaca da decisão;
+- campos cuja resolução foi AUTO ou REVIEW, sem copiar seus valores para a
+  metadata;
+- referência ao grupo canônico e ao evento de criação do ID canônico;
+- resultados agregados das validações aplicáveis.
+
+Dados pessoais, clínicos, credenciais, hashes de senha e valores usados no matching
+não pertencem à provenance. Acesso ao mapa concreto deverá ser restrito, auditado e
+limitado ao período de migração e retenção aprovado.
+
+### 53.12 Riscos e decisões ainda abertas
+
+Permanecem abertos:
+
+- formato físico, criptografia, controle de acesso e retenção do mapa concreto;
+- algoritmo de alocação dos IDs canônicos e garantia de reprodutibilidade;
+- regras campo a campo e política de credenciais;
+- interface e segregação de função para REVIEW clínico e financeiro;
+- tratamento aprovado dos pagamentos ambíguos e de `clinic_settings`;
+- schema canônico, transação por fase e comportamento de rollback;
+- validação do enforcement de FKs no runtime canônico;
+- formato do relatório de reconciliação sem exposição de IDs históricos;
+- critérios de homologação e autoridade responsável pela aprovação do cutover.
