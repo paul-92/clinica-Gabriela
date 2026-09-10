@@ -167,6 +167,12 @@ Inventario read-only dos bancos desktop e backend:
 python scripts/sqlite_inventory.py
 ```
 
+Analise read-only e privacy-safe de identidade entre os bancos:
+
+```powershell
+python scripts/sqlite_identity_analysis.py
+```
+
 Licenca de teste:
 
 ```bat
