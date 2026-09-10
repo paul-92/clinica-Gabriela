@@ -1157,3 +1157,410 @@ Permanecem abertos:
 - validação do enforcement de FKs no runtime canônico;
 - formato do relatório de reconciliação sem exposição de IDs históricos;
 - critérios de homologação e autoridade responsável pela aprovação do cutover.
+
+## 54. Plano operacional da migração canônica
+
+### 54.1 Escopo e princípio de execução
+
+Este plano descreve o processo futuro de migração. Não autoriza executar o processo,
+criar o banco canônico, abrir os bancos reais, gerar mapas concretos ou alterar o
+runtime. A execução deverá ser offline, reproduzível, não destrutiva para as origens
+e interrompida diante de qualquer gate não satisfeito.
+
+Princípios:
+
+- os bancos originais nunca serão destino de escrita;
+- o canônico será criado como terceiro arquivo temporário e versionado;
+- descoberta, decisões, mapa e schema serão congelados antes da carga;
+- nenhuma linha será gravada sem decisão e dependências aprovadas;
+- banco incompleto nunca será configurado como operacional;
+- cutover e rollback serão mudanças controladas de configuração, não substituição
+  dos arquivos históricos.
+
+### 54.2 Fases, entradas, saídas e gates
+
+| Fase | Nome | Entradas | Saídas | Gate de conclusão |
+|---|---|---|---|---|
+| 0 | Preconditions | versão do aplicativo, políticas das seções 52/53, responsáveis e ambiente | checklist assinado e janela autorizada | todos os pré-requisitos válidos |
+| 1 | Snapshot e backup | dois bancos quiescidos | snapshots imutáveis, manifest e teste de restauração | checksums, integridade e restauração aprovados |
+| 2 | Freeze de reconciliação | snapshots, schema, regras e decisões humanas | pacote de versões congeladas | nenhum BLOCK e responsáveis aprovam o freeze |
+| 3 | Dry-run | pacote congelado e snapshots read-only | mapa draft/reviewed e relatório agregado de previsão | mapa completo, contagens explicáveis e zero BLOCK |
+| 4 | Criação do canônico temporário | schema e migrations aprovadas | terceiro SQLite vazio e validado | schema/PRAGMAs idênticos ao contrato aprovado |
+| 5 | Reserva de IDs e carga de raízes/independentes | mapa approved | `patients`, `psychologists`, `users`, `clinic_settings`, `expenses` em transação aberta | contagens, decisões e unicidade válidas |
+| 6 | Carga de dependentes | pais carregados e mapas aprovados | `appointments`, `clinical_records`, `payments` na mesma transação | toda FK resolvida e regras conservadoras aplicadas |
+| 7 | Validação referencial | canônico ainda não publicado | relatório de FKs e integridade | zero órfãos e `foreign_key_check=0` |
+| 8 | Validação de conteúdo e contagens | canônico carregado e manifests | relatório de reconciliação completo | toda diferença explicada, zero perda não autorizada |
+| 9 | Homologação | arquivo canônico candidato e relatórios | aceite ou rejeição formal | checklist funcional e técnico aprovado |
+| 10 | Cutover | candidato homologado, manutenção ativa e rollback pronto | configuração aponta ao canônico versionado | startup e smoke test read-only aprovados |
+| 11 | Pós-cutover | runtime canônico controlado | monitoramento, backup inicial e aceite de estabilidade | critérios de sucesso sustentados na janela definida |
+
+Cada fase registra início, fim, versão das entradas, resultado e responsável. Uma
+fase não pode consumir saída não aprovada da anterior.
+
+### 54.3 Fase 0 — Pré-condições
+
+Antes de iniciar:
+
+- commit, build, versão do migrador futuro e ambiente devem ser conhecidos;
+- schema canônico e migrations exclusivas do banco novo devem estar aprovados;
+- políticas de consolidação, IDs, campos, credenciais, clínica, financeiro e
+  `clinic_settings` devem estar congeladas;
+- responsáveis por REVIEW, homologação, cutover e rollback devem estar disponíveis;
+- deve existir estimativa de espaço para originais, snapshots, temporários,
+  artefatos e margem operacional;
+- aplicação e processos auxiliares devem poder entrar em manutenção, sem writers;
+- estratégia de lock/quiescência deve estar testada;
+- diretório temporário e destino final devem ter permissões e espaço validados;
+- plano de backup, restauração, aborto e rollback deve estar aprovado;
+- relógio, identificador da execução e política de logs devem estar definidos;
+- nenhum BLOCK das seções 52 e 53 pode estar aberto para a execução real.
+
+Falha em qualquer item impede a Fase 1.
+
+### 54.4 Fase 1 — Snapshots e backups
+
+Os arquivos `data/clinica_psicologia.db` e `backend/data/clinica_api.db` deverão ser
+quiescidos antes do snapshot. O método futuro será um destes, previamente testado:
+
+- cópia de arquivo somente com todas as conexões encerradas e locks confirmados; ou
+- SQLite Backup API a partir de conexão consistente, seguida de encerramento dos
+  writers durante a janela crítica.
+
+Para cada origem, o snapshot manifest registra sem PII:
+
+- papel da origem, nome versionado e identificador da execução;
+- caminho protegido do snapshot;
+- tamanho, timestamps técnicos e checksum criptográfico;
+- versão SQLite, `user_version`, schema fingerprint e contagens agregadas;
+- resultados de `integrity_check` e `foreign_key_check`;
+- método, início/fim e confirmação de quiescência.
+
+O snapshot será armazenado fora da pasta de instalação, com acesso restrito e
+retenção aprovada. Sua validade exige checksum estável, abertura read-only,
+integridade SQLite, contagens esperadas e restauração ensaiada em local isolado. A
+execução nunca usa os arquivos operacionais diretamente depois que snapshots
+válidos forem congelados.
+
+### 54.5 Fase 2 — Freeze e versionamento
+
+O pacote congelado vincula de forma imutável:
+
+- checksums e versões dos dois snapshots;
+- versão do schema e sequência de migrations canônicas;
+- versão do inventário, matching, normalizações e regras campo a campo;
+- versão do plano e do algoritmo de IDs;
+- todas as decisões REVIEW, com referências opacas de aprovação;
+- resolução de BLOCKs e respectivas evidências;
+- política de credenciais de `users`;
+- configuração final de `clinic_settings`;
+- decisões clínicas e financeiras;
+- versão e checksum do mapa aprovado quando este existir.
+
+Qualquer mudança em snapshot, regra, schema ou decisão invalida o freeze, gera nova
+versão e obriga novo dry-run. Não se altera pacote aprovado em lugar.
+
+### 54.6 Fase 3 — Dry-run obrigatório
+
+O dry-run lê somente os snapshots, não cria banco operacional e não altera origens.
+Pode usar armazenamento temporário isolado para cálculo, descartável ao final, mas
+seus relatórios públicos serão apenas estruturais e agregados.
+
+Deve simular:
+
+- matching, grupos equivalentes, exclusivos, colisões e ambiguidades;
+- aplicação de decisões AUTO/REVIEW/BLOCK;
+- reserva de IDs sem reutilização;
+- cardinalidades e completude do mapa;
+- lookup de todos os pais e remapeamento de cada FK;
+- regras campo a campo, credenciais e singleton de configuração;
+- previsão de linhas canônicas por tabela;
+- reduções N:1 por equivalência e preservações 1:1;
+- NULLs opcionais, especialmente `payments.appointment_id`;
+- contagens por origem, destino, status e motivo de diferença;
+- invariantes da seção 53.10 e condições de aborto.
+
+Saídas: remap manifest em estado `draft`/`reviewed`, relatório agregado de validação,
+fila de REVIEW e lista de BLOCKs. A execução real só pode ser autorizada depois de
+novo dry-run sobre o pacote final produzir mapa completo, zero REVIEW pendente,
+zero BLOCK, todas as FKs resolvíveis e contagens integralmente explicáveis.
+
+### 54.7 Ciclo de vida do mapa de IDs
+
+Estados do remap manifest:
+
+1. `draft`: gerado deterministicamente a partir dos snapshots e regras congeladas;
+2. `reviewed`: decisões humanas registradas, ainda sujeito à validação global;
+3. `approved`: checksum fechado, cardinalidades válidas e zero BLOCK;
+4. `reserved`: IDs canônicos reservados de forma única antes da carga;
+5. `consumed`: cada entrada usada exatamente conforme a carga concluída;
+6. `verified`: destino e provenance conferidos após commit;
+7. `superseded`: versão substituída sem apagar o histórico.
+
+`canonical_id` é reservado após `approved`, torna-se utilizável somente em
+`reserved` e definitivo apenas quando a carga for commitada e o mapa estiver
+`verified`. IDs reservados não serão reutilizados na mesma execução após falha. Uma
+entrada de origem não pode pertencer a dois grupos; um grupo equivalente não pode
+receber dois IDs; lookup ausente ou múltiplo de pai é BLOCK. Todo estado e transição
+participa do checksum e da versão do manifest.
+
+### 54.8 Fase 4 — Criação planejada do terceiro banco
+
+O futuro arquivo será criado em diretório temporário restrito, no mesmo volume do
+destino final quando isso for necessário para promoção atômica. Terá nome versionado
+e nunca usará os nomes dos bancos históricos.
+
+Processo planejado:
+
+1. criar arquivo temporário novo e confirmar que o destino não existia;
+2. executar somente a sequência de migrations canônicas aprovada;
+3. abrir todas as conexões de carga com `PRAGMA foreign_keys=ON`;
+4. fixar timeout, `synchronous` e journal mode conforme perfil congelado;
+5. para migração offline de arquivo único, preferir journal mode sem sidecars
+   pendentes na promoção; WAL somente se aprovado com checkpoint/verificação;
+6. validar tabelas, colunas, constraints, índices e versão de migrations;
+7. confirmar banco vazio, `integrity_check` válido e permissões restritas.
+
+O schema pode ser commitado no arquivo temporário antes da carga porque esse arquivo
+não é operacional. Falha descarta de forma controlada apenas o temporário, preserva
+manifests e evidências e nunca toca os originais.
+
+### 54.9 Fases 5 e 6 — Ordem de carga e regras críticas
+
+A carga segue o grafo aprovado:
+
+1. `patients` e `psychologists`;
+2. em qualquer ponto anterior aos seus consumidores, os independentes `users`,
+   `clinic_settings` e `expenses`;
+3. `appointments` e `clinical_records` após ambos os pais;
+4. `payments` após `patients` e `appointments`.
+
+Independentes podem ser carregados em paralelo lógico, mas a escrita SQLite será
+serializada dentro da transação. `clinic_settings` só recebe uma configuração final
+aprovada.
+
+Regras específicas:
+
+- `users`: equivalentes seguem o grupo aprovado; colisões recebem IDs distintos;
+  `password_hash` não participa do matching e nenhuma credencial é combinada ou
+  escolhida sem política aprovada. Usuário que precise autenticar sem credencial
+  canônica válida é BLOCK;
+- `clinic_settings`: a decisão final, inclusive campo a campo, deve estar aprovada
+  antes da carga; ausência de decisão é BLOCK;
+- `payments`: preservar lançamentos sem deduplicação automática; `patient_id` deve
+  resolver; NULL em `appointment_id` permanece NULL; valor não-NULL exige appointment
+  unívoco da mesma origem; nenhuma relação será inferida.
+
+### 54.10 Estratégia transacional
+
+O arquivo temporário permite separar criação do schema da carga sem risco ao
+runtime. A estratégia preferida é:
+
+- transação 1: criar e validar o schema vazio no arquivo temporário;
+- transação 2, global: reservar/confirmar IDs, carregar todas as entidades na ordem
+  definida, aplicar FKs e executar validações pré-commit;
+- savepoints podem delimitar fases para diagnóstico, mas falha em qualquer fase
+  causa rollback da transação global, nunca commit parcial;
+- `foreign_keys=ON` em todas as conexões e constraints avaliadas dentro da carga;
+- commit da transação global somente após schema, mapa, contagens, conteúdo,
+  provenance e FKs passarem;
+- validações externas pós-commit são repetidas antes de homologação;
+- mapa só passa a `consumed`/`verified` depois de o commit e as validações
+  correspondentes serem confirmados.
+
+Se volume futuro tornar a transação global impraticável, qualquer proposta por
+fases deverá manter o banco inacessível ao runtime, possuir checkpoints verificáveis
+e rollback total por descarte do temporário; exige nova aprovação. Em nenhum caso um
+commit intermediário autoriza cutover.
+
+### 54.11 Fases 7 e 8 — Validações obrigatórias
+
+Antes de homologação e novamente antes do cutover:
+
+**Schema**
+
+- tabelas, colunas, tipos, defaults, PKs, FKs, UNIQUEs e índices;
+- versão e checksum das migrations;
+- PRAGMAs e enforcement de FKs conforme contrato.
+
+**Contagens**
+
+- totais de origem por snapshot e tabela;
+- equivalentes N:1, exclusivos 1:1 e colisões separadas;
+- total canônico calculado e observado;
+- todo descarte, se excepcionalmente aprovado, identificado por categoria e decisão;
+- nenhuma diferença sem explicação algébrica.
+
+**IDs e mapa**
+
+- IDs canônicos únicos e pertencentes à tabela correta;
+- uma entrada por origem, nenhum source duplicado e nenhum destino indevido;
+- mapa `approved`, depois `consumed` e `verified` de forma consistente;
+- equivalentes convergem e colisões permanecem distintas.
+
+**FKs e SQLite**
+
+- toda FK obrigatória com exatamente um pai;
+- toda FK opcional não-NULL com exatamente um pai;
+- NULL opcional preservado;
+- contagens explícitas de válidas/órfãs/NULLs;
+- `PRAGMA foreign_key_check` igual a zero;
+- `PRAGMA integrity_check` aprovado.
+
+**Conteúdo e decisões**
+
+- regras campo a campo aplicadas conforme versão congelada;
+- todas as decisões REVIEW refletidas e nenhum BLOCK aberto;
+- políticas de users, clínica, financeiro e configuração respeitadas;
+- validações semânticas agregadas por domínio.
+
+**Provenance e privacidade**
+
+- cada linha canônica rastreável a uma ou mais entradas aprovadas;
+- nenhuma linha ou decisão sem versão e regra;
+- manifests protegidos contêm somente o necessário;
+- relatórios gerais não expõem PII, dados clínicos, credenciais, IDs ou FKs reais;
+- logs passam por revisão de redaction.
+
+### 54.12 Critérios objetivos de aborto
+
+Abortar imediatamente a execução diante de:
+
+- aplicação não quiescida ou writer concorrente;
+- snapshot ausente, inconsistente, irrestaurável ou com checksum divergente;
+- mudança em original/snapshot durante a janela crítica;
+- espaço, permissão ou lock insuficiente;
+- versão de schema, migration, regra, decisão ou mapa diferente do freeze;
+- mapa incompleto, cardinalidade inválida, REVIEW pendente ou BLOCK aberto;
+- colisão não separada, equivalente dividido ou dupla associação;
+- pai ausente/múltiplo para FK não-NULL;
+- órfão, violação em `foreign_key_check` ou falha de `integrity_check`;
+- contagem ou conteúdo sem explicação aprovada;
+- erro de migration, transformação, constraint ou transação;
+- credencial, decisão clínica/financeira ou `clinic_settings` sem política aprovada;
+- falha de privacidade, provenance ou geração dos manifests;
+- teste automatizado, homologação, smoke test ou aprovação formal reprovado.
+
+Abortar antes do cutover implica rollback da transação e descarte controlado do
+temporário. Após cutover, ativa o procedimento da seção seguinte.
+
+### 54.13 Estratégia de rollback
+
+**Antes do cutover:**
+
+- interromper a carga, executar rollback da transação global e fechar conexões;
+- preservar logs e manifests seguros para diagnóstico;
+- invalidar o candidato e descartar somente o banco temporário após registrar seu
+  checksum/estado;
+- manter originais e snapshots intactos;
+- corrigir plano/regra em nova versão e reiniciar desde o dry-run aplicável.
+
+**Depois do cutover:**
+
+- manter janela formal de rollback com responsáveis, duração e critérios definidos;
+- iniciar o canônico primeiro em verificação read-only, antes de liberar writes;
+- se smoke test falhar antes de writes, parar o backend e reverter atomicamente a
+  configuração para o runtime anterior aprovado;
+- se já houver writes no canônico, bloquear novos writes e preservar o arquivo;
+  nunca voltar cegamente ao legado, pois isso perderia dados novos;
+- após writes, rollback exige plano de reconciliação/forward recovery aprovado ou
+  restauração compatível, com decisão explícita;
+- nunca habilitar escrita simultânea no canônico e nos dois legados.
+
+Originais, snapshots, candidato rejeitado e evidências seguem política de retenção e
+acesso. Rollback não apaga a trilha da execução.
+
+### 54.14 Fase 9 — Homologação
+
+Checklist mínimo em ambiente isolado e com cópias fictícias/homologadas:
+
+- backend configurado exclusivamente para o candidato canônico;
+- startup, health check e encerramento controlado;
+- login e política de credenciais;
+- pacientes e psicólogos;
+- agenda e conflitos;
+- prontuários, acesso e preservação clínica;
+- pagamentos, despesas e totais financeiros;
+- configuração única aprovada;
+- persistência após reinício;
+- integridade, contagens, mapa e provenance;
+- backup e restauração do canônico;
+- suíte automatizada, testes de migração e smoke test arquitetural;
+- relatórios/logs sem exposição indevida;
+- aceite técnico, funcional, clínico/financeiro quando aplicável e do responsável
+  pelo cutover.
+
+Qualquer ressalva deve ser classificada; ressalva BLOCK reprova a homologação.
+
+### 54.15 Fase 10 — Cutover
+
+O cutover será uma promoção controlada e equivalente a atômica:
+
+1. abrir janela de manutenção e bloquear todos os writers;
+2. confirmar que originais não mudaram desde o snapshot/freeze; mudança exige novo
+   snapshot, dry-run e candidato;
+3. repetir checksums, integridade, contagens, mapa e gates do candidato;
+4. promover o arquivo versionado no mesmo volume sem sobrescrever originais;
+5. trocar atomicamente a configuração/ponteiro do backend para o caminho canônico;
+6. iniciar uma única instância do backend em modo de verificação sem writes;
+7. executar health check e smoke test read-only;
+8. obter aprovação operacional final;
+9. liberar writes somente após aprovação;
+10. se qualquer passo falhar antes dos writes, parar e reverter o ponteiro.
+
+O nome histórico dos bancos não será reutilizado como forma de cutover. A mudança
+do caminho do runtime será implementada e testada em tarefa futura.
+
+### 54.16 Fase 11 — Pós-cutover e critérios de sucesso
+
+Após liberar o canônico:
+
+- criar backup inicial verificado do banco canônico;
+- monitorar startup, erros de banco, constraints, latência e fluxos críticos;
+- executar validações agregadas de integridade e contagem na janela definida;
+- confirmar persistência após reinício e funcionamento de backup/restauração;
+- manter legados read-only, fora do caminho operacional e pela retenção aprovada;
+- proibir dual-write e jobs de sincronização implícita;
+- manter caminho legado desativado, mas não remover componentes antes da janela de
+  estabilidade e decisão explícita;
+- registrar incidentes, decisões e aceite final.
+
+Sucesso exige: um único banco operacional, zero violação de integridade, contagens
+explicadas, fluxos homologados, backup restaurável, monitoramento estável, nenhuma
+escrita nos legados e aprovação do encerramento da janela. Caso contrário, a
+migração permanece em observação ou segue o rollback aprovado.
+
+### 54.17 Artefatos futuros da execução
+
+| Artefato | Finalidade | Conteúdo conceitual |
+|---|---|---|
+| Execution manifest | identificar execução reproduzível | versões, ambiente, fases, responsáveis e checksums |
+| Snapshot manifest | provar origem imutável e restaurável | papéis, metadados técnicos, checksums e validações |
+| Migration-plan manifest | congelar regras | schema, migrations, matching, campos e políticas |
+| Remap manifest | controlar IDs/FKs | mapa protegido, estados, cardinalidades e provenance |
+| Review ledger | registrar decisões humanas | referências opacas, classe, estado, regra e aprovação |
+| Dry-run report | prever resultado | agregados, diferenças, gates e contagens esperadas |
+| Validation report | provar resultado técnico | schema, contagens, IDs, FKs, conteúdo e privacidade |
+| Homologation report | registrar aceite funcional | checklist, testes, ressalvas e aprovações |
+| Cutover report | documentar promoção | janela, checks finais, troca, smoke test e decisão |
+| Post-cutover report | comprovar estabilidade | monitoramento, backup, integridade e aceite final |
+
+Manifests que necessitem IDs históricos ou canônicos serão artefatos protegidos e
+restritos. Relatórios compartilháveis usarão somente estrutura, agregados e
+referências opacas, sem PII, conteúdo clínico, credenciais, tokens ou IDs reais.
+
+### 54.18 Riscos e decisões ainda abertas
+
+Antes da implementação ainda precisam ser aprovados:
+
+- ferramenta e formato físico do migrador e dos manifests;
+- schema canônico e migrations iniciais;
+- algoritmo de IDs e proteção do remap manifest;
+- regras campo a campo, credenciais e configuração final;
+- workflow e responsáveis pelas revisões clínica e financeira;
+- comportamento exato de `synchronous`, journal mode e promoção no Windows;
+- mecanismo de manutenção e bloqueio de writers;
+- duração da janela de rollback e tratamento de writes pós-cutover;
+- localização, criptografia, ACL e retenção de snapshots/evidências;
+- limites de performance, espaço e tempo para a transação global;
+- implementação da troca atômica de configuração;
+- critérios quantitativos de estabilidade e monitoramento pós-cutover.
