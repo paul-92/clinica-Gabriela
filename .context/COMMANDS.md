@@ -161,6 +161,12 @@ Backup:
 python scripts/backup_database.py
 ```
 
+Inventario read-only dos bancos desktop e backend:
+
+```powershell
+python scripts/sqlite_inventory.py
+```
+
 Licenca de teste:
 
 ```bat
