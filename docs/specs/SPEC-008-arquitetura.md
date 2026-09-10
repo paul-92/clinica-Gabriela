@@ -680,3 +680,196 @@ Esta SPEC define a arquitetura-alvo e a estratégia de convergência, mas não r
 A escolha definitiva da base autoritativa depende do inventário comparativo dos bancos e camadas existentes.
 
 Nenhum gate, critério de aceitação ou item do Definition of Done foi declarado concluído.
+
+## 52. Política de autoridade e consolidação de dados
+
+### 52.1 Escopo e distinção de autoridades
+
+Esta política transforma os inventários e diagnósticos read-only em critérios para
+uma futura migração. Ela não autoriza criar banco, copiar registros, alterar runtime
+ou executar cutover.
+
+Ficam definidas duas autoridades distintas:
+
+- **autoridade arquitetural:** o backend/FastAPI, com regras em services,
+  persistência em repositories e acesso ao banco apenas pelo backend, será a
+  autoridade operacional futura;
+- **autoridade histórica dos dados:** nenhum dos dois bancos atuais possui
+  precedência global. Desktop e backend são fontes históricas independentes que
+  devem ser preservadas e reconciliadas por entidade e por campo.
+
+Escolher o backend como autoridade arquitetural não autoriza preferir, sobrescrever
+ou descartar automaticamente dados históricos do desktop.
+
+### 52.2 Classificação das decisões
+
+- **AUTO:** há evidência suficiente para executar futuramente uma regra
+  determinística, auditável e não destrutiva;
+- **REVIEW:** a proposta deve ser decidida ou confirmada por pessoa autorizada
+  antes de produzir o valor canônico;
+- **BLOCK:** o cutover não pode ocorrer enquanto a condição não for resolvida e
+  documentada.
+
+Uma mesma entidade pode conter regras AUTO e REVIEW e, ao mesmo tempo, possuir um
+gate BLOCK. AUTO nunca substitui um BLOCK pendente.
+
+### 52.3 Terceiro banco canônico
+
+A consolidação deverá ocorrer em um terceiro banco novo, criado somente na futura
+etapa de migração e nunca sobre os arquivos originais. Conceitualmente:
+
+```text
+SQLite desktop original (somente leitura) ─┐
+                                           ├─ transformação validada → SQLite canônico novo
+SQLite backend original (somente leitura) ─┘
+```
+
+Os dois bancos originais deverão permanecer imutáveis e disponíveis para auditoria
+e rollback. O banco canônico deverá usar o schema aprovado para o runtime do
+backend, passar por validações de contagem, unicidade, integridade referencial e
+reconciliação, e somente então poderá receber o cutover aprovado.
+
+Não haverá dual-write permanente nem sincronização implícita. Até o cutover, cada
+origem permanece histórica; depois do cutover, somente o banco canônico será fonte
+operacional.
+
+### 52.4 Política de IDs, proveniência e remapeamento
+
+PKs atuais são identificadores locais de cada origem, não identidades globais. A
+migração futura deverá:
+
+1. atribuir IDs canônicos novos e controlados pelo processo de migração;
+2. manter mapa auditável com a chave lógica
+   `source_database + source_table + source_id -> canonical_id`;
+3. permitir que duas linhas equivalentes, inclusive com IDs de origem diferentes,
+   apontem para um único ID canônico após matching aprovado;
+4. atribuir IDs canônicos distintos quando a mesma PK numérica estiver ocupada por
+   identidades diferentes;
+5. remapear todas as FKs por meio do mapa, nunca por igualdade numérica direta;
+6. preservar a proveniência de cada contribuição e de cada decisão de merge;
+7. não usar o mapa de migração como identidade funcional permanente do sistema.
+
+A geração de novo ID e o remapeamento de uma correspondência já aprovada são AUTO.
+Qualquer ausência, multiplicidade ou contradição no mapa de uma FK obrigatória é
+BLOCK.
+
+### 52.5 Regras gerais de consolidação
+
+- Matching identifica candidatos; não define sozinho quais valores vencerão.
+- Igualdade de PK ou de quantidade de linhas não comprova identidade.
+- Registros exclusivos serão preservados por padrão e receberão novo ID canônico;
+  exclusividade não é motivo para descarte.
+- Campos divergentes não serão sobrescritos por precedência global de banco. Cada
+  resolução deverá seguir regra de campo documentada ou REVIEW.
+- `created_at` não é chave de matching. Quando divergente, os valores de origem
+  devem permanecer na trilha de proveniência e a escolha do valor canônico exige
+  regra documentada.
+- `password_hash` não é chave de identidade e hashes não serão mesclados. A política
+  de credencial válida, revalidação ou redefinição deverá ser aprovada antes do
+  cutover.
+- Matching ausente, ambíguo ou não único não autoriza deduplicação.
+- Nenhuma decisão manual poderá expor dados clínicos ou pessoais além do mínimo
+  necessário e do perfil autorizado.
+
+### 52.6 Matriz de política por entidade
+
+| Entidade | Matching e confiança | Equivalentes | Exclusivos | Conflito de PK | Divergências de campos | ID canônico | Decisão / gate |
+|---|---|---|---|---|---|---|---|
+| `users` | `username` normalizado; alta; nunca usar `password_hash` ou `created_at` | Unificar somente a identidade confirmada; tratar credencial separadamente | Preservar como usuário distinto, sujeito à política de acesso | Sempre criar IDs distintos e remapear; nunca reaproveitar a PK conflitante | Perfil: REVIEW; `password_hash`: não mesclar, definir revalidação/redefinição | Novo ID por identidade aprovada | Matching único: AUTO; campos e acesso: REVIEW; colisão sem mapa ou credencial sem política: BLOCK |
+| `patients` | CPF normalizado; alta quando presente, válido e único | Consolidar em um candidato canônico após validar unicidade | Preservar integralmente | IDs distintos quando identidades diferirem; equivalentes convergem após aprovação da correspondência | Dados cadastrais divergentes: REVIEW; `created_at` não decide identidade | Novo ID por paciente reconciliado | Matching único: AUTO; conflito de campo: REVIEW; CPF ausente/duplicado/contraditório: BLOCK |
+| `psychologists` | CRP normalizado; alta quando presente e único | Consolidar em um candidato canônico | Preservar integralmente | Remapear para IDs distintos ou para o mesmo canônico conforme identidade aprovada | Cadastro divergente: REVIEW; `created_at` apenas proveniência | Novo ID por profissional reconciliado | Matching único: AUTO; campos: REVIEW; CRP ausente/duplicado/contraditório: BLOCK |
+| `appointments` | Identidade reconciliada de paciente + psicólogo + horário; heurística | Deduplicar somente após confirmação de que representam o mesmo evento | Preservar e remapear ambas as FKs | PK nunca decide; colisões recebem IDs canônicos distintos salvo matching aprovado | Horário, duração, status e demais diferenças: REVIEW | Novo ID por evento aprovado | Exclusivo e FKs resolvidas: AUTO; candidato equivalente: REVIEW; pai/FK sem mapa ou matching ambíguo: BLOCK |
+| `clinical_records` | Paciente + psicólogo + data do atendimento; heurística e clinicamente sensível | Não deduplicar automaticamente; exigir revisão clínica autorizada | Preservar integralmente com acesso e proveniência | PK nunca decide; novo ID para cada registro não deduplicado | Conteúdo clínico jamais sofre escolha automática por completude ou recência | Novo ID por registro preservado ou merge explicitamente aprovado | Preservação exclusiva: AUTO; equivalência/conteúdo: REVIEW; vínculo obrigatório sem mapa ou merge clínico ambíguo: BLOCK |
+| `payments` | Paciente + agendamento opcional + vencimento + valor; heurística atualmente ambígua | Não deduplicar nem sobrescrever automaticamente | Preservar provisoriamente até reconciliação financeira | PK nunca decide; novos IDs e mapas separados | Status, liquidação, método, descrição e vínculos divergentes: REVIEW | Novo ID por lançamento aprovado | Matching destrutivo: BLOCK; revisão financeira: REVIEW; preservação sem deduplicar e com FKs resolvidas: AUTO |
+| `expenses` | Data + valor + descrição + categoria; heurística | Deduplicar somente após revisão financeira | Preservar | PK nunca decide | Qualquer divergência material: REVIEW | Novo ID por despesa aprovada | Exclusivo: AUTO; candidato equivalente: REVIEW; ambiguidade financeira não resolvida: BLOCK |
+| `clinic_settings` | Singleton sem chave natural confiável; inconclusivo | Não combinar por PK nem por posição | Preservar ambas as versões como fontes para decisão, não como duas configurações ativas | PK igual não comprova identidade | Seleção campo a campo ou escolha de configuração: REVIEW | Uma configuração canônica após aprovação | REVIEW obrigatório; ausência de configuração final aprovada: BLOCK |
+
+### 52.7 Decisões automáticas permitidas
+
+São AUTO, desde que nenhum gate BLOCK relacionado esteja aberto:
+
+- criar novo ID canônico para cada unidade de identidade aprovada;
+- registrar proveniência e mapa de IDs para as duas origens;
+- preservar registros exclusivos sem deduplicação;
+- aplicar matching de alta confiança quando a chave natural normalizada for
+  presente e única nos dois bancos;
+- remapear FKs quando a origem e o destino canônico forem unívocos;
+- manter NULL em `payments.appointment_id` quando a origem já representar ausência
+  legítima de vínculo;
+- executar validações de contagem, unicidade, órfãos e `foreign_key_check`.
+
+### 52.8 Revisão humana obrigatória
+
+Exigem REVIEW:
+
+- divergências de campos sem regra de precedência aprovada;
+- política de credenciais e acesso de `users`;
+- candidatos heurísticos de `appointments`, `clinical_records`, `payments` e
+  `expenses`;
+- qualquer possível deduplicação clínica ou financeira;
+- seleção campo a campo de `clinic_settings`;
+- chaves naturais inválidas que ainda possam ser resolvidas com evidência
+  autorizada;
+- explicação das diferenças finais de contagem e aprovação do relatório de
+  reconciliação.
+
+### 52.9 Condições de bloqueio da migração e do cutover
+
+São BLOCK:
+
+- colisão de PK sem mapa explícito para todos os registros envolvidos;
+- chave natural obrigatória ausente, duplicada ou contraditória sem resolução;
+- matching ambíguo usado para deduplicação automática;
+- política de `password_hash`/credencial não aprovada para usuários que precisarão
+  autenticar;
+- pagamento ambíguo ainda sujeito a descarte, sobrescrita ou deduplicação;
+- configuração canônica não aprovada;
+- FK obrigatória sem correspondência canônica única;
+- órfão ou violação de `foreign_key_check` no banco resultante;
+- diferença de contagem não explicada, perda de proveniência ou registro descartado
+  sem decisão documentada;
+- ausência de backup verificável, rollback testado, validação, homologação ou
+  aprovação formal de cutover.
+
+### 52.10 Preservação de integridade referencial
+
+O processo futuro deverá carregar e reconciliar primeiro as entidades pai e apenas
+depois as dependentes. Devem ser preservadas e remapeadas explicitamente:
+
+- `appointments.patient_id -> patients.id`;
+- `appointments.psychologist_id -> psychologists.id`;
+- `clinical_records.patient_id -> patients.id`;
+- `clinical_records.psychologist_id -> psychologists.id`;
+- `payments.patient_id -> patients.id`;
+- `payments.appointment_id -> appointments.id`.
+
+Cada FK não-NULL deverá resolver para exatamente um ID canônico. Antes do cutover,
+deverão ser executados validação explícita das relações e
+`PRAGMA foreign_key_check`, ambos sem violações. O runtime canônico deverá habilitar
+enforcement de FKs por conexão conforme decisão técnica específica e testada; essa
+alteração não faz parte desta tarefa.
+
+### 52.11 Tratamento de `payments.appointment_id`
+
+`payments.appointment_id` permanece opcional. A política é:
+
+- NULL histórico continua NULL e não é erro nem motivo para inferir vínculo;
+- valor não-NULL somente será remapeado quando o agendamento de origem resolver de
+  forma unívoca para um agendamento canônico;
+- é proibido preencher automaticamente um NULL por proximidade de data, valor,
+  paciente ou qualquer outra heurística;
+- vínculo não-NULL sem mapa único é BLOCK;
+- a ambiguidade de identidade dos pagamentos impede deduplicação ou sobrescrita
+  automática, mas não autoriza perda do lançamento.
+
+### 52.12 Aprovação necessária antes da implementação
+
+Esta política define a direção, mas a criação do banco canônico e do script de
+migração depende de aprovação explícita dos seguintes artefatos futuros:
+
+- schema canônico e mecanismo único de migrations;
+- regras campo a campo para divergências;
+- política de credenciais;
+- workflow de revisão clínica e financeira;
+- formato e retenção do mapa de IDs/proveniência;
+- plano de backup, rollback, validação e cutover.
