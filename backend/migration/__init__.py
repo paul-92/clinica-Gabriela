@@ -59,6 +59,19 @@ from backend.migration.dry_run import (
     SnapshotSummary,
     run_snapshot_dry_run,
 )
+from backend.migration.canonical import (
+    CANONICAL_SCHEMA_VERSION,
+    EXPECTED_TABLES,
+    CanonicalCreationError,
+    CanonicalDatabaseError,
+    CanonicalDatabaseNotFoundError,
+    CanonicalDatabaseResult,
+    CanonicalDestinationExistsError,
+    CanonicalUnsafePathError,
+    CanonicalValidationError,
+    create_temporary_canonical_database,
+    open_canonical_connection,
+)
 
 __all__ = [
     "DecisionClass",
@@ -112,4 +125,15 @@ __all__ = [
     "IdentitySummary",
     "SnapshotSummary",
     "run_snapshot_dry_run",
+    "CANONICAL_SCHEMA_VERSION",
+    "EXPECTED_TABLES",
+    "CanonicalCreationError",
+    "CanonicalDatabaseError",
+    "CanonicalDatabaseNotFoundError",
+    "CanonicalDatabaseResult",
+    "CanonicalDestinationExistsError",
+    "CanonicalUnsafePathError",
+    "CanonicalValidationError",
+    "create_temporary_canonical_database",
+    "open_canonical_connection",
 ]
