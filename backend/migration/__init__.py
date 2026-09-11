@@ -21,6 +21,19 @@ from backend.migration.manifests import (
     manifest_checksum,
     write_manifest,
 )
+from backend.migration.storage import (
+    ManifestAlreadyExistsError,
+    ManifestChecksumMismatchError,
+    ManifestDurabilityError,
+    ManifestInvalidContentError,
+    ManifestNotFoundError,
+    ManifestPersistenceError,
+    ManifestPostPromotionError,
+    ManifestStorageError,
+    ManifestUnexpectedTypeError,
+    load_stored_manifest,
+    save_manifest,
+)
 
 __all__ = [
     "DecisionClass",
@@ -42,4 +55,15 @@ __all__ = [
     "load_manifest",
     "manifest_checksum",
     "write_manifest",
+    "ManifestAlreadyExistsError",
+    "ManifestChecksumMismatchError",
+    "ManifestDurabilityError",
+    "ManifestInvalidContentError",
+    "ManifestNotFoundError",
+    "ManifestPersistenceError",
+    "ManifestPostPromotionError",
+    "ManifestStorageError",
+    "ManifestUnexpectedTypeError",
+    "load_stored_manifest",
+    "save_manifest",
 ]
