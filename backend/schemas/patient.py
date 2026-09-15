@@ -17,14 +17,11 @@ class PatientBase(ORMBase):
     notes: str = ""
     active: bool = True
 
+class PatientCreate(PatientBase):
     @field_validator("cpf")
     @classmethod
     def validate_cpf(cls, value):
         return normalize_cpf(value)
-
-
-class PatientCreate(PatientBase):
-    pass
 
 
 class PatientUpdate(ORMBase):

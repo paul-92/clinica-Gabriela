@@ -13,7 +13,7 @@ from backend.models.patient import Patient
 from backend.models.psychologist import Psychologist
 from backend.models.user import User
 from backend.services.clinical_record_service import ClinicalRecordService
-from backend.schemas.patient import PatientCreate, PatientUpdate
+from backend.schemas.patient import PatientCreate, PatientRead, PatientUpdate
 
 
 def test_cpf_is_optional_normalized_and_validated():
@@ -21,6 +21,18 @@ def test_cpf_is_optional_normalized_and_validated():
     assert normalize_cpf("529.982.247-25") == "52998224725"
     with pytest.raises((ValueError, ValidationError)):
         PatientCreate(full_name="Pessoa Ficticia", cpf="123.456.789-00")
+
+
+def test_legacy_unverified_cpf_remains_readable_without_revalidation():
+    patient = PatientRead.model_validate({
+        "id": 1,
+        "full_name": "Pessoa legada",
+        "cpf": "123.456.789-00",
+        "cpf_status": "legacy_unverified",
+        "version": 1,
+    })
+    assert patient.cpf == "123.456.789-00"
+    assert patient.cpf_status == "legacy_unverified"
 
 
 def test_patch_distinguishes_absent_from_explicit_null():
