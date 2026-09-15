@@ -151,7 +151,13 @@ npm run dist
 
 ## Migrations
 
-Nao ha comando CLI dedicado confirmado. Migracoes leves sao chamadas por `main.py` e `backend/main.py`.
+Migracoes leves continuam chamadas por `main.py` e `backend/main.py`.
+
+Dry-run/candidato explícito da SPEC-003 (nunca troca o pointer operacional):
+
+```powershell
+python scripts/spec003_candidate_migration.py --source <generation-2.db> --output-dir <diretorio-novo>
+```
 
 ## Scripts uteis
 

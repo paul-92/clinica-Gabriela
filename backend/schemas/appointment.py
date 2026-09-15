@@ -27,3 +27,5 @@ class AppointmentUpdate(ORMBase):
 
 class AppointmentRead(AppointmentBase):
     id: int
+    version: int
+    updated_at: datetime | None = None

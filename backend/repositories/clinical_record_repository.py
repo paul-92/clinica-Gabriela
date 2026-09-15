@@ -1,4 +1,4 @@
-from backend.models.clinical_record import ClinicalRecord
+from backend.models.clinical_record import ClinicalRecord, ClinicalRecordRevision
 from backend.repositories.base_repository import BaseRepository
 
 
@@ -12,4 +12,12 @@ class ClinicalRecordRepository(BaseRepository):
             .filter(ClinicalRecord.patient_id == patient_id)
             .order_by(ClinicalRecord.appointment_date.desc())
             .all()
+        )
+
+    def latest_revision(self, record_id):
+        return (
+            self.db.query(ClinicalRecordRevision)
+            .filter(ClinicalRecordRevision.clinical_record_id == record_id)
+            .order_by(ClinicalRecordRevision.id.desc())
+            .first()
         )

@@ -1,13 +1,23 @@
 from dataclasses import dataclass
 from threading import Lock
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 from backend.config import RuntimeSettings, get_runtime_settings
 
 
 Base = declarative_base()
+
+
+def _enable_sqlite_foreign_keys(dbapi_connection, _connection_record):
+    cursor = dbapi_connection.cursor()
+    try:
+        cursor.execute("PRAGMA foreign_keys=ON")
+        if cursor.execute("PRAGMA foreign_keys").fetchone()[0] != 1:
+            raise RuntimeError("Nao foi possivel habilitar Foreign Keys no SQLite.")
+    finally:
+        cursor.close()
 
 
 @dataclass(frozen=True)
@@ -24,6 +34,7 @@ def create_database_runtime(settings: RuntimeSettings) -> DatabaseRuntime:
         echo=False,
         future=True,
     )
+    event.listen(runtime_engine, "connect", _enable_sqlite_foreign_keys)
     runtime_sessions = sessionmaker(
         bind=runtime_engine,
         autoflush=False,

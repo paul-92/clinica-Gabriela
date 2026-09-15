@@ -26,11 +26,26 @@ Depois acesse:
 ## Endpoints principais
 
 - `POST /auth/login`
-- `GET/POST/PUT /patients`
-- `GET/POST/PUT /psychologists`
+- `GET/POST/PUT/PATCH /patients`
+- `GET/POST/PUT/PATCH /psychologists`
+- `POST /psychologists/{id}/aptitude`
 - `GET/POST/PUT /appointments`
-- `GET/POST/PUT /clinical-records`
+- `GET/POST/PUT/PATCH /clinical-records`
+- `POST /clinical-records/{id}/finalize`
+- `POST /clinical-records/{id}/rectifications`
+- `DELETE /clinical-records/{id}` (somente DRAFT elegível)
 - `GET/POST /finance/payments`
 - `GET/POST /finance/expenses`
 - `GET /finance/summary`
 - `GET/PUT /settings`
+
+## Integridade e concorrência
+
+- `PATCH` preserva campos ausentes; `NULL` somente limpa campos explicitamente nullable.
+- Recursos versionados expõem ETag. `PATCH` e finalização usam `If-Match`.
+- Precondição ausente retorna `428`; versão obsoleta retorna `412`.
+- Referência inexistente retorna `404`, conflito de estado/unicidade retorna `409` e
+  payload inválido retorna `422`.
+- `PUT` permanece temporariamente disponível para compatibilidade e está deprecado.
+- Prontuários `FINALIZED` e `LEGACY_PRESERVED` são imutáveis; correções são
+  retificações append-only.

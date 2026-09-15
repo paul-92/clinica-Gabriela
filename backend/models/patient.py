@@ -9,7 +9,8 @@ class Patient(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     full_name: Mapped[str] = mapped_column(String(160), nullable=False, index=True)
-    cpf: Mapped[str] = mapped_column(String(20), unique=True, nullable=False)
+    cpf: Mapped[str | None] = mapped_column(String(11), unique=True, nullable=True)
+    cpf_status: Mapped[str] = mapped_column(String(30), nullable=False, default="not_provided", server_default="not_provided")
     birth_date = mapped_column(Date, nullable=True)
     phone: Mapped[str] = mapped_column(String(30), default="")
     email: Mapped[str] = mapped_column(String(120), default="")
@@ -18,6 +19,8 @@ class Patient(Base):
     notes = mapped_column(Text, default="")
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at = mapped_column(DateTime, server_default=func.now())
+    updated_at = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
+    version: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default="1")
 
     appointments = relationship("Appointment", back_populates="patient")
     clinical_records = relationship("ClinicalRecord", back_populates="patient")

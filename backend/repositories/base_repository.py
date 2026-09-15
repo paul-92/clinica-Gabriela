@@ -12,13 +12,29 @@ class BaseRepository:
     def create(self, data):
         entity = self.model(**data)
         self.db.add(entity)
-        self.db.commit()
-        self.db.refresh(entity)
+        try:
+            self.db.commit()
+            self.db.refresh(entity)
+        except Exception:
+            self.db.rollback()
+            raise
         return entity
 
     def update(self, entity, data):
         for field, value in data.items():
             setattr(entity, field, value)
-        self.db.commit()
-        self.db.refresh(entity)
+        try:
+            self.db.commit()
+            self.db.refresh(entity)
+        except Exception:
+            self.db.rollback()
+            raise
         return entity
+
+    def delete(self, entity):
+        self.db.delete(entity)
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
