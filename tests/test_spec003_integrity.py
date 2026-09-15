@@ -6,6 +6,7 @@ from pydantic import ValidationError
 from sqlalchemy import text
 
 from backend.config import RuntimeSettings
+from backend.api.versioning import parse_if_match
 from backend.database.session import create_database_runtime, init_db
 from backend.domain.identifiers import normalize_cpf, normalize_crp
 from backend.migration.spec003 import migrate_spec003
@@ -13,6 +14,7 @@ from backend.models.patient import Patient
 from backend.models.psychologist import Psychologist
 from backend.models.user import User
 from backend.services.clinical_record_service import ClinicalRecordService
+from backend.services.patient_service import PatientService
 from backend.schemas.patient import PatientCreate, PatientRead, PatientUpdate
 
 
@@ -40,6 +42,26 @@ def test_patch_distinguishes_absent_from_explicit_null():
     cleared = PatientUpdate(cpf=None)
     assert "cpf" not in absent.model_dump(exclude_unset=True)
     assert cleared.model_dump(exclude_unset=True)["cpf"] is None
+
+
+def test_if_match_parser_and_stale_version_return_412(tmp_path):
+    assert parse_if_match('"7"') == 7
+    settings = RuntimeSettings(tmp_path, tmp_path / "etag.db", "127.0.0.1", 8000, False)
+    runtime = create_database_runtime(settings)
+    init_db(runtime.engine)
+    session = runtime.session_factory()
+    try:
+        patient = Patient(full_name="Pessoa Ficticia", active=True)
+        session.add(patient)
+        session.commit()
+        with pytest.raises(Exception) as stale:
+            PatientService(session).update_patient(
+                patient.id, {"phone": "0000-0000"}, expected_version=patient.version + 1
+            )
+        assert stale.value.status_code == 412
+    finally:
+        session.close()
+        runtime.engine.dispose()
 
 
 def test_crp_identity_is_deterministic_and_requires_both_parts():
