@@ -33,6 +33,7 @@ from backend.cutover.infrastructure import (
     _atomic_replace,
     _sqlite_validate,
     acquire_maintenance_lock,
+    atomic_swap_pointer,
     create_final_backup,
     directory_acl_fingerprint,
     promote_candidate,
@@ -150,6 +151,24 @@ def _accepted_generation2_pointer(pointer_path: Path) -> tuple[dict, bytes, str,
     return payload, raw, checksum, database
 
 
+def _current_pointer(pointer_path: Path) -> tuple[dict, bytes, str, Path, str]:
+    raw = pointer_path.read_bytes()
+    checksum = hashlib.sha256(raw).hexdigest()
+    if checksum == GENERATION2_POINTER:
+        payload, raw, checksum, database = _accepted_generation2_pointer(pointer_path)
+        return payload, raw, checksum, database, "PROMOTION"
+    pointer = read_pointer(pointer_path)
+    database = Path(pointer.database_path).resolve(strict=True)
+    if (
+        pointer.generation == 3
+        and pointer.state == "canonical"
+        and pointer.database_checksum_sha256 == CANDIDATE
+        and sha256_file(database) == CANDIDATE
+    ):
+        return json.loads(raw.decode("utf-8")), raw, checksum, database, "FORWARD_RECOVERY"
+    raise RuntimeError("pointer nao corresponde ao predecessor aprovado nem ao recovery Generation 3")
+
+
 def _validate_candidate(candidate: Path) -> dict:
     if sha256_file(candidate) != CANDIDATE:
         raise RuntimeError("candidato v2 diverge")
@@ -228,13 +247,13 @@ def run(repository: Path, runtime: Path, candidate: Path) -> dict:
     candidate = candidate.resolve(strict=True)
     pointer_path = runtime / "operational-pointer.json"
     manifest, runtime_manifest_checksum, runtime_commit = freeze(repository, runtime)
-    payload, pointer_raw, pointer_checksum, generation2 = _accepted_generation2_pointer(pointer_path)
+    payload, pointer_raw, pointer_checksum, current_database, mode = _current_pointer(pointer_path)
     candidate_validation = _validate_candidate(candidate)
     if directory_acl_fingerprint(runtime / "generations") != GENERATIONS_ACL:
         raise RuntimeError("ACL do destino de generations diverge")
     if (runtime / "maintenance.lock").exists():
         raise RuntimeError("maintenance lock preexistente")
-    for database in (generation2, candidate):
+    for database in (current_database, candidate):
         if any(Path(str(database) + suffix).exists() for suffix in ("-wal", "-shm", "-journal")):
             raise RuntimeError("sidecar inesperado no preflight")
 
@@ -242,29 +261,38 @@ def run(repository: Path, runtime: Path, candidate: Path) -> dict:
     backup_before = runtime / "backups" / (execution + "-pre-promotion")
     evidence_path = runtime / "evidence" / f"{execution}.json"
     lock = acquire_maintenance_lock(
-        runtime / "maintenance.lock", execution, databases=(generation2,)
+        runtime / "maintenance.lock", execution, databases=(current_database,)
     )
     switched = False
     try:
         backup_manifest = create_final_backup(
-            {"generation_2": generation2}, backup_before,
+            {f"generation_{payload['generation']}": current_database}, backup_before,
             execution_reference=execution, lock=lock,
         )
-        promoted = promote_candidate(
-            candidate, runtime / "generations", "spec003-v2",
-            expected_checksum=CANDIDATE,
-            acl_policy=AclPolicy(GENERATIONS_ACL), lock=lock,
-        )
+        if mode == "PROMOTION":
+            promoted = promote_candidate(
+                candidate, runtime / "generations", "spec003-v2",
+                expected_checksum=CANDIDATE,
+                acl_policy=AclPolicy(GENERATIONS_ACL), lock=lock,
+            )
+        else:
+            promoted = current_database
         new_pointer = OperationalPointer(
-            generation=3, state="canonical", database_path=str(promoted),
+            generation=payload["generation"] + 1, state="canonical", database_path=str(promoted),
             database_checksum_sha256=CANDIDATE, schema_version=SCHEMA_VERSION,
             runtime_manifest_checksum_sha256=runtime_manifest_checksum,
             previous_pointer_checksum_sha256=pointer_checksum,
         )
-        new_pointer_checksum = _swap_accepted_predecessor(
-            pointer_path, pointer_raw, pointer_checksum, new_pointer, lock,
-            runtime / "pointer-history",
-        )
+        if mode == "PROMOTION":
+            new_pointer_checksum = _swap_accepted_predecessor(
+                pointer_path, pointer_raw, pointer_checksum, new_pointer, lock,
+                runtime / "pointer-history",
+            )
+        else:
+            new_pointer_checksum = atomic_swap_pointer(
+                pointer_path, new_pointer, expected_current_checksum=pointer_checksum,
+                lock=lock, history_dir=runtime / "pointer-history",
+            )
         switched = True
         smoke = _read_only_smoke(repository, runtime, promoted)
     except Exception:
@@ -310,7 +338,9 @@ def run(repository: Path, runtime: Path, candidate: Path) -> dict:
         "runtime_manifest_sha256": runtime_manifest_checksum,
         "pointer_before_sha256": pointer_checksum,
         "pointer_after_sha256": final_pointer.checksum,
-        "generation_before": 2, "generation_after": 3,
+        "mode": mode,
+        "generation_before": payload["generation"],
+        "generation_after": final_pointer.generation,
         "candidate_sha256": CANDIDATE,
         "candidate_validation": candidate_validation,
         "pre_promotion_backup_manifest_sha256": sha256_file(backup_manifest),
