@@ -9,6 +9,7 @@ import json
 import os
 import unicodedata
 from collections import Counter, defaultdict
+from contextlib import closing
 from pathlib import Path
 from typing import Any, Callable
 
@@ -132,7 +133,7 @@ def _read_tables(path: Path) -> dict[str, list[dict[str, Any]]]:
     if not path.expanduser().resolve(strict=False).is_file():
         return {}
     tables: dict[str, list[dict[str, Any]]] = {}
-    with _readonly_connection(path) as connection:
+    with closing(_readonly_connection(path)) as connection:
         available = {
             row[0] for row in connection.execute(
                 "SELECT name FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%'"

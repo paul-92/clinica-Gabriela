@@ -16,6 +16,7 @@ class UserRead(ORMBase):
     username: str
     role: str
     active: bool
+    password_reset_required: bool
     created_at: datetime | None = None
 
 

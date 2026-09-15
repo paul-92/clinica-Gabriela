@@ -229,8 +229,8 @@ class RemapEntry(StrictManifestModel):
             raise ValueError("AUTO exige matching resolvido")
         if self.match_status is MatchStatus.EQUIVALENT and not self.canonical_group_ref:
             raise ValueError("equivalent exige canonical_group_ref")
-        if self.match_status is MatchStatus.EXCLUSIVE and self.pk_relation_status is not PkRelationStatus.NO_COUNTERPART:
-            raise ValueError("exclusive exige pk_relation_status no_counterpart")
+        if self.match_status is MatchStatus.EXCLUSIVE and self.pk_relation_status is PkRelationStatus.NOT_COMPARED:
+            raise ValueError("exclusive exige relacao de PK classificada")
         if self.match_status is MatchStatus.EQUIVALENT and self.pk_relation_status in {
             PkRelationStatus.SAME_PK_DIFFERENT_IDENTITY,
             PkRelationStatus.DIFFERENT_PK_DIFFERENT_IDENTITY,
@@ -430,13 +430,61 @@ class ExecutionManifest(StrictManifestModel):
         return self
 
 
-ManifestModel = RemapManifest | SnapshotManifest | ExecutionManifest
+class HistoricalCreatedAtEntry(StrictManifestModel):
+    source_database: SourceDatabase
+    source_table: str
+    source_id: SourceId
+    created_at: str
+
+    @field_validator("source_table")
+    @classmethod
+    def validate_table(cls, value: str) -> str:
+        return _validate_token(value, "source_table")
+
+    @field_validator("created_at")
+    @classmethod
+    def validate_created_at(cls, value: str) -> str:
+        try:
+            datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except (TypeError, ValueError) as exc:
+            raise ValueError("created_at historico deve ser ISO-8601 valido") from exc
+        return value
+
+
+class HistoricalProvenanceSupplement(StrictManifestModel):
+    format_version: Literal["1.0"] = FORMAT_VERSION
+    supplement_version: str
+    execution_reference: str
+    freeze_reference: str
+    remap_version: str
+    remap_checksum_sha256: str
+    entries: tuple[HistoricalCreatedAtEntry, ...]
+
+    @field_validator("supplement_version", "execution_reference", "freeze_reference", "remap_version")
+    @classmethod
+    def validate_references(cls, value: str, info) -> str:
+        return _validate_token(value, info.field_name)
+
+    @field_validator("remap_checksum_sha256")
+    @classmethod
+    def validate_remap_checksum(cls, value: str) -> str:
+        return _validate_sha256(value, "remap_checksum_sha256")
+
+    @model_validator(mode="after")
+    def validate_entries(self) -> "HistoricalProvenanceSupplement":
+        keys = [(e.source_database, e.source_table, e.source_id) for e in self.entries]
+        if len(keys) != len(set(keys)):
+            raise ValueError("entrada historica duplicada")
+        return self
+
+
+ManifestModel = RemapManifest | SnapshotManifest | ExecutionManifest | HistoricalProvenanceSupplement
 ManifestType = TypeVar("ManifestType", bound=StrictManifestModel)
 
 
 def canonical_json(manifest: ManifestModel) -> str:
     """Serializa um modelo conhecido em JSON UTF-8 deterministico."""
-    if not isinstance(manifest, (RemapManifest, SnapshotManifest, ExecutionManifest)):
+    if not isinstance(manifest, (RemapManifest, SnapshotManifest, ExecutionManifest, HistoricalProvenanceSupplement)):
         raise TypeError("somente manifests tipados podem ser serializados")
     return json.dumps(
         manifest.model_dump(mode="json"),
@@ -456,7 +504,7 @@ def write_manifest(path: str | Path, manifest: ManifestModel) -> None:
 
 
 def load_manifest(path: str | Path, model: type[ManifestType]) -> ManifestType:
-    if model not in {RemapManifest, SnapshotManifest, ExecutionManifest}:
+    if model not in {RemapManifest, SnapshotManifest, ExecutionManifest, HistoricalProvenanceSupplement}:
         raise TypeError("tipo de manifest nao permitido")
     payload: Any = json.loads(Path(path).read_text(encoding="utf-8"))
     if not isinstance(payload, dict):

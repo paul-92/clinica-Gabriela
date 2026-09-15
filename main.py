@@ -5,9 +5,11 @@ from app.api.client import DesktopApiClient, DesktopSession
 from app.utils.license import assert_license
 from app.views.login_view import LoginView
 from backend.supervisor import BackendAlreadyRunning, BackendSupervisor
+from app.utils.cutover_guard import assert_legacy_desktop_allowed
 
 
 def main():
+    assert_legacy_desktop_allowed()
     assert_license()
     init_db()
     run_light_migrations()

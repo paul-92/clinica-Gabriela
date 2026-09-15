@@ -27,7 +27,11 @@ class DatabaseRuntime:
 
 
 def create_database_runtime(settings: RuntimeSettings) -> DatabaseRuntime:
-    database_url = f"sqlite:///{settings.database_path}"
+    if settings.verify_read_only:
+        uri_path = settings.database_path.as_posix()
+        database_url = f"sqlite:///file:{uri_path}?mode=ro&immutable=1&uri=true"
+    else:
+        database_url = f"sqlite:///{settings.database_path}"
     runtime_engine = create_engine(
         database_url,
         connect_args={"check_same_thread": False},

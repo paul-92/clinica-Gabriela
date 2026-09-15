@@ -20,3 +20,12 @@ class AppointmentRepository(BaseRepository):
 
     def today(self):
         return self.list_filtered(date.today())
+
+    def active_for_psychologist(self, psychologist_id, *, exclude_id=None):
+        query = self.db.query(Appointment).filter(
+            Appointment.psychologist_id == psychologist_id,
+            Appointment.status != "canceled",
+        )
+        if exclude_id is not None:
+            query = query.filter(Appointment.id != exclude_id)
+        return query.all()

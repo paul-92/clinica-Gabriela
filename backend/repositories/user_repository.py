@@ -12,6 +12,7 @@ class UserRepository(BaseRepository):
             .filter(
                 User.username == username,
                 User.active.is_(True),
+                User.password_reset_required.is_(False),
             )
             .first()
         )
@@ -22,6 +23,7 @@ class UserRepository(BaseRepository):
             .filter(
                 User.id == user_id,
                 User.active.is_(True),
+                User.password_reset_required.is_(False),
             )
             .first()
         )

@@ -19,16 +19,27 @@ from backend.database.migrations import run_light_migrations
 from backend.database.session import configure_database, init_db
 from backend.config import get_runtime_settings
 from app.utils.license import license_status
+from backend.cutover.infrastructure import maintenance_active
 
 
 def bootstrap_backend(settings=None):
     runtime_settings = settings or get_runtime_settings()
-    runtime_settings.data_dir.mkdir(parents=True, exist_ok=True)
-    runtime_settings.database_path.parent.mkdir(parents=True, exist_ok=True)
+    lock_path = runtime_settings.maintenance_lock_path
+    if runtime_settings.verify_read_only:
+        if lock_path is None or not maintenance_active(lock_path):
+            raise RuntimeError("Modo read-only de verificacao exige maintenance lock ativo.")
+        if not runtime_settings.database_path.is_file():
+            raise RuntimeError("Banco de verificacao read-only inexistente.")
+    elif lock_path is not None and maintenance_active(lock_path):
+        raise RuntimeError("Runtime write-enabled bloqueado por maintenance lock.")
+    if not runtime_settings.verify_read_only:
+        runtime_settings.data_dir.mkdir(parents=True, exist_ok=True)
+        runtime_settings.database_path.parent.mkdir(parents=True, exist_ok=True)
     database = configure_database(runtime_settings)
-    init_db(database.engine)
-    run_light_migrations(database.engine)
-    seed_database(database.session_factory)
+    if not runtime_settings.verify_read_only:
+        init_db(database.engine)
+        run_light_migrations(database.engine)
+        seed_database(database.session_factory)
     return database
 
 
@@ -61,6 +72,19 @@ def create_app(*, lifespan_context=lifespan) -> FastAPI:
             status = license_status()
             if not status["valid"]:
                 return JSONResponse(status_code=403, content={"detail": status})
+        return await call_next(request)
+
+    @app.middleware("http")
+    async def maintenance_guard(request: Request, call_next):
+        runtime = get_runtime_settings()
+        if (
+            runtime.maintenance_lock_path is not None
+            and maintenance_active(runtime.maintenance_lock_path)
+            and not runtime.verify_read_only
+        ):
+            return JSONResponse(status_code=503, content={"detail": "maintenance"})
+        if runtime.verify_read_only and request.method not in {"GET", "HEAD", "OPTIONS"}:
+            return JSONResponse(status_code=503, content={"detail": "read_only_verification"})
         return await call_next(request)
 
     app.include_router(auth.router)

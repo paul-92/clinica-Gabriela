@@ -19,6 +19,7 @@ from pydantic import ValidationError
 
 from backend.migration.manifests import (
     ExecutionManifest,
+    HistoricalProvenanceSupplement,
     ManifestModel,
     RemapManifest,
     SnapshotManifest,
@@ -70,6 +71,7 @@ _MODEL_SIGNATURES = {
     RemapManifest: frozenset({"manifest_version", "lifecycle", "entries"}),
     SnapshotManifest: frozenset({"source_label", "snapshot_reference", "size_bytes"}),
     ExecutionManifest: frozenset({"execution_id", "created_at", "status"}),
+    HistoricalProvenanceSupplement: frozenset({"supplement_version", "freeze_reference", "entries"}),
 }
 
 

@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import json
 import sqlite3
+from contextlib import closing
 from pathlib import Path
 from typing import Any, Iterable
 from urllib.parse import quote
@@ -79,7 +80,7 @@ def inventory_database(path: str | Path) -> dict[str, Any]:
     if not result["exists"]:
         return result
 
-    with _readonly_connection(absolute) as connection:
+    with closing(_readonly_connection(absolute)) as connection:
         result["database"] = {
             "sqlite_version": sqlite3.sqlite_version,
             "user_version": connection.execute("PRAGMA user_version").fetchone()[0],

@@ -1,5 +1,6 @@
 import asyncio
 import os
+import sqlite3
 import subprocess
 import sys
 from pathlib import Path
@@ -13,6 +14,22 @@ from backend.database.session import configure_database, get_db
 import backend.main as backend_main
 from backend.main import bootstrap_backend, create_app
 from backend.models.patient import Patient
+
+
+def test_suite_default_database_is_isolated_from_operational_database():
+    repository = Path(__file__).resolve().parents[1]
+    operational = (repository / "backend" / "data" / "clinica_api.db").resolve()
+
+    assert get_runtime_settings().database_path != operational
+    assert operational not in get_runtime_settings().database_path.parents
+
+
+def test_suite_fails_closed_before_write_capable_open_of_operational_database():
+    repository = Path(__file__).resolve().parents[1]
+    operational = repository / "backend" / "data" / "clinica_api.db"
+
+    with pytest.raises(RuntimeError, match="banco operacional real"):
+        sqlite3.connect(operational)
 
 
 def test_runtime_settings_accept_explicit_environment_overrides(monkeypatch, tmp_path):
@@ -87,6 +104,9 @@ def test_bootstrap_is_idempotent_with_temporary_database(monkeypatch, tmp_path):
         first.engine.dispose()
         second = bootstrap_backend(settings)
         tables = set(inspect(second.engine).get_table_names())
+        user_columns = {
+            column["name"] for column in inspect(second.engine).get_columns("users")
+        }
         with second.session_factory() as session:
             patient_count = session.query(Patient).count()
 
@@ -96,6 +116,7 @@ def test_bootstrap_is_idempotent_with_temporary_database(monkeypatch, tmp_path):
             "clinical_records", "payments", "expenses", "clinic_settings",
         } <= tables
         assert patient_count == 1
+        assert "password_reset_required" in user_columns
     finally:
         if second is not None:
             second.engine.dispose()

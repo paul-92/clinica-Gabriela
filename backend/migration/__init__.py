@@ -6,6 +6,8 @@ from backend.migration.manifests import (
     ExecutionManifest,
     ExecutionStatus,
     IntegrityStatus,
+    HistoricalCreatedAtEntry,
+    HistoricalProvenanceSupplement,
     ManifestValidationStatus,
     MatchConfidence,
     MatchStatus,
@@ -72,6 +74,13 @@ from backend.migration.canonical import (
     create_temporary_canonical_database,
     open_canonical_connection,
 )
+from backend.migration.transactional import (
+    ForeignKeySource,
+    LoadRecord,
+    TransactionalMigrationError,
+    load_in_global_transaction,
+    reserve_canonical_ids,
+)
 
 __all__ = [
     "DecisionClass",
@@ -79,6 +88,8 @@ __all__ = [
     "ExecutionManifest",
     "ExecutionStatus",
     "IntegrityStatus",
+    "HistoricalCreatedAtEntry",
+    "HistoricalProvenanceSupplement",
     "ManifestValidationStatus",
     "MatchConfidence",
     "MatchStatus",
@@ -136,4 +147,9 @@ __all__ = [
     "CanonicalValidationError",
     "create_temporary_canonical_database",
     "open_canonical_connection",
+    "ForeignKeySource",
+    "LoadRecord",
+    "TransactionalMigrationError",
+    "load_in_global_transaction",
+    "reserve_canonical_ids",
 ]

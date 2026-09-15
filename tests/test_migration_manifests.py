@@ -9,6 +9,8 @@ from backend.migration import (
     ExecutionManifest,
     ExecutionStatus,
     IntegrityStatus,
+    HistoricalCreatedAtEntry,
+    HistoricalProvenanceSupplement,
     ManifestValidationStatus,
     MatchConfidence,
     MatchStatus,
@@ -145,6 +147,17 @@ def test_shared_canonical_id_requires_equivalent_group():
         )
 
 
+def test_exclusive_preserves_counterpart_pk_provenance():
+    preserved = entry(
+        match_status=MatchStatus.EXCLUSIVE,
+        pk_relation_status=PkRelationStatus.SAME_PK_DIFFERENT_IDENTITY,
+        decision_class=DecisionClass.REVIEW,
+    )
+
+    assert preserved.match_status is MatchStatus.EXCLUSIVE
+    assert preserved.pk_relation_status is PkRelationStatus.SAME_PK_DIFFERENT_IDENTITY
+
+
 def test_serialization_round_trip_is_deterministic(tmp_path):
     original = manifest(entry())
     path = tmp_path / "remap.json"
@@ -247,3 +260,44 @@ def test_models_need_only_fictitious_manifest_files(tmp_path):
     assert list(tmp_path.iterdir()) == []
     write_manifest(tmp_path / "manifest.json", manifest(entry()))
     assert [item.name for item in tmp_path.iterdir()] == ["manifest.json"]
+
+
+def test_historical_provenance_supplement_round_trip(tmp_path):
+    supplement = HistoricalProvenanceSupplement(
+        supplement_version="created-at-v1",
+        execution_reference="execution-test-001",
+        freeze_reference="freeze-v1",
+        remap_version="remap-v1",
+        remap_checksum_sha256=HASH_A,
+        entries=(HistoricalCreatedAtEntry(
+            source_database=SourceDatabase.DESKTOP_LEGACY,
+            source_table="users",
+            source_id=1,
+            created_at=NOW.isoformat(),
+        ),),
+    )
+    path = tmp_path / "supplement.json"
+    write_manifest(path, supplement)
+    assert load_manifest(path, HistoricalProvenanceSupplement) == supplement
+
+
+def test_historical_provenance_rejects_duplicate_and_invalid_timestamp():
+    entry = HistoricalCreatedAtEntry(
+        source_database=SourceDatabase.DESKTOP_LEGACY,
+        source_table="users",
+        source_id=1,
+        created_at=NOW.isoformat(),
+    )
+    with pytest.raises(ValidationError, match="duplicada"):
+        HistoricalProvenanceSupplement(
+            supplement_version="created-at-v1",
+            execution_reference="execution-test-001",
+            freeze_reference="freeze-v1",
+            remap_version="remap-v1",
+            remap_checksum_sha256=HASH_A,
+            entries=(entry, entry),
+        )
+    with pytest.raises(ValidationError, match="ISO-8601"):
+        entry.model_copy(update={"created_at": "invalid"}).model_validate(
+            {**entry.model_dump(), "created_at": "invalid"}
+        )

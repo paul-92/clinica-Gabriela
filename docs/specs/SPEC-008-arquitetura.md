@@ -1,11 +1,14 @@
 # SPEC-008 — Unificação Arquitetural e Fonte Única de Verdade
 
-**Status:** DRAFT — especificação detalhada, pendente de inventário final e implementação.  
+**Status:** ACCEPTED / DONE — encerramento técnico aprovado pelo HUMAN em 15/09/2026.
 **Prioridade:** P1  
 **Origem:** SPEC-001 — Auditoria  
 **Dependências:** SPEC-002, SPEC-003, SPEC-004, SPEC-005, SPEC-006 e SPEC-007  
 **Relacionadas:** SPEC-009 e SPEC-010  
-**Implementação:** Não iniciada.
+**Implementação:** migração, homologação, cutover para Generation 2/canonical,
+estabilização, backup canônico pós-cutover e restauração isolada concluídos e aceitos.
+O fechamento está consolidado em
+`docs/audit/spec008-20260915-final-closure-report.md`.
 
 ## 1. Objetivo
 Definir a arquitetura-alvo da Clínica Gabriela de forma que a aplicação possua uma única fonte de verdade operacional, elimine duplicidade permanente de regras de negócio e reduza o risco de inconsistência entre desktop, backend e frontend.
@@ -1217,6 +1220,24 @@ Antes de iniciar:
 
 Falha em qualquer item impede a Fase 1.
 
+#### 54.3.1 Autoridade e segregação de decisão
+
+Decisão HUMAN aprovada para a execução da SPEC-008:
+
+- o Product Owner/HUMAN é a autoridade final para REVIEW, freeze, homologação,
+  autorização de cutover e rollback;
+- Codex é o executor técnico e pode executar automaticamente somente requisitos
+  classificados como READY;
+- casos clínicos ou financeiros concretos ambíguos não podem ser decididos pelo
+  executor e devem ser apresentados de forma privacy-safe no Review Ledger;
+- quando uma decisão concreta não puder ser determinada com segurança, o executor
+  deverá classificá-la como REVIEW ou BLOCK conforme as seções 52 e 53;
+- manutenção/quiescência, backup/restauração e janela de rollback exigem autorização
+  HUMAN antes da operação correspondente.
+
+Esta decisão não cria papéis adicionais e não autoriza antecipadamente as operações
+que permanecem submetidas ao gate HUMAN.
+
 ### 54.4 Fase 1 — Snapshots e backups
 
 Os arquivos `data/clinica_psicologia.db` e `backend/data/clinica_api.db` deverão ser
@@ -1371,6 +1392,24 @@ Se volume futuro tornar a transação global impraticável, qualquer proposta po
 fases deverá manter o banco inacessível ao runtime, possuir checkpoints verificáveis
 e rollback total por descarte do temporário; exige nova aprovação. Em nenhum caso um
 commit intermediário autoriza cutover.
+
+#### 54.10.1 Contrato transacional aprovado pelo HUMAN
+
+Decisão HUMAN registrada em 13/09/2026 para o scope
+`spec008-phases-4-8-no-cutover`:
+
+- reserva de IDs determinística e reproduzível, sem reutilizar PK histórica;
+- versões imutáveis em `approved → reserved → consumed → verified`;
+- FKs resolvidas exclusivamente pelo mapa explícito de origem;
+- Fases 5–6 em transação global e na ordem de dependências desta SPEC;
+- falha pré-commit causa rollback integral; retry parte de candidato limpo ou de
+  estado comprovadamente consistente;
+- evidências de reserva, carga e validação são versionadas e privacy-safe;
+- `consumed` somente após carga/validações correspondentes e `verified` somente
+  após as validações finais das Fases 7–8.
+
+Esta decisão não autoriza homologação, publicação ou cutover e mantém bancos
+históricos e snapshots protegidos.
 
 ### 54.11 Fases 7 e 8 — Validações obrigatórias
 
@@ -1548,7 +1587,11 @@ Manifests que necessitem IDs históricos ou canônicos serão artefatos protegid
 restritos. Relatórios compartilháveis usarão somente estrutura, agregados e
 referências opacas, sem PII, conteúdo clínico, credenciais, tokens ou IDs reais.
 
-### 54.18 Riscos e decisões ainda abertas
+### 54.18 Riscos e decisões da etapa de planejamento (histórico)
+
+> Estado de fechamento: os gates pertencentes ao escopo foram resolvidos ou aceitos
+> pelo HUMAN. Esta lista é preservada como registro do planejamento e não representa
+> pendências abertas após o aceite final de 15/09/2026.
 
 Antes da implementação ainda precisam ser aprovados:
 
