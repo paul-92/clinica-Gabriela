@@ -12,8 +12,8 @@ Este diretório reúne as especificações funcionais, técnicas, arquiteturais,
 |---|---|---|---|---|
 | SPEC-001 | Auditoria e estabilização | DONE — auditoria estática | P0/P1 | manter como baseline de riscos |
 | SPEC-002 | Autenticação e autorização seguras | READY FOR IMPLEMENTATION | P0 | implementar primeiro |
-| SPEC-003 | Integridade clínica | DRAFT detalhada | P1 | implementar após base de segurança |
-| SPEC-004 | Agenda e atendimentos | DRAFT detalhada | P1 | implementar após segurança/arquitetura |
+| SPEC-003 | Integridade clínica | ACCEPTED / DONE | P1 | preservar Evidence e recovery; manutenção futura somente |
+| SPEC-004 | Agenda e atendimentos | BASELINE FUNCTIONAL APPROVED | P1 | pronta para implementação orquestrada; implementação ainda não iniciada |
 | SPEC-005 | Financeiro | DRAFT detalhada | P1 | implementar após segurança/arquitetura |
 | SPEC-006 | Backup e recuperação | DRAFT detalhada | P1 | implementar antes de migrations críticas |
 | SPEC-007 | Testes automatizados | DRAFT detalhada | P1 transversal | aplicar desde o início |
@@ -655,10 +655,10 @@ O projeto só poderá ser considerado pronto para entrega quando:
 
 ## 21. Próxima execução
 
-A próxima implementação recomendada é:
+A próxima implementação recomendada, após o fechamento da SPEC-003, é:
 
 ```text
-SPEC-002 — Autenticação e Autorização Seguras
+SPEC-004 — Agenda e Gestão de Atendimentos
 ```
 
 Antes de criar ou alterar código:

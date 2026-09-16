@@ -1,0 +1,39 @@
+{
+  "authority": "HUMAN/Product Owner",
+  "baseline": {
+    "database_checksum_sha256": "143523964e8dd27eaaa612bbaa330a6523d2931b9889fe9443ca2e4e228bb506",
+    "generation": 5,
+    "runtime_manifest_checksum_sha256": "e7951f3876c03303f3bbfb00354ffcc896bb3e16530d80fb4448f002188171d1",
+    "schema_version_material": "backend-models-v3-spec003-integrity",
+    "state": "canonical",
+    "user_version": 3,
+    "versioned_head_observed": "30cdd7a495e09a6994c5f08ebfa75e4cc935b6a9",
+    "working_tree_is_baseline": false
+  },
+  "constraints": [
+    "409_DOMAIN_CONFLICT",
+    "412_PRECONDITION_OPTIMISTIC_CONCURRENCY_FAILURE",
+    "422_INVALID_PAYLOAD_DOMAIN_VALUE",
+    "NO_SILENT_POINTER_ROLLBACK",
+    "NO_AUTOMATIC_DELETION",
+    "NO_HIDDEN_DEPENDENCY_ON_LOCAL_CHANGES",
+    "HUMAN_IS_AUTHORITY_NOT_ORCHESTRATOR"
+  ],
+  "decision": "approve_spec004_functional_baseline",
+  "decisions": {
+    "authorization": "admin_total_audited; psychologist_own_agenda; reception_no_done",
+    "duration": "default_50_explicit_positive_override",
+    "exceptional_correction": "admin_only_reason_required_append_only",
+    "operating_hours_and_buffers": "not_imposed",
+    "reschedule": "atomic_successor_and_append_only_event",
+    "retroactive": "only_if_operationally_authorized_and_audited",
+    "statuses": ["scheduled", "done", "canceled", "no_show"],
+    "timezone": "explicit_clinic_timezone_no_silent_legacy_conversion"
+  },
+  "implementation_authorized": false,
+  "migration_authorized": false,
+  "operational_mutation_authorized": false,
+  "recorded_at": "2026-09-16",
+  "specification": "SPEC-004",
+  "state": "READY_FOR_SPEC004_ORCHESTRATED_IMPLEMENTATION"
+}

@@ -1,12 +1,12 @@
 # SPEC-003 — Integridade Clínica e Consistência de Dados
 
-Status: IMPLEMENTATION CANDIDATE VALIDATED / OPERATIONAL MIGRATION NOT EXECUTED. Prioridade: P1.
+Status: ACCEPTED / DONE. Prioridade: P1.
 
 Dependências: SPEC-002 e Generation 2/canonical resultante da SPEC-008.
 
 Autoridade das decisões: HUMAN.
 
-Data do gate: 2026-09-15.
+Data do gate final e aceite HUMAN: 2026-09-16.
 Política-base: conservadora, não destrutiva e sem inferência de dados históricos.
 
 ## 1. Objetivo e invariantes
@@ -339,4 +339,23 @@ dependem de validação jurídica/profissional futura. Não bloqueiam
 - Pendências externas mantidas como `EXTERNAL_POLICY_PENDING`.
 - Aceite HUMAN de implementação e promoção registrado separadamente.
 
-`READY_FOR_HUMAN_SPEC003_IMPLEMENTATION_PLAN`
+## 9. Fechamento formal
+
+Em 2026-09-16, o HUMAN/Product Owner aceitou o resultado do Final Independent Quality /
+Closure Re-Review (`QUALITY_GATE_PASS`) e autorizou o fechamento formal desta SPEC como
+`ACCEPTED / DONE`.
+
+O estado operacional aceito é a Generation 5/canonical, vinculada ao runtime manifest
+content-addressed `e7951f3876c03303f3bbfb00354ffcc896bb3e16530d80fb4448f002188171d1`.
+A cadeia completa, os dois `QUALITY_GATE_FAIL`, as remediações, revalidações, riscos e
+ativos de recovery estão consolidados em
+`docs/audit/spec003-20260916-final-closure-report.md`.
+
+Este aceite não autoriza migration, nova promoção, alteração de pointer, rollback,
+cleanup destrutivo, push, merge ou release. Generations anteriores, backups, manifests,
+Evidence, histórico de pointers, relatórios de Quality Gates e artefatos de recovery
+permanecem preservados.
+
+`ACCEPTED/DONE ≠ DESTRUCTIVE CLEANUP`
+
+`SPEC-003 CLOSED — ACCEPTED/DONE`

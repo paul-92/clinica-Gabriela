@@ -1,0 +1,29 @@
+{
+  "accepted_state": "ACCEPTED / DONE",
+  "authority": "HUMAN/Product Owner",
+  "date": "2026-09-16",
+  "decision": "HUMAN FINAL ACCEPTANCE — SPEC-003",
+  "final_quality_result": "QUALITY_GATE_PASS",
+  "privacy_safe": true,
+  "prohibitions": [
+    "cleanup destrutivo",
+    "migration",
+    "promocao",
+    "alteracao de pointer",
+    "rollback",
+    "push",
+    "merge",
+    "release"
+  ],
+  "preservation_required": [
+    "generations anteriores",
+    "backups",
+    "manifests",
+    "Evidence",
+    "historico dos pointers",
+    "relatorios dos Quality Gates",
+    "artefatos de recovery"
+  ],
+  "principle": "ACCEPTED/DONE != DESTRUCTIVE CLEANUP",
+  "spec": "SPEC-003 — Integridade Clínica"
+}
