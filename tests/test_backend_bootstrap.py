@@ -62,6 +62,7 @@ def test_importing_backend_main_does_not_create_database(tmp_path):
     env = os.environ.copy()
     env["BACKEND_DATA_DIR"] = str(data_dir)
     env.pop("BACKEND_DATABASE_PATH", None)
+    env["CLINICA_RUNTIME_ROOT"] = str(tmp_path / "runtime-isolado")
 
     result = subprocess.run(
         [sys.executable, "-c", "import backend.main"],
@@ -80,6 +81,7 @@ def test_create_app_is_separate_from_bootstrap(monkeypatch, tmp_path):
     data_dir = tmp_path / "sem_bootstrap"
     monkeypatch.setenv("BACKEND_DATA_DIR", str(data_dir))
     monkeypatch.delenv("BACKEND_DATABASE_PATH", raising=False)
+    monkeypatch.setenv("CLINICA_RUNTIME_ROOT", str(tmp_path / "runtime-isolado"))
 
     app = create_app(lifespan_context=None)
 
@@ -128,6 +130,7 @@ def test_normal_app_startup_runs_bootstrap(monkeypatch, tmp_path):
     data_dir = tmp_path / "startup"
     monkeypatch.setenv("BACKEND_DATA_DIR", str(data_dir))
     monkeypatch.delenv("BACKEND_DATABASE_PATH", raising=False)
+    monkeypatch.setenv("CLINICA_RUNTIME_ROOT", str(tmp_path / "runtime-isolado"))
     monkeypatch.delenv("INITIAL_ADMIN_USERNAME", raising=False)
     monkeypatch.delenv("INITIAL_ADMIN_PASSWORD", raising=False)
 

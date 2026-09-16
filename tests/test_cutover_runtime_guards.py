@@ -1,4 +1,8 @@
+import os
 import sqlite3
+import subprocess
+import sys
+from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
@@ -19,6 +23,19 @@ def sqlite_database(path):
     with sqlite3.connect(path) as connection:
         connection.execute("CREATE TABLE fixture (id INTEGER PRIMARY KEY)")
     return path
+
+
+def operational_layout(tmp_path, code_root, relative_files):
+    runtime = tmp_path / "runtime"
+    manifests = runtime / "runtime-manifests"
+    database = sqlite_database(runtime / "generations" / "canonical.db")
+    _, runtime_hash = freeze_runtime(code_root, relative_files, manifests)
+    pointer = OperationalPointer(
+        4, "canonical", str(database.resolve()), sha256_file(database),
+        "backend-models-v2-credential-reset", runtime_hash,
+    )
+    (runtime / "operational-pointer.json").write_bytes(pointer.bytes())
+    return runtime, database
 
 
 def test_backend_write_mode_fails_closed_under_maintenance(tmp_path):
@@ -67,6 +84,64 @@ def test_config_uses_valid_persistent_pointer_and_fails_on_corruption(tmp_path, 
     pointer_path.write_text("{}", encoding="utf-8")
     with pytest.raises(Exception):
         get_runtime_settings()
+
+
+def test_default_runtime_layout_resolves_manifest_without_override(tmp_path, monkeypatch):
+    code = tmp_path / "code"
+    code.mkdir()
+    (code / "app.py").write_text("value = 1\n", encoding="utf-8")
+    runtime, database = operational_layout(tmp_path, code, ["app.py"])
+    monkeypatch.setenv("CLINICA_RUNTIME_ROOT", str(runtime))
+    monkeypatch.setenv("CLINICA_RUNTIME_CODE_ROOT", str(code))
+    monkeypatch.delenv("CLINICA_OPERATIONAL_POINTER", raising=False)
+    monkeypatch.delenv("CLINICA_RUNTIME_MANIFEST_DIR", raising=False)
+    monkeypatch.delenv("BACKEND_DATABASE_PATH", raising=False)
+
+    settings = get_runtime_settings()
+
+    assert settings.pointer_path == (runtime / "operational-pointer.json").resolve()
+    assert settings.database_path == database.resolve()
+
+
+def test_normal_import_uses_default_runtime_manifest_location(tmp_path):
+    repository = Path(__file__).resolve().parents[1]
+    runtime, _ = operational_layout(tmp_path, repository, ["backend/config.py"])
+    env = os.environ.copy()
+    env["CLINICA_RUNTIME_ROOT"] = str(runtime)
+    env["CLINICA_RUNTIME_CODE_ROOT"] = str(repository)
+    env.pop("CLINICA_OPERATIONAL_POINTER", None)
+    env.pop("CLINICA_RUNTIME_MANIFEST_DIR", None)
+    env.pop("BACKEND_DATABASE_PATH", None)
+    result = subprocess.run(
+        [sys.executable, "-c", "import backend.main"], cwd=repository,
+        env=env, capture_output=True, text=True, check=False,
+    )
+
+    assert result.returncode == 0, result.stderr
+
+
+@pytest.mark.skipif(os.name != "nt", reason="launchers PowerShell sao especificos do Windows")
+@pytest.mark.parametrize("launcher", ["run_api.ps1", "run_all.ps1"])
+def test_launchers_resolve_default_runtime_manifest_without_override(tmp_path, launcher):
+    repository = Path(__file__).resolve().parents[1]
+    runtime, _ = operational_layout(tmp_path, repository, ["backend/config.py"])
+    env = os.environ.copy()
+    env["CLINICA_RUNTIME_ROOT"] = str(runtime)
+    env["CLINICA_RUNTIME_CODE_ROOT"] = str(repository)
+    env["BACKEND_PORT"] = "0"
+    env.pop("CLINICA_OPERATIONAL_POINTER", None)
+    env.pop("CLINICA_RUNTIME_MANIFEST_DIR", None)
+    env.pop("BACKEND_DATABASE_PATH", None)
+    result = subprocess.run(
+        ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File",
+         str(repository / "scripts" / launcher)],
+        cwd=repository, env=env, capture_output=True, text=True, check=False,
+    )
+    output = result.stdout + result.stderr
+
+    assert result.returncode != 0
+    assert "BACKEND_PORT deve estar entre 1 e 65535" in output
+    assert "runtime-manifest" not in output
 
 
 def test_desktop_is_blocked_by_maintenance_or_canonical_pointer(tmp_path, monkeypatch):

@@ -201,7 +201,6 @@ def _read_only_smoke(repository: Path, runtime: Path, database: Path) -> dict:
         "CLINICA_RUNTIME_ROOT": str(runtime),
         "CLINICA_OPERATIONAL_POINTER": str(runtime / "operational-pointer.json"),
         "CLINICA_MAINTENANCE_LOCK": str(runtime / "maintenance.lock"),
-        "CLINICA_RUNTIME_MANIFEST_DIR": str(runtime / "runtime-manifests"),
         "CLINICA_RUNTIME_CODE_ROOT": str(repository),
         "BACKEND_VERIFY_READ_ONLY": "true",
         "BACKEND_RELOAD": "false",
@@ -209,6 +208,7 @@ def _read_only_smoke(repository: Path, runtime: Path, database: Path) -> dict:
     })
     os.environ.pop("BACKEND_DATABASE_PATH", None)
     os.environ.pop("BACKEND_DATA_DIR", None)
+    os.environ.pop("CLINICA_RUNTIME_MANIFEST_DIR", None)
     from fastapi.testclient import TestClient
     import backend.main as backend_main
     from backend.api.dependencies import require_admin, require_psychologist

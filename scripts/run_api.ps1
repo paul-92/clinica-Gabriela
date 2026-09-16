@@ -9,3 +9,6 @@ if (-not (Test-Path $Python)) {
 
 Set-Location $Root
 & $Python -m backend.supervisor run
+if ($LASTEXITCODE -ne 0) {
+    throw "O backend encerrou com falha."
+}

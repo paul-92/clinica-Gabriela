@@ -39,7 +39,7 @@ def get_runtime_settings() -> RuntimeSettings:
 
         pointer = read_pointer(pointer_path)
         manifest_dir = Path(os.getenv(
-            "CLINICA_RUNTIME_MANIFEST_DIR", pointer_path.parent.parent / "runtime-manifests"
+            "CLINICA_RUNTIME_MANIFEST_DIR", pointer_path.parent / "runtime-manifests"
         )).expanduser().resolve()
         code_root = Path(os.getenv(
             "CLINICA_RUNTIME_CODE_ROOT", BACKEND_ROOT.parent
