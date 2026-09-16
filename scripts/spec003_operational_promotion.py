@@ -45,6 +45,8 @@ from backend.cutover.infrastructure import (
 
 SPEC003_COMMIT = "00ee65e8dc1541783cf4c798f08b40af6b9fd266"
 OPERATIONAL_BASELINE_COMMIT = "ebc8604d5e97230ccfe86ecb65a593fcfddf9fb5"
+PREVIOUS_RUNTIME_MANIFEST = "6974153d6a29fb2b888dfae53e6b168ae38387a9c577c6da03e32a397635a836"
+QUALITY_GATE_FAILURE_EVIDENCE_COMMIT = "12e4c3762d9ec73ffd670487c2e4b3940e1bc9d8"
 GENERATION2_POINTER = "55604e3881535b8891cdea020980f41a8168f7b5e00edc08c9a3160b9dea960b"
 GENERATION2_DATABASE = "4ab2924efb8fd7d849c7270760be80debf9a8dc0d7d35759c249d4deb1c2c69f"
 CANDIDATE = "143523964e8dd27eaaa612bbaa330a6523d2931b9889fe9443ca2e4e228bb506"
@@ -105,6 +107,9 @@ def freeze(repository: Path, runtime: Path) -> tuple[Path, str, str]:
         "accepted_operational_baseline_commit": OPERATIONAL_BASELINE_COMMIT,
         "spec003_implementation_commit": SPEC003_COMMIT,
         "runtime_integration_commit": runtime_commit,
+        "quality_gate_remediation_commit": runtime_commit,
+        "quality_gate_failure_evidence_commit": QUALITY_GATE_FAILURE_EVIDENCE_COMMIT,
+        "previous_runtime_manifest_sha256": PREVIOUS_RUNTIME_MANIFEST,
         "candidate_version": "spec003-v2",
         "candidate_sha256": CANDIDATE,
         "migration": "backend/migration/spec003.py",
