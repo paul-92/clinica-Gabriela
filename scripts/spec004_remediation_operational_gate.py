@@ -87,17 +87,25 @@ def runtime_files() -> list[str]:
 
 def freeze_and_manifest(runtime: Path) -> tuple[Path, str, str]:
     entries = []
+    source_entries = []
     for relative in runtime_files():
-        data = (ROOT / relative).read_bytes()
-        entries.append({"path": relative, "sha256": hashlib.sha256(data).hexdigest(),
-                        "size_bytes": len(data)})
+        active = (ROOT / relative).read_bytes()
+        source = subprocess.run(["git", "show", f"{SOURCE_COMMIT}:{relative}"], cwd=ROOT,
+                                capture_output=True, check=True).stdout
+        if active.replace(b"\r\n", b"\n") != source.replace(b"\r\n", b"\n"):
+            raise RuntimeError(f"checkout ativo diverge semanticamente do commit: {relative}")
+        entries.append({"path": relative, "sha256": hashlib.sha256(active).hexdigest(),
+                        "size_bytes": len(active), "source_sha256": hashlib.sha256(source).hexdigest()})
+        source_entries.append({"path": relative, "sha256": hashlib.sha256(source).hexdigest(),
+                               "size_bytes": len(source)})
     authorized = {"format_version": "1.0-spec004-remediation", "source_commit": SOURCE_COMMIT,
                   "predecessor_generation": 7, "migration": "backend/migration/spec004_remediation.py",
-                  "entries": entries, "privacy_safe": True}
+                  "entries": source_entries, "privacy_safe": True}
     if hashlib.sha256(canonical_bytes(authorized)).hexdigest() != EXPECTED_FREEZE:
         raise RuntimeError("freeze autorizado nao foi reproduzido")
-    payload = {**authorized, "schema_version": SCHEMA_VERSION,
-               "candidate_database_sha256": EXPECTED_CANDIDATE}
+    payload = {**authorized, "entries": entries, "schema_version": SCHEMA_VERSION,
+               "candidate_database_sha256": EXPECTED_CANDIDATE,
+               "authorized_freeze_sha256": EXPECTED_FREEZE}
     data = canonical_bytes(payload)
     checksum = hashlib.sha256(data).hexdigest()
     path = runtime / "runtime-manifests" / f"runtime-manifest-{checksum}.json"
@@ -158,9 +166,10 @@ def main() -> int:
         raise RuntimeError("espaco insuficiente")
     candidate = runtime / "candidates" / f"spec004-remediation-v5-{EXPECTED_CANDIDATE[:12]}.db"
     if candidate.exists():
-        raise RuntimeError("candidato operacional ja existe")
-    shutil.copy2(predecessor_db, candidate)
-    load_migration()(candidate)
+        validate_database(candidate, 5, EXPECTED_CANDIDATE)
+    else:
+        shutil.copy2(predecessor_db, candidate)
+        load_migration()(candidate)
     candidate_validation = validate_database(candidate, 5, EXPECTED_CANDIDATE)
     if (candidate_validation["appointments"], candidate_validation["events"]) != (pre["appointments"], pre["events"]):
         raise RuntimeError("contagens divergiram")
