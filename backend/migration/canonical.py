@@ -51,7 +51,7 @@ EXPECTED_TABLES = frozenset(
         "clinic_settings",
     }
 )
-CANONICAL_SCHEMA_VERSION = "backend-models-v4-spec004-agenda"
+CANONICAL_SCHEMA_VERSION = "backend-models-v5-spec004-remediation"
 
 
 class CanonicalDatabaseError(Exception):

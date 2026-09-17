@@ -29,7 +29,12 @@ Depois acesse:
 - `GET/POST/PUT/PATCH /patients`
 - `GET/POST/PUT/PATCH /psychologists`
 - `POST /psychologists/{id}/aptitude`
-- `GET/POST/PUT /appointments`
+- `GET/POST/PUT/PATCH /appointments`
+- `POST /appointments/{id}/cancel`
+- `POST /appointments/{id}/done`
+- `POST /appointments/{id}/no-show`
+- `POST /appointments/{id}/reschedule`
+- `POST /appointments/{id}/exceptional-correction` (somente admin, motivo e `If-Match` obrigatórios)
 - `GET/POST/PUT/PATCH /clinical-records`
 - `POST /clinical-records/{id}/finalize`
 - `POST /clinical-records/{id}/rectifications`
@@ -38,6 +43,10 @@ Depois acesse:
 - `GET/POST /finance/expenses`
 - `GET /finance/summary`
 - `GET/PUT /settings`
+
+O timezone IANA efetivo de `settings` governa novos horários da agenda. Horários locais
+inexistentes ou ambíguos por DST são rejeitados; timestamps históricos não são
+reinterpretados automaticamente.
 
 ## Integridade e concorrência
 

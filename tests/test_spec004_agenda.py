@@ -8,6 +8,7 @@ from backend.database.session import create_database_runtime, init_db
 from backend.models.appointment import Appointment, AppointmentEvent
 from backend.models.patient import Patient
 from backend.models.psychologist import Psychologist
+from backend.models.settings import ClinicSettings
 from backend.models.user import User
 from backend.services.appointment_service import AppointmentService
 from concurrent.futures import ThreadPoolExecutor
@@ -22,7 +23,7 @@ def agenda(tmp_path):
     patient = Patient(full_name="Paciente Ficticio", active=True)
     psychologist = Psychologist(full_name="Profissional Ficticio", crp="06/12345",
         crp_region="06", crp_number="12345", crp_status="apt", active=True)
-    session.add_all([patient, psychologist]); session.commit()
+    session.add_all([patient, psychologist, ClinicSettings(timezone_name="America/Sao_Paulo")]); session.commit()
     admin = User(name="Admin Ficticio", username="admin-spec004", password_hash="disabled",
         role="admin", active=True)
     reception = User(name="Recepcao Ficticia", username="rec-spec004", password_hash="disabled",
@@ -105,7 +106,7 @@ def test_real_sqlite_connections_prevent_double_booking(tmp_path):
     patient = Patient(full_name="Paciente Concorrencia", active=True)
     psychologist = Psychologist(full_name="Psi Concorrencia", crp="06/67890", crp_region="06", crp_number="67890", crp_status="apt", active=True)
     admin = User(name="Admin Concorrencia", username="admin-race", password_hash="disabled", role="admin", active=True)
-    setup.add_all([patient, psychologist, admin]); setup.commit()
+    setup.add_all([patient, psychologist, admin, ClinicSettings(timezone_name="America/Sao_Paulo")]); setup.commit()
     values = payload(patient, psychologist); ids = patient.id, psychologist.id, admin.id
     setup.close()
 

@@ -7,6 +7,7 @@ from sqlalchemy.exc import IntegrityError, OperationalError
 from backend.models.appointment import Appointment, AppointmentEvent
 from backend.models.patient import Patient
 from backend.models.psychologist import Psychologist
+from backend.models.settings import ClinicSettings
 from backend.repositories.appointment_repository import AppointmentRepository
 from backend.services.errors import translate_integrity_error
 
@@ -44,7 +45,7 @@ class AppointmentService:
             clean = dict(data)
             clean.setdefault("duration_minutes", 50)
             clean.setdefault("status", "scheduled")
-            clean.setdefault("timezone_name", "America/Sao_Paulo")
+            self._normalize_new_time(clean)
             self._authorize(actor, clean["psychologist_id"], "create")
             self._validate_relations(clean); self._validate_new(clean); self._validate_availability(clean)
             item = Appointment(**clean); self.db.add(item); self.db.flush()
@@ -79,7 +80,11 @@ class AppointmentService:
                 "duration_minutes": data.get("duration_minutes", item.duration_minutes),
                 "status": item.status, "timezone_name": data.get("timezone_name", item.timezone_name)}
             self._authorize(actor, merged["psychologist_id"], "edit")
-            self._validate_relations(merged); self._validate_new(merged, allow_past=True)
+            if "scheduled_at" in data:
+                self._normalize_new_time(merged)
+                data["scheduled_at"] = merged["scheduled_at"]
+                data["timezone_name"] = merged["timezone_name"]
+            self._validate_relations(merged); self._validate_new(merged, validate_time="scheduled_at" in data)
             self._validate_availability(merged, exclude_id=item.id)
             for key, value in data.items(): setattr(item, key, value)
             item.version += 1; self._event(item.id, actor.id, "updated")
@@ -105,13 +110,36 @@ class AppointmentService:
             original = self.get_appointment(appointment_id); self._precondition(original, expected_version)
             if original.status != "scheduled": raise HTTPException(409, "Somente atendimento agendado pode ser remarcado.")
             clean = dict(data); clean["status"] = "scheduled"; clean.setdefault("duration_minutes", 50)
-            clean.setdefault("timezone_name", original.timezone_name); clean["original_appointment_id"] = original.id
+            clean["original_appointment_id"] = original.id
+            self._normalize_new_time(clean)
             self._authorize(actor, original.psychologist_id, "reschedule"); self._authorize(actor, clean["psychologist_id"], "reschedule")
             self._validate_relations(clean); self._validate_new(clean); self._validate_availability(clean, exclude_id=original.id)
             successor = Appointment(**clean); self.db.add(successor); self.db.flush()
             original.status = "canceled"; original.version += 1
             self._event(original.id, actor.id, "rescheduled", successor.id, reason.strip())
             self.db.commit(); self.db.refresh(successor); return successor
+        except Exception:
+            self.db.rollback(); raise
+
+    def exceptional_correction(self, appointment_id, target, actor, expected_version, reason):
+        if actor is None or actor.role != "admin":
+            raise HTTPException(403, "Correcao excepcional exclusiva de administrador.")
+        if not reason or not reason.strip():
+            raise HTTPException(422, "Motivo da correcao excepcional obrigatorio.")
+        if target not in {"scheduled", "done", "canceled", "no_show"}:
+            raise HTTPException(422, "Estado de correcao invalido.")
+        self._begin_immediate()
+        try:
+            item = self.get_appointment(appointment_id)
+            self._precondition(item, expected_version)
+            if item.status not in CLOSED or item.status == target:
+                raise HTTPException(409, "Correcao excepcional exige estado encerrado e alteracao real.")
+            previous = item.status
+            item.status = target
+            item.version += 1
+            self._event(item.id, actor.id, "exceptional_correction", reason=reason.strip(),
+                        from_status=previous, to_status=target)
+            self.db.commit(); self.db.refresh(item); return item
         except Exception:
             self.db.rollback(); raise
 
@@ -148,15 +176,45 @@ class AppointmentService:
         if not psychologist.active or psychologist.crp_status != "apt": raise HTTPException(409, "Psicologo nao esta apto.")
 
     @staticmethod
-    def _validate_new(data, allow_past=False):
+    def _validate_new(data, validate_time=True):
         if data.get("status") != "scheduled": raise HTTPException(422, "Status inicial invalido.")
         duration = data.get("duration_minutes", 50)
         if isinstance(duration, bool) or not isinstance(duration, int) or duration <= 0: raise HTTPException(422, "Duracao deve ser inteira e positiva.")
-        try: zone = ZoneInfo(data.get("timezone_name", "America/Sao_Paulo"))
-        except ZoneInfoNotFoundError: raise HTTPException(422, "Timezone invalido.")
+        if validate_time:
+            instant = data["scheduled_at"]
+            aware = instant.replace(tzinfo=timezone.utc) if instant.tzinfo is None else instant.astimezone(timezone.utc)
+            if aware < datetime.now(timezone.utc): raise HTTPException(409, "Agendamento retroativo nao autorizado.")
+
+    def _normalize_new_time(self, data):
+        settings = self.db.query(ClinicSettings).order_by(ClinicSettings.id).limit(2).all()
+        if len(settings) != 1:
+            raise HTTPException(422, "Timezone efetivo da clinica nao configurado de forma unica.")
+        name = settings[0].timezone_name
+        try:
+            zone = ZoneInfo(name)
+        except ZoneInfoNotFoundError as exc:
+            raise HTTPException(422, "Timezone efetivo da clinica invalido.") from exc
+        supplied = data.get("timezone_name")
+        if supplied and supplied != name:
+            raise HTTPException(422, "Timezone do payload diverge da configuracao da clinica.")
         instant = data["scheduled_at"]
-        aware = instant.replace(tzinfo=zone) if instant.tzinfo is None else instant.astimezone(zone)
-        if not allow_past and aware.astimezone(timezone.utc) < datetime.now(timezone.utc): raise HTTPException(409, "Agendamento retroativo nao autorizado.")
+        if instant.tzinfo is None:
+            valid = []
+            for fold in (0, 1):
+                candidate = instant.replace(tzinfo=zone, fold=fold)
+                roundtrip = candidate.astimezone(timezone.utc).astimezone(zone)
+                if roundtrip.replace(tzinfo=None) == instant and roundtrip.fold == fold:
+                    valid.append(candidate)
+            offsets = {candidate.utcoffset() for candidate in valid}
+            if not valid:
+                raise HTTPException(422, "Horario local inexistente por transicao DST.")
+            if len(offsets) > 1:
+                raise HTTPException(422, "Horario local ambiguo por transicao DST.")
+            aware = valid[0]
+        else:
+            aware = instant.astimezone(zone)
+        data["scheduled_at"] = aware.astimezone(timezone.utc).replace(tzinfo=None)
+        data["timezone_name"] = name
 
     def _validate_availability(self, data, exclude_id=None):
         if data.get("status") == "canceled":
@@ -172,6 +230,8 @@ class AppointmentService:
     def _db_instant(value):
         return value.astimezone(timezone.utc).replace(tzinfo=None) if value.tzinfo else value
 
-    def _event(self, appointment_id, actor_id, event_type, successor_id=None, reason=""):
+    def _event(self, appointment_id, actor_id, event_type, successor_id=None, reason="",
+               from_status=None, to_status=None):
         self.db.add(AppointmentEvent(appointment_id=appointment_id, successor_appointment_id=successor_id,
-            actor_user_id=actor_id, event_type=event_type, reason=reason))
+            actor_user_id=actor_id, event_type=event_type, reason=reason,
+            from_status=from_status, to_status=to_status))

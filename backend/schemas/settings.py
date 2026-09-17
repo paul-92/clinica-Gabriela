@@ -7,6 +7,7 @@ class ClinicSettingsBase(ORMBase):
     email: str = ""
     address: str = ""
     default_session_value: float = 0.0
+    timezone_name: str = "America/Sao_Paulo"
 
 
 class ClinicSettingsUpdate(ClinicSettingsBase):

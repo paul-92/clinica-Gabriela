@@ -40,5 +40,10 @@ class AppointmentAction(ORMBase):
     reason: str = ""
 
 
+class AppointmentExceptionalCorrection(ORMBase):
+    target_status: str
+    reason: str = Field(min_length=1, max_length=500)
+
+
 class AppointmentReschedule(AppointmentCreate):
     reason: str = Field(min_length=1, max_length=500)

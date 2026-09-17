@@ -1,6 +1,6 @@
 from enum import Enum
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, Integer, String, Text, func
+from sqlalchemy import CheckConstraint, DateTime, DDL, ForeignKey, Index, Integer, String, Text, event, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.database.session import Base
@@ -52,4 +52,31 @@ class AppointmentEvent(Base):
     actor_user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="NO ACTION"), nullable=False)
     event_type: Mapped[str] = mapped_column(String(32), nullable=False)
     reason: Mapped[str] = mapped_column(String(500), nullable=False, default="")
+    from_status: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    to_status: Mapped[str | None] = mapped_column(String(30), nullable=True)
     created_at = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+
+
+event.listen(AppointmentEvent.__table__, "after_create", DDL("""
+CREATE TRIGGER IF NOT EXISTS spec004_events_no_update
+BEFORE UPDATE ON appointment_events
+BEGIN SELECT RAISE(ABORT, 'appointment_events is append-only'); END
+"""))
+event.listen(AppointmentEvent.__table__, "after_create", DDL("""
+CREATE TRIGGER IF NOT EXISTS spec004_events_no_delete
+BEFORE DELETE ON appointment_events
+BEGIN SELECT RAISE(ABORT, 'appointment_events is append-only'); END
+"""))
+event.listen(AppointmentEvent.__table__, "after_create", DDL("""
+CREATE TRIGGER IF NOT EXISTS spec004_reschedule_event_guard
+BEFORE INSERT ON appointment_events
+WHEN NEW.event_type = 'rescheduled' AND (
+  NEW.successor_appointment_id IS NULL OR
+  NOT EXISTS (
+    SELECT 1 FROM appointments successor
+    WHERE successor.id = NEW.successor_appointment_id
+      AND successor.original_appointment_id = NEW.appointment_id
+  )
+)
+BEGIN SELECT RAISE(ABORT, 'invalid reschedule relationship'); END
+"""))

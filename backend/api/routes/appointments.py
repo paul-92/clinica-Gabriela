@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Header, Response
 from sqlalchemy.orm import Session
 
 from backend.database.session import get_db
-from backend.schemas.appointment import AppointmentAction, AppointmentCreate, AppointmentRead, AppointmentReschedule, AppointmentUpdate
+from backend.schemas.appointment import AppointmentAction, AppointmentCreate, AppointmentExceptionalCorrection, AppointmentRead, AppointmentReschedule, AppointmentUpdate
 from backend.services.appointment_integrity_service import AppointmentIntegrityService
 from backend.api.routes.auth import get_current_user
 from backend.api.versioning import parse_if_match
@@ -84,3 +84,16 @@ def reschedule(appointment_id: int, payload: AppointmentReschedule, if_match: st
         raise HTTPException(status_code=428, detail="If-Match obrigatorio.")
     data = payload.model_dump(); reason = data.pop("reason")
     return AppointmentIntegrityService(db).reschedule(appointment_id, data, current_user, expected, reason)
+
+
+@router.post("/{appointment_id}/exceptional-correction", response_model=AppointmentRead)
+def exceptional_correction(appointment_id: int, payload: AppointmentExceptionalCorrection,
+                           if_match: str | None = Header(None), db: Session = Depends(get_db),
+                           current_user=Depends(get_current_user)):
+    expected = parse_if_match(if_match)
+    if expected is None:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=428, detail="If-Match obrigatorio.")
+    return AppointmentIntegrityService(db).exceptional_correction(
+        appointment_id, payload.target_status, current_user, expected, payload.reason
+    )
