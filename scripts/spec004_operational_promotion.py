@@ -99,13 +99,14 @@ def _runtime_files(repository: Path) -> list[str]:
 
 
 def _clean_extract(repository: Path, commit: str, destination: Path) -> Path:
-    archive = destination / "source.tar"
-    with archive.open("wb") as stream:
-        subprocess.run(["git", "archive", "--format=tar", commit], cwd=repository,
-                       stdout=stream, check=True)
     extracted = destination / "source"
-    extracted.mkdir()
-    shutil.unpack_archive(archive, extracted, format="tar")
+    subprocess.run(
+        ["git", "clone", "--quiet", "--no-hardlinks", "--no-checkout",
+         str(repository), str(extracted)],
+        check=True,
+    )
+    subprocess.run(["git", "checkout", "--quiet", "--force", commit],
+                   cwd=extracted, check=True)
     return extracted
 
 
