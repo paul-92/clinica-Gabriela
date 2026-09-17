@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
 import shutil
@@ -40,7 +41,20 @@ from backend.cutover.infrastructure import (
     sha256_file,
     verify_runtime_manifest,
 )
-from backend.migration.spec004 import migrate_spec004
+
+
+def _load_migration():
+    """Load the pure migration without importing backend.migration side effects."""
+    path = ROOT / "backend" / "migration" / "spec004.py"
+    spec = importlib.util.spec_from_file_location("spec004_operational_migration", path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("migration SPEC-004 nao pode ser carregada")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.migrate_spec004
+
+
+migrate_spec004 = _load_migration()
 
 
 IMPLEMENTATION_PARENT = "19983dc5ec940b65d552bb57eb0f85ee0e9aadba"
