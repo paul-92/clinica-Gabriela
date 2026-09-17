@@ -297,6 +297,7 @@ def run(repository: Path, runtime: Path) -> dict:
             lock=lock, history_dir=runtime / "pointer-history",
         )
         switched = True
+        smoke = _default_read_only_smoke(repository, runtime, promoted)
     except Exception:
         if switched:
             _atomic_create(evidence_path, _canonical_bytes({
@@ -308,7 +309,6 @@ def run(repository: Path, runtime: Path) -> dict:
     finally:
         lock.release()
 
-    smoke = _default_read_only_smoke(repository, runtime, promoted)
     promoted_validation = _validate_database(promoted, CANDIDATE_DATABASE, 4)
     backup_after = runtime / "backups" / f"{execution}-generation-6-stabilized"
     backup_lock = acquire_maintenance_lock(runtime / "maintenance.lock", execution + "-stabilization",
