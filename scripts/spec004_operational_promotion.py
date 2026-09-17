@@ -105,7 +105,7 @@ def _clean_extract(repository: Path, commit: str, destination: Path) -> Path:
          str(repository), str(extracted)],
         check=True,
     )
-    subprocess.run(["git", "config", "core.autocrlf", "true"],
+    subprocess.run(["git", "config", "core.autocrlf", "false"],
                    cwd=extracted, check=True)
     subprocess.run(["git", "checkout", "--quiet", "--force", commit],
                    cwd=extracted, check=True)
