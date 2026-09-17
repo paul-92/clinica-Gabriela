@@ -120,9 +120,18 @@ def freeze(repository: Path, runtime: Path) -> tuple[Path, str, str]:
         clean = _clean_extract(repository, commit, Path(temp))
         entries = []
         for relative in files:
-            path = (clean / relative).resolve(strict=True)
-            entries.append({"path": relative, "sha256": sha256_file(path),
-                            "size_bytes": path.stat().st_size})
+            source = (clean / relative).resolve(strict=True)
+            deployed = (repository / relative).resolve(strict=True)
+            source_bytes = source.read_bytes()
+            deployed_bytes = deployed.read_bytes()
+            if deployed_bytes.replace(b"\r\n", b"\n") != source_bytes.replace(b"\r\n", b"\n"):
+                raise RuntimeError(f"checkout ativo diverge semanticamente do commit: {relative}")
+            entries.append({
+                "path": relative,
+                "sha256": hashlib.sha256(deployed_bytes).hexdigest(),
+                "size_bytes": len(deployed_bytes),
+                "source_sha256": hashlib.sha256(source_bytes).hexdigest(),
+            })
         payload = {
             "format_version": "1.2-spec004",
             "schema_version": SCHEMA_VERSION,
@@ -145,7 +154,6 @@ def freeze(repository: Path, runtime: Path) -> tuple[Path, str, str]:
         checksum = hashlib.sha256(data).hexdigest()
         manifest = runtime / "runtime-manifests" / f"runtime-manifest-{checksum}.json"
         _atomic_create(manifest, data)
-        verify_runtime_manifest(clean, manifest, checksum)
     verify_runtime_manifest(repository, manifest, checksum)
     return manifest, checksum, commit
 
