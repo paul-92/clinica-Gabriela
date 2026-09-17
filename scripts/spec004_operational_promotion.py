@@ -171,33 +171,6 @@ def _validate_database(path: Path, expected_checksum: str, user_version: int) ->
             "appointment_events": "appointment_events" in tables}
 
 
-def _quiesce_empty_wal(path: Path) -> str:
-    """Normalize only the coherent empty-WAL case, preserving database bytes."""
-    wal = Path(str(path) + "-wal")
-    shm = Path(str(path) + "-shm")
-    journal = Path(str(path) + "-journal")
-    present = [item for item in (wal, shm, journal) if item.exists()]
-    if not present:
-        return "NOT_REQUIRED"
-    if journal.exists() or not wal.exists() or not shm.exists() or wal.stat().st_size != 0:
-        raise RuntimeError("sidecars do predecessor sao incompatíveis com quiescencia segura")
-    before = sha256_file(path)
-    try:
-        with sqlite3.connect(path, timeout=0, isolation_level=None) as connection:
-            connection.execute("PRAGMA foreign_keys=ON")
-            connection.execute("PRAGMA wal_checkpoint(TRUNCATE)")
-            connection.execute("PRAGMA journal_mode=DELETE")
-            connection.execute("BEGIN EXCLUSIVE")
-            connection.rollback()
-    except sqlite3.Error as exc:
-        raise RuntimeError("writer ativo impediu quiescencia SQLite") from exc
-    if any(item.exists() for item in (wal, shm, journal)):
-        raise RuntimeError("sidecars permaneceram apos quiescencia")
-    if sha256_file(path) != before:
-        raise RuntimeError("quiescencia alterou bytes da Generation 5")
-    return "EMPTY_WAL_CHECKPOINTED"
-
-
 def _preflight(runtime: Path) -> tuple[OperationalPointer, Path, dict]:
     pointer_path = runtime / "operational-pointer.json"
     if sha256_file(pointer_path) != PREDECESSOR_POINTER:
@@ -208,7 +181,6 @@ def _preflight(runtime: Path) -> tuple[OperationalPointer, Path, dict]:
             or pointer.runtime_manifest_checksum_sha256 != PREDECESSOR_RUNTIME_MANIFEST):
         raise RuntimeError("envelope da Generation 5 diverge")
     database = Path(pointer.database_path).resolve(strict=True)
-    quiescence = _quiesce_empty_wal(database)
     validation = _validate_database(database, PREDECESSOR_DATABASE, 3)
     previous_manifest = runtime / "runtime-manifests" / (
         f"runtime-manifest-{PREDECESSOR_RUNTIME_MANIFEST}.json"
@@ -224,7 +196,7 @@ def _preflight(runtime: Path) -> tuple[OperationalPointer, Path, dict]:
         raise RuntimeError("ACL do destino de generations diverge")
     if shutil.disk_usage(runtime).free < database.stat().st_size * 8:
         raise RuntimeError("espaco livre insuficiente para gate")
-    return pointer, database, {**validation, "quiescence": quiescence}
+    return pointer, database, validation
 
 
 def _materialize_candidate(source: Path, destination: Path) -> dict:
