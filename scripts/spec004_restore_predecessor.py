@@ -51,6 +51,11 @@ def main() -> None:
     lock = acquire_maintenance_lock(runtime / "maintenance.lock", execution, databases=(database,))
     try:
         lock.assert_held()
+        connection = lock.locked_connection(database)
+        connection.rollback()
+        connection.close()
+        del lock._database_locks[database]
+        lock.assert_held()
         _atomic_replace(database, backup.read_bytes())
     finally:
         lock.release()
