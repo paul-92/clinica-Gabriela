@@ -42,6 +42,7 @@ EXPECTED_TABLES = frozenset(
         "patients",
         "psychologists",
         "appointments",
+        "appointment_events",
         "clinical_records",
         "clinical_record_revisions",
         "clinical_record_audit_events",
@@ -50,7 +51,7 @@ EXPECTED_TABLES = frozenset(
         "clinic_settings",
     }
 )
-CANONICAL_SCHEMA_VERSION = "backend-models-v3-spec003-integrity"
+CANONICAL_SCHEMA_VERSION = "backend-models-v4-spec004-agenda"
 
 
 class CanonicalDatabaseError(Exception):

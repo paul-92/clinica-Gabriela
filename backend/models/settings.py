@@ -13,3 +13,4 @@ class ClinicSettings(Base):
     email: Mapped[str] = mapped_column(String(120), default="")
     address: Mapped[str] = mapped_column(String(255), default="")
     default_session_value: Mapped[float] = mapped_column(Float, default=0.0)
+    timezone_name: Mapped[str] = mapped_column(String(64), nullable=False, default="America/Sao_Paulo", server_default="America/Sao_Paulo")

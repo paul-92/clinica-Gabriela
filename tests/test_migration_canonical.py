@@ -76,6 +76,7 @@ def test_primary_keys_unique_constraints_and_foreign_keys_are_preserved(tmp_path
         assert {(row[3], row[2], row[4]) for row in appointment_fks} == {
             ("patient_id", "patients", "id"),
             ("psychologist_id", "psychologists", "id"),
+            ("original_appointment_id", "appointments", "id"),
         }
 
 

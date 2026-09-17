@@ -143,9 +143,9 @@ const navItems = [
 
 const statusLabels = {
   scheduled: "Agendado",
-  rescheduled: "Remarcado",
   canceled: "Cancelado",
   done: "Realizado",
+  no_show: "Falta",
   pending: "Pendente",
   paid: "Pago"
 };
@@ -206,9 +206,9 @@ function App() {
     }
   };
 
-  const submit = async (path, payload, method = "POST") => {
+  const submit = async (path, payload, method = "POST", headers = {}) => {
     try {
-      const result = await apiRequest(path, { method, body: JSON.stringify(payload), token: session.token });
+      const result = await apiRequest(path, { method, body: JSON.stringify(payload), token: session.token, headers });
       await loadData();
       return result;
     } catch (error) {
@@ -236,7 +236,7 @@ function App() {
       <Sidebar activeView={activeView} setActiveView={setActiveView} user={session.user} onLogout={logout} />
       <main className="workspace">
         <Topbar online={state.online} loading={state.loading} onRefresh={loadData} activeView={activeView} license={state.license} />
-        <ViewRouter activeView={activeView} data={state} submit={submit} reload={loadData} />
+        <ViewRouter activeView={activeView} data={state} submit={submit} reload={loadData} user={session.user} />
       </main>
     </div>
   );
@@ -388,12 +388,12 @@ function Topbar({ online, loading, onRefresh, activeView, license }) {
   );
 }
 
-function ViewRouter({ activeView, data, submit, reload }) {
+function ViewRouter({ activeView, data, submit, reload, user }) {
   const map = {
     dashboard: <Dashboard data={data} />,
     patients: <Patients data={data} reload={reload} />,
     psychologists: <Psychologists data={data} />,
-    agenda: <Agenda data={data} submit={submit} />,
+    agenda: <Agenda data={data} submit={submit} user={user} />,
     records: <ClinicalRecords data={data} submit={submit} />,
     finance: <Finance data={data} submit={submit} />,
     reports: <Reports data={data} />,
@@ -478,7 +478,7 @@ function Psychologists({ data }) {
   );
 }
 
-function Agenda({ data, submit }) {
+function Agenda({ data, submit, user }) {
   const [filters, setFilters] = useState({ targetDate: today, psychologistId: "" });
   const [form, setForm] = useState({
     patient_id: data.patients[0]?.id || "",
@@ -509,7 +509,19 @@ function Agenda({ data, submit }) {
   };
 
   const changeStatus = async (appointment, status) => {
-    await submit(`/appointments/${appointment.id}`, { status }, "PUT");
+    const action = status === "no_show" ? "no-show" : status;
+    await submit(`/appointments/${appointment.id}/${action}`, { reason: "" }, "POST", { "If-Match": `"${appointment.version}"` });
+  };
+
+  const reschedule = async (appointment) => {
+    const scheduledAt = window.prompt("Nova data e hora (AAAA-MM-DDTHH:MM)", appointment.scheduled_at.slice(0, 16));
+    const reason = scheduledAt && window.prompt("Motivo operacional da remarcacao");
+    if (!scheduledAt || !reason) return;
+    await submit(`/appointments/${appointment.id}/reschedule`, {
+      patient_id: appointment.patient_id, psychologist_id: appointment.psychologist_id,
+      scheduled_at: `${scheduledAt}:00`, duration_minutes: appointment.duration_minutes,
+      notes: appointment.notes, timezone_name: appointment.timezone_name || "America/Sao_Paulo", reason
+    }, "POST", { "If-Match": `"${appointment.version}"` });
   };
 
   return (
@@ -544,9 +556,10 @@ function Agenda({ data, submit }) {
               </div>
               <div className="rowActions">
                 <span className={`statusTag ${appointment.status}`}>{statusLabels[appointment.status] || appointment.status}</span>
-                <button onClick={() => changeStatus(appointment, "done")}>Realizar</button>
-                <button onClick={() => changeStatus(appointment, "rescheduled")}>Remarcar</button>
-                <button onClick={() => changeStatus(appointment, "canceled")}>Cancelar</button>
+                {appointment.status === "scheduled" && user.role !== "reception" ? <button onClick={() => changeStatus(appointment, "done")}>Realizar</button> : null}
+                {appointment.status === "scheduled" ? <button onClick={() => changeStatus(appointment, "no_show")}>Falta</button> : null}
+                {appointment.status === "scheduled" ? <button onClick={() => reschedule(appointment)}>Remarcar</button> : null}
+                {appointment.status === "scheduled" ? <button onClick={() => changeStatus(appointment, "canceled")}>Cancelar</button> : null}
               </div>
             </div>
           ))}

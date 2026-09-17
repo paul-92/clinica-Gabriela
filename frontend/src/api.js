@@ -23,7 +23,12 @@ export async function apiRequest(path, { token, fetchImpl = fetch, ...options } 
   }
 
   if (!response.ok) {
-    throw new ApiError(`Falha na API (HTTP ${response.status}).`, { status: response.status });
+    let detail = `Falha na API (HTTP ${response.status}).`;
+    try {
+      const payload = await response.json();
+      if (typeof payload.detail === "string") detail = payload.detail;
+    } catch { /* resposta sem JSON: manter mensagem sanitizada */ }
+    throw new ApiError(detail, { status: response.status });
   }
 
   return response.json();
