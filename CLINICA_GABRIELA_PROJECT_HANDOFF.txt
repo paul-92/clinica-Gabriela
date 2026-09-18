@@ -3536,6 +3536,51 @@ automatically.
 
 
 ======================================================================
+74I. SPEC004 POST-COMMIT RECONCILIATION — 2026-09-18
+======================================================================
+
+SPEC004_CLOSURE_COMMIT:
+
+`a38af3ce441baca942aab93de224a2a4582bef7d`
+
+POST_COMMIT_VERIFICATION:
+
+- repository root: `<PROJECT_ROOT>`;
+- branch: `feature/spec-008-architecture-foundation`;
+- HEAD: `a38af3ce441baca942aab93de224a2a4582bef7d`;
+- SPEC-004 status: `ACCEPTED/DONE`.
+
+HANDOFF SHA POLICY:
+
+- Git HEAD must always be discovered from the repository during bootstrap;
+- SHAs recorded elsewhere in this handoff are historical checkpoints;
+- the handoff must not attempt to self-reference the SHA of the commit
+	that contains its own update;
+- a difference between current HEAD and a historical handoff SHA is not,
+	by itself, an inconsistency;
+- verified Git reality has precedence over stale handoff metadata.
+
+PRESERVED POST-COMMIT STATE:
+
+No code, database, runtime, Generation, pointer, manifest, license or
+Evidence was changed. `.context/COMMANDS.md`, `.baseline-staging/`,
+`.forensics/`, `.homologation/`, `.test-tmp-spec004-full/` and
+`.test-tmp-spec004-lastfailed/` remain preserved and untouched.
+
+This reconciliation is a post-commit handoff modification. It is not
+staged or committed in this step, because doing so would require a new
+human-authorized commit decision. No new SPEC is started.
+
+STOP_CONDITION:
+
+`POST_COMMIT_RECONCILIATION_COMPLETE`
+
+NEXT_READY:
+
+`READY_FOR_NEXT_HUMAN_DIRECTION`
+
+
+======================================================================
 75. FINAL GOVERNANCE REMINDER
 ======================================================================
 

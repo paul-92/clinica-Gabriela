@@ -8,7 +8,7 @@ Sistema para clinica de psicologia com tres superficies principais: aplicacao de
 
 O projeto local existe em:
 
-`C:\Users\paulo.trajano\Documents\Codex\2026-07-06\create-psychology-clinic-desktop-crie-a\outputs\clinica_psicologia_desktop`
+`<PROJECT_ROOT>`
 
 Repositorio publicado em `https://github.com/paul-92/clinica-Gabriela.git` na branch `main`.
 
