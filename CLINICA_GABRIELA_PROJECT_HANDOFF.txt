@@ -1,0 +1,3808 @@
+======================================================================
+CLÍNICA GABRIELA — PROJECT HANDOFF CANÔNICO
+VERSÃO 2 — CONTEXTO + METODOLOGIA + CONTINUIDADE
+======================================================================
+
+LAST_DOCUMENT_UPDATE:
+2026-09-18
+
+DOCUMENT_PURPOSE:
+Preservar o estado técnico, operacional, metodológico e decisório do
+projeto Clínica Gabriela para permitir continuidade segura por outro
+agente, provedor ou sessão caso:
+
+- os créditos acabem;
+- uma execução seja interrompida;
+- seja necessário trocar de agente;
+- seja necessário reconstruir o contexto;
+- uma sessão seja perdida;
+- o projeto seja retomado posteriormente.
+
+Este documento NÃO substitui o estado real do repositório, runtime,
+Git, banco ou Evidence.
+
+Ele funciona como:
+
+1. contexto canônico;
+2. contrato metodológico;
+3. registro histórico;
+4. índice de Evidence;
+5. protocolo de retomada;
+6. memória operacional do projeto.
+
+REGRA FUNDAMENTAL:
+
+Antes de qualquer mutação:
+
+DISCOVER
+→ VERIFY
+→ COMPARE
+→ RESUME
+
+Nunca:
+
+ASSUME
+→ MUTATE
+
+
+======================================================================
+PARTE I — CURRENT STATE
+======================================================================
+
+======================================================================
+1. PROJECT IDENTITY
+======================================================================
+
+PROJECT:
+
+Clínica Gabriela
+
+TYPE:
+
+Aplicação desktop para clínica de psicologia.
+
+CURRENT_SPEC:
+
+SPEC-004 — Agenda e Gestão de Atendimentos
+
+CURRENT_SPEC_STATUS:
+
+OPEN
+
+CURRENT_PHASE:
+
+SECOND INDEPENDENT QUALITY REVIEW
+
+CURRENT_STATE:
+
+READY_FOR_SPEC004_SECOND_INDEPENDENT_QUALITY_REVIEW
+
+LAST_VERIFIED_CHECKPOINT:
+
+READY_FOR_SPEC004_SECOND_INDEPENDENT_QUALITY_REVIEW
+
+IMPORTANT:
+
+A Second Independent Quality Review chegou a ser iniciada, mas foi
+interrompida porque os créditos do agente acabaram.
+
+Essa interrupção NÃO representa:
+
+QUALITY_GATE_PASS
+
+nem:
+
+QUALITY_GATE_FAIL.
+
+SPEC-004 NÃO está:
+
+ACCEPTED/DONE.
+
+NEXT_READY:
+
+Retomar a Second Independent Quality Review a partir do último
+checkpoint materialmente verificável.
+
+Antes de repetir qualquer teste:
+
+descobrir se a execução interrompida deixou Evidence ou checkpoints
+parciais válidos.
+
+
+======================================================================
+2. REPOSITORY
+======================================================================
+
+EXPECTED_REPOSITORY_ROOT:
+
+<PROJECT_ROOT>
+
+GITHUB_REPOSITORY_HISTORICALLY_ASSOCIATED:
+
+paul-92/clinica-Gabriela
+
+IMPORTANT:
+
+Não assumir:
+
+- branch;
+- HEAD;
+- remote;
+- working tree;
+- staging state.
+
+Essas informações são mutáveis.
+
+Descobri-las novamente no início de cada sessão operacional.
+
+
+======================================================================
+3. PROJECT SEPARATION
+======================================================================
+
+O usuário possui outros projetos.
+
+Entre eles:
+
+ASEP
+
+e historicamente outro workspace:
+
+<OTHER_WORKSPACE>
+
+Esses projetos NÃO pertencem à Clínica Gabriela.
+
+NÃO misturar:
+
+- código;
+- repositórios;
+- SPECs;
+- decisões;
+- execução;
+- commits;
+- Evidence;
+- runtime;
+- Generations;
+- tarefas.
+
+Princípios metodológicos aprendidos em outros projetos podem ser
+aplicados quando apropriados, mas a Clínica Gabriela permanece um
+projeto independente.
+
+Já ocorreu um incidente real de WRONG WORKSPACE.
+
+Portanto proteção de workspace é obrigatória.
+
+
+======================================================================
+4. WRONG-WORKSPACE HARD GATE
+======================================================================
+
+Antes de qualquer escrita ou Git mutation:
+
+1. descobrir repository root;
+2. comparar com EXPECTED_REPOSITORY_ROOT;
+3. confirmar que é Clínica Gabriela;
+4. descobrir branch;
+5. descobrir HEAD;
+6. executar git status;
+7. verificar remote;
+8. ler AGENTS.md e regras locais aplicáveis;
+9. identificar arquivos preexistentes/unrelated.
+
+Se o workspace não corresponder:
+
+STOP:
+
+BLOCK — WRONG_WORKSPACE
+
+AÇÃO:
+
+NO WRITES
+NO STAGING
+NO COMMIT
+NO CHECKOUT
+NO RESET
+NO STASH
+NO FILE MUTATION
+
+Nunca tentar "corrigir" automaticamente um workspace incorreto.
+
+
+======================================================================
+5. CURRENT OPERATIONAL STATE
+======================================================================
+
+CURRENT_OPERATIONAL_GENERATION:
+
+8/canonical
+
+CURRENT_SCHEMA_VERSION:
+
+v5
+
+CURRENT_DATABASE_SHA256:
+
+1edb9c5c77a8eb56da6cb5254e2bf795aa56a1d8c94dbbc855d0b70d40f404c8
+
+CURRENT_POINTER_SHA256:
+
+d83a0654ce964f93c3191bb4a9bbe24fa78c55087666e6831f04f60630a1c50a
+
+CURRENT_RUNTIME_MANIFEST_SHA256:
+
+cd806a300f182c5d0f70cb6a6e4b2b0b9a574ff2f4cf02d7271cfcdaec5ef519
+
+CURRENT_OPERATIONAL_EVIDENCE_SHA256:
+
+977581ae9291c4cf54e4dbd30d6715b921e7ad09a0514f7956353b49b3dfcceb
+
+CURRENT_OPERATIONAL_VALIDATION_REPORTED:
+
+integrity_check:
+OK
+
+FK violations:
+0
+
+maintenance lock residual:
+none
+
+sidecars:
+none
+
+default read-only smoke:
+PASS
+
+default write-enabled smoke:
+PASS
+
+post-promotion isolated regression:
+27 passed
+
+Generation 7 backup/restore:
+PASS
+
+Generation 8 backup/restore:
+PASS
+
+
+======================================================================
+6. CURRENT GIT MATERIAL REFERENCES
+======================================================================
+
+SPEC-004 baseline local conhecido:
+
+19983dc5ec940b65d552bb57eb0f85ee0e9aadba
+
+SPEC-004 implementation inicial:
+
+0defb94
+
+Primeira integração/reparos operacionais chegaram até:
+
+e72878a93e5f86c9ae54090cd1e6c63ff63624a9
+
+Principal remediation commit:
+
+0832eccd03e9bcb64f02b2944e9ecedd721596af
+
+Remediation Evidence commit:
+
+2e1de7e7a96792c25eb24a4236d1f3b9c6b246a9
+
+Final Operational Evidence commit:
+
+cbfd8fb29b6f65d80f0f63da7154ca04e066cde6
+
+IMPORTANT:
+
+Existem commits intermediários relacionados ao:
+
+- remediation operational executor;
+- EOL provenance repair.
+
+Se seus SHAs forem necessários:
+
+DESCOBRIR PELO GIT.
+
+NÃO INVENTAR.
+
+
+======================================================================
+PARTE II — EXECUTION METHODOLOGY
+======================================================================
+
+======================================================================
+7. FUNDAMENTAL GOVERNANCE PRINCIPLE
+======================================================================
+
+Princípio normativo:
+
+HUMAN É AUTORIDADE, NÃO ORQUESTRADOR.
+
+Significado:
+
+O HUMAN define:
+
+- decisões de produto;
+- decisões de contrato;
+- autoridade operacional;
+- approval gates;
+- aceitação;
+- exceções materiais.
+
+O agente/orquestrador é responsável por:
+
+- descobrir;
+- planejar;
+- executar;
+- validar;
+- investigar falhas;
+- reparar quando autorizado;
+- revalidar;
+- produzir Evidence;
+- continuar autonomamente.
+
+O HUMAN não deve ser transformado em executor manual de cada passo.
+
+O agente deve parar para o HUMAN somente quando houver uma verdadeira
+necessidade de autoridade ou decisão.
+
+
+======================================================================
+8. EXECUTION LIFECYCLE
+======================================================================
+
+Fluxo metodológico padrão:
+
+SPEC
+↓
+DISCOVERY / DIAGNOSTIC
+↓
+CONTRACT ANALYSIS
+↓
+HUMAN DECISIONS, SE NECESSÁRIAS
+↓
+CONTRACT FREEZE
+↓
+IMPLEMENTATION PLANNING
+↓
+ORCHESTRATED IMPLEMENTATION
+↓
+TARGETED VALIDATION
+↓
+REGRESSION
+↓
+OPERATIONAL GATE
+↓
+INDEPENDENT QUALITY REVIEW
+↓
+HUMAN FINAL ACCEPTANCE
+↓
+CLOSURE
+↓
+ACCEPTED/DONE
+
+Nem toda SPEC exige todas as etapas com a mesma intensidade.
+
+Aplicar proporcionalidade conforme:
+
+RISK
+COMPLEXITY
+IMPACT.
+
+
+======================================================================
+9. ACTIVITY CLASSIFICATION
+======================================================================
+
+Toda tarefa relevante deve identificar sua natureza.
+
+Categorias:
+
+PLANNING
+
+DOCUMENTATION
+
+DIAGNOSTIC
+
+IMPLEMENTATION
+
+VALIDATION
+
+OPERATIONAL
+
+CLOSURE
+
+HUMAN DECISION
+
+Exemplos de prompts:
+
+🔎 DIAGNÓSTICO / AUDITORIA PRÉ-EXECUÇÃO
+
+👤 HUMAN — CONTRACT DECISION
+
+🚀 PROMPT ORQUESTRADOR — SPEC-XXX
+
+🔎 INDEPENDENT QUALITY REVIEW
+
+🛠️ REMEDIATION
+
+👤 HUMAN — FINAL ACCEPTANCE
+
+
+======================================================================
+10. STOP TAXONOMY
+======================================================================
+
+Estados principais:
+
+HUMAN
+
+Existe decisão/autoridade que somente HUMAN pode fornecer.
+
+
+BLOCK
+
+Existe bloqueio externo, ambiental ou de autoridade que impede
+continuação segura.
+
+
+SCOPE_BOUNDARY
+
+A ação necessária está fora do escopo/autoridade concedida.
+
+
+FAILED_TECHNICAL
+
+Execução técnica falhou.
+
+Exemplos:
+
+- comando;
+- build;
+- migration;
+- infraestrutura;
+- ambiente;
+- ferramenta.
+
+
+FAILED_VALIDATION
+
+A execução ocorreu, mas o resultado não satisfaz o contrato ou
+critério de qualidade.
+
+
+DONE
+
+A fase/tarefa foi materialmente concluída.
+
+IMPORTANT:
+
+FAILED_TECHNICAL != FAILED_VALIDATION.
+
+Nunca confundir os dois.
+
+
+======================================================================
+11. EXECUTION STATE
+======================================================================
+
+Execution State deve ser explícito e persistente.
+
+Toda fase relevante deve produzir estado como:
+
+PLANNED
+
+READY
+
+RUNNING
+
+BLOCKED
+
+VALIDATING
+
+READY_FOR_...
+
+ACCEPTED
+
+DONE
+
+ou estado equivalente definido pela SPEC.
+
+O estado deve permitir que outro agente saiba:
+
+- onde estamos;
+- o que terminou;
+- o que falta;
+- o que pode ser executado;
+- o que depende do HUMAN.
+
+
+======================================================================
+12. RESUME CONTRACT
+======================================================================
+
+Execuções longas devem produzir checkpoints recuperáveis.
+
+Se a execução for interrompida:
+
+NÃO reiniciar automaticamente.
+
+Executar:
+
+DISCOVER
+→ LAST VERIFIED CHECKPOINT
+→ VALID EVIDENCE
+→ INVALIDATED EVIDENCE
+→ COMPLETED WORK
+→ PENDING WORK
+→ RESUME
+
+Regra:
+
+Não repetir trabalho caro quando Evidence material válida já existir.
+
+Repetir somente quando:
+
+- Evidence estiver ausente;
+- Evidence estiver inválida;
+- dependência tiver mudado;
+- resultado não for reproduzível;
+- risco justificar revalidação.
+
+
+======================================================================
+13. SELECTIVE INVALIDATION
+======================================================================
+
+Uma falha NÃO invalida automaticamente toda a SPEC.
+
+Aplicar:
+
+FINDING
+→ REQUIREMENT
+→ AFFECTED ARTIFACT
+→ DEPENDENT EVIDENCE
+→ DESCENDANTS
+
+Invalidar somente a parte dependente.
+
+Preservar Evidence independente ainda válida.
+
+Exemplo conceitual:
+
+Se autenticação falha:
+
+não invalidar automaticamente:
+
+- migration;
+- backup;
+- schema integrity;
+- unrelated frontend build
+
+quando não dependem da autenticação.
+
+Princípio:
+
+REVALIDATION SHOULD BE PROPORTIONAL TO INVALIDATION.
+
+
+======================================================================
+14. AUTONOMOUS REPAIR LOOP
+======================================================================
+
+Quando a autoridade já concedida permitir reparo:
+
+DETECT
+↓
+INVESTIGATE
+↓
+CLASSIFY ROOT CAUSE
+↓
+DETERMINE IMPACT
+↓
+REPAIR
+↓
+TARGETED REGRESSION
+↓
+PROPORTIONAL REVALIDATION
+↓
+CONTINUE
+
+Não pedir autorização HUMAN para cada bug técnico ordinário se a
+autoridade de implementação/reparo já foi concedida.
+
+PARAR quando:
+
+- reparo altera contrato;
+- reparo muda decisão HUMAN;
+- reparo ultrapassa scope;
+- operação destrutiva não autorizada;
+- risco material novo exige decisão;
+- approval gate externo exige HUMAN.
+
+
+======================================================================
+15. ORCHESTRATOR CONTRACT
+======================================================================
+
+Um PROMPT ORQUESTRADOR deve permitir que o executor atravesse
+autonomamente a fase autorizada.
+
+O orquestrador deve:
+
+1. validar preconditions;
+2. executar;
+3. detectar falhas;
+4. reparar dentro da autoridade;
+5. executar targeted tests;
+6. revalidar proporcionalmente;
+7. produzir Evidence;
+8. avançar checkpoints;
+9. parar somente na STOP CONDITION prevista.
+
+Evitar:
+
+HUMAN micro-management.
+
+O HUMAN deve fornecer autoridade, não comandar cada instrução técnica.
+
+
+======================================================================
+16. HUMAN APPROVAL GATES
+======================================================================
+
+Antes de pedir aprovação HUMAN material, apresentar de forma concisa:
+
+POSITIVE IMPACTS
+
+NEGATIVE IMPACTS / RISKS
+
+PRACTICAL CONSEQUENCES
+
+RESIDUAL RISKS
+
+WHAT THE APPROVAL AUTHORIZES
+
+WHAT THE APPROVAL DOES NOT AUTHORIZE
+
+A aprovação deve ser específica.
+
+Não interpretar autorização limitada como autorização geral.
+
+
+======================================================================
+17. CONTRACT FREEZE
+======================================================================
+
+Antes de implementação material, quando aplicável:
+
+congelar:
+
+- decisões HUMAN;
+- requirements;
+- invariants;
+- state transitions;
+- authorization;
+- error semantics;
+- migration expectations;
+- recovery boundaries;
+- acceptance criteria.
+
+Depois do Contract Freeze:
+
+o executor NÃO deve reinterpretar silenciosamente o contrato.
+
+Mudança material:
+
+STOP HUMAN.
+
+
+======================================================================
+18. REQUIREMENTS TRACEABILITY
+======================================================================
+
+Manter rastreabilidade:
+
+DECISION
+→ REQUIREMENT
+→ IMPLEMENTATION
+→ TEST
+→ EVIDENCE
+→ QUALITY RESULT
+
+Para findings:
+
+FINDING
+→ REMEDIATION
+→ CODE
+→ TEST
+→ OPERATIONAL EVIDENCE
+→ INDEPENDENT RESULT
+
+Nenhum requisito material deve ser considerado comprovado apenas
+porque o código "parece correto".
+
+
+======================================================================
+19. EVIDENCE MODEL
+======================================================================
+
+Evidence deve ser:
+
+- reproduzível quando possível;
+- identificável;
+- vinculada ao requisito;
+- vinculada ao artefato;
+- vinculada ao estado executado;
+- preservada quando histórica;
+- invalidada seletivamente.
+
+Estados possíveis:
+
+VALID
+
+INVALIDATED
+
+SUPERSEDED
+
+HISTORICAL
+
+Evidence histórica não deve ser apagada apenas porque uma nova
+Generation existe.
+
+
+======================================================================
+20. ENGINEERING PROPORTIONALITY
+======================================================================
+
+Princípio:
+
+ENGINEERING RIGOR ∝ RISK + COMPLEXITY + IMPACT
+
+Aplicar proporcionalmente:
+
+requirements engineering
+
+architecture
+
+SOLID
+
+DRY
+
+KISS
+
+YAGNI
+
+data integrity
+
+concurrency
+
+security by design
+
+privacy by design
+
+testability
+
+observability
+
+compatibility
+
+maintainability
+
+recovery
+
+explicit trade-offs
+
+Evitar:
+
+"best practices" aplicadas mecanicamente sem relação com risco real.
+
+
+======================================================================
+21. HARNESS ENGINEERING
+======================================================================
+
+Princípio:
+
+HARNESS RIGOR ∝ AUTONOMY + RISK + EXECUTION COST
+
+Quanto mais autônoma e arriscada a execução, mais rigoroso deve ser
+o harness.
+
+O harness deve testar o sistema real na maior proporção segura possível.
+
+Evitar falso positivo causado por:
+
+- mocks excessivos;
+- monkeypatch;
+- fake identity;
+- technical identity substitution;
+- fake authentication;
+- unrealistic fixtures;
+- alternate DB engine;
+- overrides;
+- hidden environment dependencies;
+- assertions que não exercitam o requisito;
+- bypass de runtime selection.
+
+Pelo menos um caminho deve testar:
+
+OPERATIONAL DEFAULTS WITHOUT MASKING OVERRIDES.
+
+
+======================================================================
+22. INDEPENDENT VERIFICATION
+======================================================================
+
+Independent Quality Review NÃO é continuação do executor.
+
+O revisor deve atuar adversarialmente.
+
+Princípio:
+
+NÃO CONFIE NA CONCLUSÃO DO EXECUTOR.
+
+Verifique-a.
+
+O revisor deve testar:
+
+1. artefatos produzidos;
+2. Evidence;
+3. runtime real;
+4. seleção operacional;
+5. activation path;
+6. assumptions;
+7. harness quality.
+
+Distinção obrigatória:
+
+DEPLOYABLE
+!=
+INSTALLED
+!=
+OPERATIONALLY ACTIVE
+
+Uma implementação pode existir no Git e ainda não ser o código
+realmente selecionado pelo runtime.
+
+
+======================================================================
+23. INDEPENDENT REVIEW AUTHORITY
+======================================================================
+
+Independent Review deve ser:
+
+ADVERSARIAL
+
+READ-ONLY quando aplicável
+
+FAIL-CLOSED
+
+INDEPENDENT
+
+O revisor NÃO deve reparar o defeito que encontrou.
+
+Ele deve:
+
+DETECT
+→ PROVE
+→ CLASSIFY
+→ REPORT
+
+Se reparar, deixa de ser uma revisão independente daquilo que
+originalmente encontrou.
+
+
+======================================================================
+24. QUALITY GATE RESULT
+======================================================================
+
+Para requisitos individuais usar:
+
+PASS
+
+FAIL
+
+NOT_PROVEN
+
+N/A
+
+Não usar:
+
+"provavelmente PASS"
+
+para requisito material.
+
+Um requisito indispensável:
+
+NOT_PROVEN
+
+pode bloquear acceptance.
+
+QUALITY_GATE_PASS exige Evidence suficiente para os requisitos materiais.
+
+
+======================================================================
+25. REMEDIATION AFTER QUALITY FAILURE
+======================================================================
+
+Se Independent Review retornar:
+
+QUALITY_GATE_FAIL
+
+NÃO reiniciar toda a SPEC.
+
+Aplicar:
+
+SELECTIVE INVALIDATION.
+
+Criar:
+
+MINIMUM SAFE REMEDIATION SCOPE.
+
+Fluxo:
+
+QUALITY FINDING
+↓
+ROOT CAUSE, se demonstrável
+↓
+AFFECTED REQUIREMENT
+↓
+AFFECTED ARTIFACT
+↓
+INVALIDATED EVIDENCE
+↓
+REPAIR
+↓
+TARGETED TEST
+↓
+PROPORTIONAL REGRESSION
+↓
+OPERATIONAL GATE, se necessário
+↓
+SECOND INDEPENDENT REVIEW
+
+
+======================================================================
+26. FORWARD-ONLY OPERATIONAL PRINCIPLE
+======================================================================
+
+Quando migrations/Generations já foram operacionalmente ativadas e o
+contrato assim exigir:
+
+preferir:
+
+FORWARD_ONLY RECOVERY.
+
+Não executar silent pointer rollback.
+
+Princípio:
+
+NO_SILENT_POINTER_ROLLBACK.
+
+Rollback somente quando explicitamente previsto, seguro e autorizado.
+
+Caso contrário:
+
+corrigir para frente.
+
+
+======================================================================
+27. PRECONDITION REVALIDATION
+======================================================================
+
+Antes de mutação operacional:
+
+revalidar preconditions.
+
+Exemplos:
+
+- expected Generation;
+- expected pointer;
+- expected manifest;
+- expected DB checksum;
+- expected schema;
+- maintenance state;
+- runtime state;
+- source provenance;
+- Git provenance;
+- backup availability.
+
+Mismatch:
+
+FAIL-CLOSED.
+
+Não continuar com base em estado presumido.
+
+
+======================================================================
+28. OPERATIONAL PROMOTION MODEL
+======================================================================
+
+Quando aplicável:
+
+PRECONDITION
+→ MAINTENANCE LOCK
+→ BACKUP
+→ QUIESCENCE
+→ MIGRATION / CANDIDATE
+→ VALIDATION
+→ MANIFEST
+→ GENERATION
+→ CAS / ATOMIC POINTER
+→ OPERATIONAL SMOKE
+→ STABILIZATION
+→ EVIDENCE
+→ RELEASE LOCK
+
+A ordem concreta depende do contrato vigente.
+
+Não alterar a sequência homologada sem justificativa técnica e
+autoridade apropriada.
+
+
+======================================================================
+29. CONTENT-ADDRESSED PROVENANCE
+======================================================================
+
+Quando artefatos operacionais forem content-addressed:
+
+checksum é parte do contrato de provenance.
+
+Não aceitar:
+
+"arquivo parece igual".
+
+Comparar materialmente.
+
+Normalizações, quando autorizadas, devem ser explicitamente limitadas.
+
+Exemplo já ocorrido:
+
+LF ↔ CRLF.
+
+A normalização autorizada NÃO pode mascarar diferença semântica.
+
+
+======================================================================
+30. ACCEPTED/DONE
+======================================================================
+
+Princípio:
+
+ACCEPTED/DONE != DESTRUCTIVE CLEANUP
+
+Fechar uma SPEC NÃO autoriza automaticamente:
+
+- apagar backups;
+- apagar Generations;
+- apagar Evidence;
+- apagar histórico;
+- remover manifests;
+- limpar artefatos forenses.
+
+Cleanup destrutivo exige autoridade própria.
+
+
+======================================================================
+31. GIT DISCIPLINE
+======================================================================
+
+Nunca:
+
+git add .
+
+Staging:
+
+EXPLICIT ONLY.
+
+Nunca versionar inadvertidamente:
+
+- bancos operacionais;
+- PII;
+- dados clínicos reais;
+- secrets;
+- licenses;
+- .venv;
+- node_modules;
+- runtime operacional indevido.
+
+Antes de commit:
+
+git diff --cached --check
+
+e revisar staging.
+
+Sem autorização HUMAN explícita:
+
+NO PUSH
+NO MERGE
+NO RELEASE
+
+Se AGENTS.md ou ambiente exigir autorização literal para commit:
+
+pedir autorização para o comando exato.
+
+Não contornar approval gate.
+
+
+======================================================================
+32. PRIVACY / CLINICAL DATA
+======================================================================
+
+Não utilizar dados reais de pacientes em testes.
+
+Usar dados:
+
+FAKE
+SYNTHETIC
+PRIVACY-SAFE
+
+Evidence deve evitar PII.
+
+Smoke operacional deve minimizar ou eliminar escrita de dados técnicos
+persistentes no banco operacional.
+
+
+======================================================================
+PARTE III — PROJECT HISTORY
+======================================================================
+
+======================================================================
+33. SPEC REGISTRY
+======================================================================
+
+--------------------------------------------------
+SPEC-008 — ARCHITECTURE
+--------------------------------------------------
+
+STATUS:
+
+CLOSED — ACCEPTED/DONE
+
+
+--------------------------------------------------
+SPEC-003 — INTEGRIDADE CLÍNICA
+--------------------------------------------------
+
+STATUS:
+
+CLOSED — ACCEPTED/DONE
+
+
+--------------------------------------------------
+SPEC-004 — AGENDA E GESTÃO DE ATENDIMENTOS
+--------------------------------------------------
+
+STATUS:
+
+OPEN
+
+CURRENT PHASE:
+
+SECOND INDEPENDENT QUALITY REVIEW
+
+FINAL ACCEPTANCE:
+
+PENDING
+
+
+======================================================================
+34. SPEC-008 — ARCHITECTURE HISTORY
+======================================================================
+
+Principais entregas:
+
+- backend config/bootstrap;
+- supervisor;
+- Desktop API client;
+- Tkinter login API migration;
+- privacy-safe SQLite inventory;
+- identity reconciliation;
+- FK integrity audit;
+- authority/consolidation policy;
+- ID/FK remapping;
+- canonical migration;
+- content-addressed manifests;
+- fail-closed runtime/pointer;
+- stabilization lock.
+
+Aprendizado operacional:
+
+PRAGMA journal_mode=DELETE executado antes de shutdown/dispose pode
+interagir com conexões SQLAlchemy pooled.
+
+Sequência homologada:
+
+shutdown/dispose
+→ technical persistence
+→ WAL checkpoint
+→ DELETE
+→ backup lock
+
+Nenhum cleanup destrutivo implícito.
+
+
+======================================================================
+35. SPEC-003 — INTEGRIDADE CLÍNICA HISTORY
+======================================================================
+
+Principais contratos:
+
+- CPF optional;
+- normalized;
+- unique;
+- CRP canonical;
+- prechecks;
+- FK integrity;
+- sanitized errors;
+- PATCH;
+- ETag;
+- If-Match;
+- 412 stale/concurrency;
+- 409 domain conflict;
+- PUT temporarily deprecated;
+- clinical records lifecycle;
+- append-only corrections.
+
+Quality Gate encontrou:
+
+1. runtime manifest resolution bug;
+2. operational pointer ainda selecionando manifest antigo.
+
+Recovery:
+
+FORWARD_ONLY.
+
+Estado final:
+
+Generation:
+
+5/canonical
+
+schema:
+
+backend-models-v3-spec003-integrity
+
+user_version:
+
+3
+
+clean suite:
+
+210 passed
+
+
+======================================================================
+36. SPEC-004 — HUMAN DECISIONS D1-D7
+======================================================================
+
+D1 — DURATION
+
+Default:
+
+50 minutes.
+
+Explicit custom positive duration:
+
+ALLOWED.
+
+Não inventar:
+
+office hours
+intervals
+buffers.
+
+
+D2 — CANONICAL STATES
+
+scheduled
+
+done
+
+canceled
+
+no_show
+
+rescheduled:
+
+historical event.
+
+NÃO terminal canonical state.
+
+
+D3 — RESCHEDULING
+
+Preservar original.
+
+Criar linked successor.
+
+Atomic operation.
+
+Append-only history.
+
+No silent overwrite.
+
+
+D4 — EXCEPTIONAL CORRECTION
+
+Terminal states não reabrem normalmente.
+
+Exceptional correction:
+
+admin-only
+
+mandatory reason
+
+actor/audit
+
+append-only event.
+
+
+D5 — AUTHORIZATION
+
+ADMIN:
+
+full administrative scope, audited.
+
+PSYCHOLOGIST:
+
+own agenda
+
+own done
+
+own no_show.
+
+RECEPTION:
+
+permitted create/edit
+
+reschedule
+
+cancel
+
+no_show
+
+NO done.
+
+Exceptional correction:
+
+admin-only.
+
+Missing material user→psychologist link:
+
+FAIL-CLOSED.
+
+Never infer silently.
+
+
+D6 — RETROACTIVITY
+
+No artificial office hours.
+
+Normal retroactive create/edit must not be silently allowed.
+
+Exceptional behavior only through explicit contract/audit.
+
+
+D7 — TIMEZONE
+
+Explicit clinic timezone.
+
+ClinicSettings governs.
+
+Historical timestamps preserved conservatively.
+
+No silent legacy conversion.
+
+DST:
+
+nonexistent/gap
+and
+ambiguous/fold
+
+must be explicitly handled.
+
+
+======================================================================
+37. SPEC-004 — FIRST IMPLEMENTATION
+======================================================================
+
+Baseline:
+
+19983dc5ec940b65d552bb57eb0f85ee0e9aadba
+
+Initial implementation commit:
+
+0defb94
+
+Operational integration/repairs reached:
+
+e72878a93e5f86c9ae54090cd1e6c63ff63624a9
+
+Historical report/Evidence commit:
+
+f5d735f
+
+First stabilized operational result:
+
+Generation:
+
+7/canonical
+
+Pointer:
+
+9d3300076994702b6e60d48c9c16cb0bcd5e6a38ed290e55aa663bbf2a104ba2
+
+Database:
+
+7f4412c6fefccbccce5fa511e35a21bd88eec97447ffbe4787fc2c2101939a07
+
+Runtime manifest:
+
+b2ff5b733b344b2916733acd62bfb3c05b108ca6b86c6564d96fdcc06b57b20d
+
+Schema:
+
+backend-models-v4-spec004-agenda
+
+user_version:
+
+4
+
+
+======================================================================
+38. SPEC-004 — FIRST PROMOTION INCIDENT A
+======================================================================
+
+EVENT:
+
+Quiescence attempt changed bytes of Generation 5.
+
+Promotion aborted before activation.
+
+Predecessor restored atomically from exact backup.
+
+MUTATION IMPACT:
+
+No invalid Generation remained activated.
+
+LESSON:
+
+Quiescence operations themselves can mutate database bytes and must
+be inside the operational threat model.
+
+
+======================================================================
+39. SPEC-004 — FIRST PROMOTION INCIDENT B
+======================================================================
+
+EVENT:
+
+After CAS to Generation 6, smoke detected maintenance lock released
+too early.
+
+ACTION:
+
+No silent rollback.
+
+FORWARD-ONLY recovery.
+
+PATH:
+
+Generation 5
+→ Generation 6
+→ Generation 7
+
+RESULT:
+
+Generation 7/canonical.
+
+LESSON:
+
+Operational smoke required by the promotion must execute inside the
+appropriate maintenance-lock boundary.
+
+
+======================================================================
+40. FIRST INDEPENDENT QUALITY REVIEW
+======================================================================
+
+RESULT:
+
+QUALITY_GATE_FAIL
+
+Operational reconstruction itself was substantially valid.
+
+However material contract gaps remained.
+
+D3:
+
+NOT_PROVEN
+
+Reason:
+
+physical append-only and original/successor uniqueness insufficiently
+proven.
+
+
+D4:
+
+FAIL
+
+Reason:
+
+missing material admin-only exceptional correction with mandatory
+reason/event.
+
+
+D5:
+
+NOT_PROVEN
+
+Reason:
+
+authorization matrix insufficiently proven through real authenticated
+API.
+
+
+D6:
+
+FAIL
+
+Reason:
+
+normal editing path permitted past behavior through allow_past=True
+or equivalent.
+
+
+D7:
+
+FAIL
+
+Reason:
+
+ClinicSettings not effectively governing timezone and DST
+gap/ambiguity not correctly proven.
+
+
+HARNESS FINDINGS:
+
+SPEC-004 test coverage insufficient.
+
+Auth mainly service-level.
+
+Technical identity substituted real authentication in some smoke paths.
+
+"Default" smoke still defined:
+
+CLINICA_OPERATIONAL_POINTER
+
+and
+
+CLINICA_RUNTIME_CODE_ROOT
+
+therefore did not independently prove operational default selection.
+
+
+======================================================================
+41. SPEC-004 — REMEDIATION R1-R9
+======================================================================
+
+Remediation strategy:
+
+Preserve valid Generation 7 Evidence selectively.
+
+Keep v3→v4 migration immutable.
+
+Apply forward-only correction:
+
+v4→v5.
+
+
+R1:
+
+D4 exceptional correction.
+
+
+R2:
+
+D6 retroactivity.
+
+
+R3:
+
+D7 / AC-014 timezone and DST.
+
+
+R4:
+
+D3 original/successor uniqueness/integrity.
+
+
+R5:
+
+physical append-only protection.
+
+
+R6:
+
+D5 / AC-012 real authenticated API authorization matrix.
+
+
+R7:
+
+AC-003 / AC-005–007 and related behavior.
+
+
+R8:
+
+migration harness and v4→v5.
+
+
+R9:
+
+real operational-default harness.
+
+
+======================================================================
+42. REMEDIATION IMPLEMENTATION
+======================================================================
+
+Principal remediation commit:
+
+0832eccd03e9bcb64f02b2944e9ecedd721596af
+
+Message:
+
+fix: remediate SPEC-004 quality gate findings
+
+Reported:
+
+R1–R9 GREEN.
+
+Python:
+
+237 collected.
+
+Reported execution:
+
+235 passed + 2 final harnesses green.
+
+Clean clone:
+
+27 R1–R9 tests passed.
+
+Frontend:
+
+5 passed.
+
+Vite build:
+
+PASS
+
+1582 modules transformed.
+
+Candidate v5:
+
+1edb9c5c77a8eb56da6cb5254e2bf795aa56a1d8c94dbbc855d0b70d40f404c8
+
+Freeze:
+
+128 files
+
+Freeze SHA:
+
+41236c2f285bf8ba7260e34abc6b139a51ab5e1687282e74ff4a2d35e96ed852
+
+Migration:
+
+v4→v5
+
+Integrity:
+
+OK
+
+FK violations:
+
+0
+
+
+======================================================================
+43. REMEDIATION EVIDENCE
+======================================================================
+
+Commit:
+
+2e1de7e7a96792c25eb24a4236d1f3b9c6b246a9
+
+Message:
+
+docs: record SPEC-004 remediation evidence
+
+Files:
+
+docs/audit/spec004-20260917-quality-gate-remediation-report.md
+
+docs/audit/spec004-20260917-quality-gate-remediation-evidence.json
+
+
+======================================================================
+44. EOL PROVENANCE INCIDENT
+======================================================================
+
+During Remediation Operational Gate:
+
+executor aborted FAIL-CLOSED.
+
+Abort occurred BEFORE:
+
+maintenance lock
+
+backup
+
+CAS
+
+pointer mutation
+
+Generation mutation.
+
+Observed cause:
+
+authorized freeze LF
+
+versus
+
+active checkout CRLF.
+
+Semantic content identical.
+
+Authorized repair:
+
+compare freeze with commit 0832ecc... bytes;
+
+accept ONLY LF/CRLF differences;
+
+require semantic equivalence;
+
+manifest actual executed bytes;
+
+reuse pre-CAS candidate only if SHA exactly:
+
+1edb9c5c77a8eb56da6cb5254e2bf795aa56a1d8c94dbbc855d0b70d40f404c8
+
+Any difference beyond EOL:
+
+FAIL-CLOSED.
+
+No recovery was required because no operational mutation had occurred.
+
+
+======================================================================
+45. GENERATION 8 PROMOTION
+======================================================================
+
+Remediation promotion and stabilization:
+
+SUCCESS.
+
+Generation:
+
+8/canonical
+
+Database schema:
+
+v5
+
+Database SHA:
+
+1edb9c5c77a8eb56da6cb5254e2bf795aa56a1d8c94dbbc855d0b70d40f404c8
+
+Pointer SHA:
+
+d83a0654ce964f93c3191bb4a9bbe24fa78c55087666e6831f04f60630a1c50a
+
+Runtime Manifest SHA:
+
+cd806a300f182c5d0f70cb6a6e4b2b0b9a574ff2f4cf02d7271cfcdaec5ef519
+
+Operational Evidence SHA:
+
+977581ae9291c4cf54e4dbd30d6715b921e7ad09a0514f7956353b49b3dfcceb
+
+Reported validation:
+
+integrity/FKs:
+OK / zero
+
+maintenance lock residual:
+none
+
+sidecars:
+none
+
+default read-only smoke:
+PASS
+
+default write-enabled smoke:
+PASS
+
+post-promotion isolated regression:
+27 passed
+
+Generation 7 backup/restore:
+PASS
+
+Generation 8 backup/restore:
+PASS
+
+
+======================================================================
+46. FINAL OPERATIONAL EVIDENCE
+======================================================================
+
+Commit:
+
+cbfd8fb29b6f65d80f0f63da7154ca04e066cde6
+
+Files exclusively:
+
+docs/audit/spec004-20260917-remediation-operational-gate-report.md
+
+docs/audit/spec004-20260917-remediation-operational-gate-evidence.json
+
+Reported pre-commit validation:
+
+git diff --cached --check:
+PASS
+
+PII/secrets scan:
+no occurrence
+
+No DB/runtime/unrelated file included.
+
+No push.
+
+No merge.
+
+No release.
+
+
+======================================================================
+PARTE IV — CURRENT QUALITY REVIEW
+======================================================================
+
+======================================================================
+47. SECOND INDEPENDENT QUALITY REVIEW
+======================================================================
+
+ENTRY STATE:
+
+READY_FOR_SPEC004_SECOND_INDEPENDENT_QUALITY_REVIEW
+
+Review was started.
+
+Execution was interrupted because agent credits ended.
+
+Therefore:
+
+DO NOT ASSUME PASS.
+
+DO NOT ASSUME FAIL.
+
+DO NOT RESTART AUTOMATICALLY.
+
+
+======================================================================
+48. RESUME PROCEDURE
+======================================================================
+
+Before running expensive tests:
+
+Discover whether interrupted review produced:
+
+- partial report;
+- Evidence;
+- logs;
+- test results;
+- temporary artifacts;
+- checkpoint state.
+
+Determine:
+
+COMPLETED_CHECKS
+
+VALID_EVIDENCE
+
+INVALIDATED_EVIDENCE
+
+LAST_VERIFIED_CHECKPOINT
+
+PENDING_CHECKS
+
+Then:
+
+RESUME ONLY PENDING WORK.
+
+
+======================================================================
+49. SECOND REVIEW — OPERATIONAL RECONSTRUCTION
+======================================================================
+
+Independently reconstruct:
+
+Generation 8/canonical
+
+pointer
+
+manifest
+
+runtime
+
+database
+
+user_version=5
+
+integrity
+
+FKs
+
+sidecars
+
+maintenance lock
+
+Generation history 7→8.
+
+Prove:
+
+pointer
+→ manifest
+→ runtime
+→ database
+
+using real default selection where safely possible.
+
+
+======================================================================
+50. SECOND REVIEW — PROVENANCE
+======================================================================
+
+Verify:
+
+0832eccd03e9bcb64f02b2944e9ecedd721596af
+
+2e1de7e7a96792c25eb24a4236d1f3b9c6b246a9
+
+cbfd8fb29b6f65d80f0f63da7154ca04e066cde6
+
+Discover intermediate executor/EOL commits via Git.
+
+Verify:
+
+freeze
+
+runtime manifest
+
+executed bytes
+
+LF/CRLF handling
+
+semantic equality
+
+working-tree independence
+
+content-addressed provenance.
+
+
+======================================================================
+51. SECOND REVIEW — R1 / D4
+======================================================================
+
+Prove:
+
+normal terminal state cannot reopen;
+
+exceptional correction exists;
+
+admin-only;
+
+mandatory reason;
+
+actor;
+
+timestamp;
+
+append-only event;
+
+reception denied;
+
+psychologist denied;
+
+backend/API enforcement.
+
+Attempt bypass.
+
+
+======================================================================
+52. SECOND REVIEW — R2 / D6
+======================================================================
+
+Prove normal:
+
+create
+
+edit
+
+reschedule
+
+cannot silently move appointment to the past.
+
+Search for:
+
+allow_past=True
+
+or equivalent bypass.
+
+Exceptional correction must remain distinct from normal editing.
+
+
+======================================================================
+53. SECOND REVIEW — R3 / D7 / AC-014
+======================================================================
+
+Prove ClinicSettings is effective timezone authority.
+
+Test in isolation:
+
+normal local time;
+
+clinic timezone different from host;
+
+DST nonexistent/gap;
+
+DST ambiguous/fold;
+
+invalid timezone;
+
+missing/invalid settings;
+
+historical timestamps.
+
+Reject silent fold selection.
+
+Reject naive ZoneInfo attachment that masks ambiguity/gap.
+
+No silent legacy conversion.
+
+
+======================================================================
+54. SECOND REVIEW — R4 / D3
+======================================================================
+
+Prove:
+
+original→successor uniqueness;
+
+SQLite material constraint;
+
+atomic reschedule;
+
+no incompatible multiple successors;
+
+concurrent reschedules;
+
+full rollback on failure.
+
+
+======================================================================
+55. SECOND REVIEW — R5 APPEND-ONLY
+======================================================================
+
+In isolated v5 DB:
+
+attempt:
+
+UPDATE appointment_events
+
+Expected:
+
+FAIL.
+
+Attempt:
+
+DELETE FROM appointment_events
+
+Expected:
+
+FAIL.
+
+Legitimate INSERT:
+
+must remain possible.
+
+Search for alternate paths capable of silently replacing history.
+
+
+======================================================================
+56. SECOND REVIEW — R6 / D5 / AC-012
+======================================================================
+
+Use REAL AUTHENTICATED API.
+
+Cover:
+
+admin
+
+reception
+
+linked psychologist
+
+unlinked psychologist
+
+own agenda
+
+other psychologist agenda
+
+create
+
+read/list
+
+edit
+
+reschedule
+
+cancel
+
+done
+
+no_show
+
+exceptional correction.
+
+Search:
+
+privilege escalation
+
+IDOR
+
+client-supplied psychologist_id bypass.
+
+Missing material link:
+
+FAIL-CLOSED.
+
+
+======================================================================
+57. SECOND REVIEW — R7
+======================================================================
+
+Validate affected criteria including:
+
+AC-003
+
+AC-005
+
+AC-006
+
+AC-007
+
+and dependent requirements.
+
+Test:
+
+missing references
+
+self-exclusion
+
+edit conflict
+
+cancel frees slot
+
+done
+
+no_show
+
+occupancy
+
+terminal transitions.
+
+HTTP semantics must remain distinct:
+
+404
+
+409
+
+412
+
+422.
+
+
+======================================================================
+58. SECOND REVIEW — R8 / AC-015
+======================================================================
+
+Reconstruct appropriate v4 copy.
+
+Execute v4→v5 migration in isolation.
+
+Compare:
+
+IDs
+
+row counts
+
+privacy-safe content
+
+FKs
+
+indexes
+
+constraints
+
+states
+
+legacy rescheduled
+
+historical timestamps
+
+legacy_unverified
+
+timezone
+
+original/successor
+
+appointment_events
+
+append-only guards
+
+user_version
+
+schema version
+
+integrity_check.
+
+Unexpected source state:
+
+FAIL-CLOSED.
+
+
+======================================================================
+59. SECOND REVIEW — R9 / AC-016
+======================================================================
+
+Critical requirement:
+
+prove operational DEFAULT path.
+
+Do not use to prove default selection:
+
+CLINICA_OPERATIONAL_POINTER
+
+CLINICA_RUNTIME_CODE_ROOT
+
+or equivalent selection overrides.
+
+Validate:
+
+launcher
+→ pointer
+→ manifest
+→ runtime
+→ database
+→ health.
+
+Distinguish:
+
+DIRECTLY_PROVEN
+
+from:
+
+EVIDENCE_VERIFIED.
+
+
+======================================================================
+60. CONCURRENCY / ATOMICITY
+======================================================================
+
+In isolated environment using real SQLite connections:
+
+conflicting creates
+
+conflicting edits
+
+concurrent reschedules
+
+different psychologists same time
+
+stale ETag
+
+interval conflict
+
+fault injection during reschedule.
+
+Prove persistence outcome.
+
+Semantics:
+
+409 = domain conflict
+
+412 = stale version/concurrency.
+
+
+======================================================================
+61. HARNESS REVIEW
+======================================================================
+
+Audit tests themselves.
+
+Search for:
+
+mocks masking behavior
+
+unrealistic fixtures
+
+overrides
+
+monkeypatch
+
+fake auth
+
+technical identity substitution
+
+different database engine
+
+missing assertions
+
+unreached branches
+
+fake "default" smoke
+
+environment dependency masking.
+
+Apply:
+
+HARNESS RIGOR ∝ AUTONOMY + RISK + EXECUTION COST.
+
+
+======================================================================
+62. REGRESSION
+======================================================================
+
+When required:
+
+Python full suite
+
+SPEC-004 tests
+
+R1-R9
+
+migration harness
+
+concurrency
+
+auth/authz
+
+frontend tests
+
+Vite build
+
+affected inherited regressions.
+
+Record:
+
+collected
+
+passed
+
+failed
+
+skipped
+
+environment differences.
+
+Avoid needless rerun when valid Evidence remains sufficient.
+
+
+======================================================================
+63. RECOVERY / HISTORY REVIEW
+======================================================================
+
+Verify:
+
+Generation 7 preserved
+
+Generation 8 canonical
+
+backups
+
+restores
+
+manifests
+
+pointer histories
+
+CAS
+
+no silent rollback
+
+no destructive cleanup
+
+no improperly selectable intermediate Generation.
+
+Review LF/CRLF incident:
+
+abort before operational mutation;
+
+candidate not confused with Generation;
+
+provenance preserved;
+
+later execution used exactly manifested bytes.
+
+
+======================================================================
+64. D1-D7 + AC-001–AC-016
+======================================================================
+
+All must receive:
+
+PASS
+
+FAIL
+
+NOT_PROVEN
+
+or
+
+N/A.
+
+Previously valid Evidence may remain valid if unaffected.
+
+Material indispensable NOT_PROVEN blocks acceptance.
+
+
+======================================================================
+65. SECOND QUALITY GATE
+======================================================================
+
+If material:
+
+FAIL
+
+or indispensable:
+
+NOT_PROVEN
+
+return:
+
+QUALITY_GATE_FAIL
+
+with:
+
+FAILED_REQUIREMENT
+
+OBSERVED_BEHAVIOR
+
+EXPECTED_BEHAVIOR
+
+ROOT_CAUSE — only if demonstrable
+
+AFFECTED_ARTIFACTS
+
+INVALIDATED_EVIDENCE
+
+MINIMUM_SAFE_REMEDIATION_SCOPE
+
+REVALIDATION_REQUIRED
+
+DO NOT REPAIR.
+
+
+If all material requirements are proven:
+
+QUALITY_GATE_PASS
+
+and:
+
+READY_FOR_HUMAN_SPEC004_FINAL_ACCEPTANCE
+
+Independent reviewer cannot declare:
+
+ACCEPTED/DONE.
+
+
+======================================================================
+PARTE V — FINAL ACCEPTANCE / CLOSURE
+======================================================================
+
+======================================================================
+66. HUMAN FINAL ACCEPTANCE
+======================================================================
+
+Only after:
+
+QUALITY_GATE_PASS
+
++
+
+READY_FOR_HUMAN_SPEC004_FINAL_ACCEPTANCE
+
+present HUMAN with:
+
+POSITIVE IMPACTS
+
+NEGATIVE IMPACTS
+
+RESIDUAL RISKS
+
+PRACTICAL CONSEQUENCES
+
+NON-BLOCKING FOLLOW-UPS
+
+WHAT ACCEPTANCE MEANS
+
+WHAT ACCEPTANCE DOES NOT AUTHORIZE.
+
+Only HUMAN decides final acceptance.
+
+
+======================================================================
+67. CLOSURE
+======================================================================
+
+After explicit HUMAN acceptance:
+
+perform authorized closure/documentation.
+
+Only then:
+
+SPEC-004 CLOSED — ACCEPTED/DONE.
+
+No destructive cleanup implied.
+
+No push/merge/release implied.
+
+Those require separate authority if applicable.
+
+
+======================================================================
+PARTE VI — CONTINUITY PROTOCOL
+======================================================================
+
+======================================================================
+68. HANDOFF UPDATE POLICY
+======================================================================
+
+THIS DOCUMENT IS A LIVING PROJECT HANDOFF.
+
+Update it whenever there is a MATERIAL CHECKPOINT.
+
+Examples:
+
+- HUMAN decision;
+- contract freeze;
+- SPEC phase transition;
+- important commit;
+- Quality Gate;
+- remediation;
+- migration;
+- Generation;
+- pointer change;
+- manifest change;
+- promotion;
+- operational incident;
+- recovery;
+- Evidence invalidation;
+- acceptance;
+- closure.
+
+Do NOT update it for every trivial command or test.
+
+Avoid noise.
+
+
+======================================================================
+69. UPDATE STRATEGY
+======================================================================
+
+The document has two conceptual layers.
+
+CURRENT STATE:
+
+Update/replace as project advances.
+
+HISTORY:
+
+Append; do not rewrite history to hide prior states.
+
+When a new Generation becomes canonical:
+
+update CURRENT STATE
+
+and
+
+append Generation history.
+
+When Quality Gate fails:
+
+update CURRENT STATE
+
+and
+
+append Quality Gate history.
+
+When remediation succeeds:
+
+preserve original failure and append remediation.
+
+
+======================================================================
+70. MINIMUM CURRENT STATE FIELDS
+======================================================================
+
+Always maintain:
+
+LAST_UPDATED
+
+CURRENT_SPEC
+
+CURRENT_PHASE
+
+CURRENT_STATE
+
+STOP_CONDITION
+
+NEXT_READY
+
+REPOSITORY_ROOT
+
+CURRENT_BRANCH
+
+CURRENT_GIT_HEAD
+
+CURRENT_OPERATIONAL_GENERATION
+
+CURRENT_SCHEMA_VERSION
+
+CURRENT_DB_SHA256
+
+CURRENT_POINTER_SHA256
+
+CURRENT_MANIFEST_SHA256
+
+CURRENT_OPERATIONAL_EVIDENCE_SHA256
+
+LAST_VERIFIED_CHECKPOINT
+
+VALID_EVIDENCE
+
+INVALIDATED_EVIDENCE
+
+COMPLETED_TASKS
+
+PENDING_TASKS
+
+CURRENT_BLOCKERS
+
+HUMAN_DECISIONS
+
+AUTHORIZED_OPERATIONS
+
+FORBIDDEN_OPERATIONS
+
+RESIDUAL_RISKS
+
+
+======================================================================
+71. CREDIT / PROVIDER FAILURE PROTOCOL
+======================================================================
+
+If credits run out or provider execution stops:
+
+DO NOT PANIC-RESTART.
+
+Record:
+
+CURRENT_PHASE
+
+CURRENT_STATE
+
+LAST_COMPLETED_STEP
+
+LAST_VERIFIED_CHECKPOINT
+
+FILES_CHANGED
+
+COMMITS
+
+TESTS_COMPLETED
+
+VALID_EVIDENCE
+
+PENDING_TESTS
+
+OPERATIONAL_STATE
+
+BLOCKERS
+
+NEXT_ACTION.
+
+Next agent must resume from there.
+
+
+======================================================================
+72. BOOTSTRAP PROTOCOL FOR A NEW AGENT
+======================================================================
+
+If you are a new agent receiving this document:
+
+DO NOT START IMPLEMENTING.
+
+First execute CONTEXT RECOVERY.
+
+Step 1:
+
+Locate exact repository.
+
+Step 2:
+
+Read AGENTS.md.
+
+Step 3:
+
+Discover:
+
+branch
+HEAD
+status
+remote.
+
+Step 4:
+
+Compare repository with this handoff.
+
+Step 5:
+
+Inspect:
+
+specs
+
+docs/audit
+
+Evidence
+
+Git history.
+
+Step 6:
+
+Reconstruct operational state read-only.
+
+Step 7:
+
+Find checkpoint artifacts from interrupted execution.
+
+Step 8:
+
+Identify divergences.
+
+Step 9:
+
+Report reconstructed state to HUMAN.
+
+No mutation during this bootstrap.
+
+
+======================================================================
+73. INITIAL RESPONSE EXPECTED FROM NEW AGENT
+======================================================================
+
+Return:
+
+FASE:
+CONTEXT_RECOVERY
+
+ESTADO_REAL:
+
+REPOSITORY:
+
+BRANCH:
+
+HEAD:
+
+WORKTREE:
+
+CURRENT_SPEC:
+
+CURRENT_PHASE:
+
+CURRENT_STATE:
+
+OPERATIONAL_GENERATION:
+
+SCHEMA_VERSION:
+
+DB_SHA256:
+
+POINTER_SHA256:
+
+MANIFEST_SHA256:
+
+LAST_VERIFIED_CHECKPOINT:
+
+VALID_EVIDENCE:
+
+INVALIDATED_EVIDENCE:
+
+COMPLETED_WORK:
+
+PENDING_WORK:
+
+CONTEXT_DIVERGENCES:
+
+BLOCKERS:
+
+NEXT_ACTION:
+
+Do not mutate before completing this reconstruction.
+
+
+======================================================================
+74. CURRENT RESUME INSTRUCTION
+======================================================================
+
+At the time of this document version:
+
+PROJECT:
+
+Clínica Gabriela
+
+CURRENT SPEC:
+
+SPEC-004 — Agenda e Gestão de Atendimentos
+
+STATUS:
+
+OPEN
+
+OPERATIONAL GENERATION:
+
+8/canonical
+
+SCHEMA:
+
+v5
+
+CURRENT CHECKPOINT:
+
+READY_FOR_SPEC004_SECOND_INDEPENDENT_QUALITY_REVIEW
+
+SECOND REVIEW:
+
+STARTED BUT INTERRUPTED DUE TO AGENT CREDIT LIMIT.
+
+QUALITY GATE:
+
+UNDETERMINED.
+
+HUMAN FINAL ACCEPTANCE:
+
+PENDING.
+
+ACCEPTED/DONE:
+
+NO.
+
+NEXT ACTION:
+
+Discover the last materially verified checkpoint of the interrupted
+Second Independent Quality Review.
+
+Preserve valid Evidence.
+
+Continue only pending verification.
+
+Do not restart the entire review unless Evidence proves that restart
+is necessary.
+
+
+======================================================================
+74A. TARGETED RESUME CHECKPOINT — 2026-09-18
+======================================================================
+
+The pointer/manifest schema_version was investigated read-only.
+
+RESULT:
+
+No pointer/manifest divergence was found. Both use the infrastructure
+schema identifier `backend-models-v2-credential-reset`, defined by
+`backend.cutover.infrastructure.SCHEMA_VERSION`.
+
+The promoted database independently reports `PRAGMA user_version=5`,
+`integrity_check=ok`, zero foreign-key violations, and the v5 tables,
+indexes and triggers. The canonical migration identifier is
+`backend-models-v5-spec004-remediation`.
+
+CLASSIFICATION:
+
+The observed difference is semantic namespace separation, not an
+operational inconsistency, stale metadata, or provenance defect.
+Pointer/manifest schema_version identifies the runtime/cutover
+contract; SQLite user_version and canonical migration metadata identify
+the database schema.
+
+DIRECT READ-ONLY VERIFICATION:
+
+- pointer SHA-256: `d83a0654ce964f93c3191bb4a9bbe24fa78c55087666e6831f04f60630a1c50a`;
+- manifest SHA-256: `cd806a300f182c5d0f70cb6a6e4b2b0b9a574ff2f4cf02d7271cfcdaec5ef519`;
+- database SHA-256: `1edb9c5c77a8eb56da6cb5254e2bf795aa56a1d8c94dbbc855d0b70d40f404c8`;
+- manifest source commit: `0832eccd03e9bcb64f02b2944e9ecedd721596af`;
+- manifest entries: 128;
+- Generation 7 and Generation 8, backups and pointer history remain present.
+
+INTERRUPTED REVIEW ARTIFACTS:
+
+`.test-tmp-spec004-full` and `.test-tmp-spec004-lastfailed` contain
+isolated pytest outputs and fixture pointers. They are classified as
+`UNVERIFIED_PARTIAL_RESULT`, not Independent Review Evidence. No second
+review report, checkpoint ledger, or quality-gate result was found.
+`.pytest_cache` has an empty `lastfailed` record, which is diagnostic
+only and not Evidence.
+
+CURRENT SECOND REVIEW PROGRESS:
+
+- direct pointer -> manifest -> database binding: independently verified;
+- database hash, user_version, integrity, FKs, tables and v5 guards:
+	independently verified;
+- current SPEC-004 test suite: `27 passed` in the local `.venv`;
+- test result is not sufficient by itself for Independent Quality
+	Review because portions of the harness use isolated fixtures,
+	`StaticPool` and dependency overrides.
+
+QUALITY GATE:
+
+UNDETERMINED. No PASS or FAIL is inferred from the 27-test result.
+
+NEXT CHECKPOINT:
+
+Continue the pending adversarial review of provenance, harness
+independence, default activation path, authorization, concurrency,
+migration and AC/D requirements. Do not repair findings during review.
+
+
+======================================================================
+74B. TARGETED RESUME CHECKPOINT — PROVENANCE / REGRESSION — 2026-09-18
+======================================================================
+
+PROVENANCE:
+
+The first comparison reported 19 semantic mismatches because the shell
+verifier encoded the CRLF normalization escape incorrectly. A corrected
+read-only comparison confirmed:
+
+- 128/128 manifest entries present;
+- 0 semantic mismatches after CRLF/LF normalization;
+- 0 active hash mismatches;
+- 0 missing files.
+
+The finding is invalidated as a verifier false positive. The runtime
+freeze remains provenance-consistent with source commit
+`0832eccd03e9bcb64f02b2944e9ecedd721596af`.
+
+DEFAULT RUNTIME:
+
+Without forbidden overrides, `get_runtime_settings()` resolves the real
+operational pointer and Generation 8 database. `verify_runtime_manifest`
+returns PASS for the active manifest. This proves default selection and
+content binding, but does not prove launcher health/authentication.
+
+REGRESSION:
+
+- frontend tests: `5 passed`;
+- Python regression: `235 passed`, 2 failures in
+	`tests/test_cutover_runtime_guards.py` before functional assertions;
+- the two failures are caused by PowerShell output decoding
+	(`UnicodeDecodeError`, then `stderr=None` concatenation), not a proven
+	launcher behavior failure;
+- rerun with UTF-8 forced reproduces the same harness decoding failure.
+
+CLASSIFICATION:
+
+The launcher default activation check remains `NOT_PROVEN` because its
+harness cannot consume the subprocess output. No code repair was made.
+The frontend result is valid targeted evidence, but full AC-016 remains
+`NOT_PROVEN` pending a usable launcher verifier and complete regression
+interpretation.
+
+QUALITY GATE:
+
+Still `UNDETERMINED`; no product `FAIL` was established and no
+`QUALITY_GATE_PASS` is declared.
+
+
+======================================================================
+74C. TARGETED RESUME CHECKPOINT — AUTH / LAUNCHER / AC-013 — 2026-09-18
+======================================================================
+
+R9 / AC-016:
+
+An independent byte-capturing launcher verifier executed `run_api.ps1`
+without forbidden pointer, manifest or database overrides. It returned
+the expected invalid-port failure, with the expected
+`BACKEND_PORT deve estar entre 1 e 65535` message and no runtime-manifest
+resolution error. This confirms the launcher reaches runtime settings
+through the default path without the previous decoding defect.
+
+R6 / D5 / AC-012:
+
+An isolated real FastAPI subprocess used a temporary SQLite database,
+synthetic users, real `/auth/login` tokens and material psychologist
+links. Results:
+
+- health: `200`;
+- all four logins: `200`;
+- admin own/other agenda: `201` / `201`;
+- reception other agenda: `201`;
+- linked psychologist own/other agenda: `201` / `403`;
+- unlinked psychologist own agenda: `403`.
+
+This is independently verified authorization/authentication evidence.
+No operational database or license file was changed.
+
+AC-013 FINDING:
+
+The SPEC requires the frontend to use PATCH/If-Match. Exact source
+search found no `PATCH` in `frontend/src`. The Agenda sends `POST` for
+status actions and rescheduling, with `If-Match`, but has no frontend
+edit flow using PATCH/If-Match. This is a material product failure of
+AC-013, not a harness failure.
+
+QUALITY GATE RESULT:
+
+`QUALITY_GATE_FAIL`.
+
+FAILED_REQUIREMENT: AC-013.
+
+OBSERVED_BEHAVIOR: no frontend PATCH usage or appointment edit flow;
+status/reschedule use POST.
+
+EXPECTED_BEHAVIOR: frontend appointment editing uses PATCH with
+If-Match and presents sanitized errors.
+
+ROOT_CAUSE: frontend Agenda implementation does not implement the
+required PATCH edit operation.
+
+AFFECTED_ARTIFACTS: `frontend/src/main.jsx`, `frontend/src/api.js`,
+frontend appointment workflow, AC-013 and dependent acceptance.
+
+INVALIDATED_EVIDENCE: no prior PASS is invalidated; AC-013 was
+previously `NOT_PROVEN` and is now `FAIL`.
+
+MINIMUM_SAFE_REMEDIATION_SCOPE: frontend-only implementation and
+targeted frontend/API verification of PATCH, If-Match, stale-version
+handling and sanitized errors. Independent review authority does not
+authorize repair.
+
+NEXT_READY:
+
+`READY_FOR_SPEC004_QUALITY_GATE_REMEDIATION_PLANNING` after the finding
+is accepted by the governing workflow. Do not repair during this review.
+
+
+======================================================================
+74D. SPEC004 AC-013 REMEDIATION PLANNING — 2026-09-18
+======================================================================
+
+FAILED_REQUIREMENT:
+
+AC-013 — frontend uses PATCH/If-Match and presents sanitized errors.
+
+OBSERVED_BEHAVIOR:
+
+The frontend Agenda has no PATCH usage or appointment edit flow. It
+uses POST for create, status actions and rescheduling. The backend
+already exposes PATCH `/appointments/{appointment_id}`, requires
+If-Match, emits ETag and preserves existing authorization/error
+semantics.
+
+EXPECTED_BEHAVIOR:
+
+Appointment editing in the frontend must send PATCH with the current
+appointment version as If-Match, render successful refreshed data and
+surface sanitized API errors without exposing SQL, traceback or PII.
+
+ROOT_CAUSE:
+
+Frontend Agenda lacks the edit interaction and PATCH request wiring;
+the shared submit/api path is not currently exercised for PATCH.
+
+AFFECTED_ARTIFACTS:
+
+- `frontend/src/main.jsx` Agenda workflow and appointment controls;
+- `frontend/src/api.js` only if the shared request helper needs a
+  narrowly scoped error/status refinement;
+- frontend tests for API request semantics and Agenda behavior;
+- AC-013 and dependent frontend acceptance only.
+
+MINIMUM_SAFE_REMEDIATION_SCOPE:
+
+1. Add an explicit edit interaction for eligible `scheduled` appointments
+	in the Agenda, reusing existing form/data conventions.
+2. Send only changed editable fields through
+	`PATCH /appointments/{id}` with `If-Match: "{appointment.version}"`.
+3. Preserve POST status actions and POST reschedule semantics unchanged;
+	do not implement reschedule as PATCH plus POST.
+4. Preserve role visibility and rely on backend authorization; do not
+	infer or substitute identity in the frontend.
+5. Preserve `ApiError` status and sanitized detail behavior; handle
+	`409` as domain conflict and `412` as stale version without exposing
+	raw server internals.
+6. Refresh appointment data after success and avoid local optimistic
+	mutation that could hide stale-version responses.
+
+No backend, schema, migration, database, pointer, manifest, Generation,
+license or operational launcher change is in scope.
+
+TESTS_REQUIRED:
+
+- frontend request test proving PATCH method, JSON body and exact
+  If-Match version header;
+- frontend test for sanitized 409 and 412 messages/status preservation;
+- frontend behavior test for edit visibility/role boundary, if the
+  current test surface can exercise the Agenda component;
+- real isolated API integration proving PATCH with real login tokens,
+  successful edit, stale If-Match -> 412 and domain conflict -> 409;
+- targeted existing frontend tests and Vite build;
+- targeted Python/API regression for appointment PATCH authorization;
+- no operational smoke, promotion or database migration is required
+  because the backend contract and operational artifacts are unchanged.
+
+INVALIDATED_EVIDENCE:
+
+Only AC-013's prior `NOT_PROVEN` classification is replaced by
+`FAIL`. No pointer, manifest, database, migration, auth, concurrency,
+backup or operational Evidence is invalidated.
+
+PRESERVED_EVIDENCE:
+
+R6/D5/AC-012 real API authorization, R1-R5/R7-R8 targeted results,
+pointer/manifest/database provenance, Generation 8 operational gate,
+backup/restore Evidence, frontend authentication tests, and all
+unrelated SPEC-004 checks remain preserved.
+
+REVALIDATION_REQUIRED:
+
+After implementation, revalidate AC-013 and its dependent frontend/API
+behavior only: PATCH/If-Match, 409/412, sanitization, authorization,
+refresh and role boundaries. Then run proportional frontend/API
+regression. R9/AC-016 remains independently pending and is not closed
+by this remediation.
+
+OPERATIONAL_IMPACT:
+
+None before implementation. The planned change is frontend-only and
+does not select, write or promote any operational artifact.
+
+RISKS:
+
+- accidentally converting reschedule/status to PATCH;
+- dropping If-Match or using stale local version;
+- exposing backend detail in the UI;
+- adding frontend-only authorization assumptions;
+- expanding scope into backend or operational runtime changes.
+
+REMEDIATION STATE:
+
+`READY_FOR_SPEC004_AC013_REMEDIATION_ORCHESTRATION`.
+
+No implementation, test change, database mutation, cleanup, commit,
+push, merge or release is authorized by this planning checkpoint.
+
+
+======================================================================
+74E. SPEC004 AC-013 REMEDIATION ORCHESTRATION — 2026-09-18
+======================================================================
+
+IMPLEMENTATION:
+
+Frontend-only remediation was implemented in:
+
+- `frontend/src/main.jsx`;
+- `frontend/src/api.js`;
+- `frontend/test/api.test.js`.
+
+The Agenda now offers editing for `scheduled` appointments, computes a
+minimal changed-fields patch, sends `PATCH /appointments/{id}` with the
+current `If-Match` version, refreshes only after success, and renders
+sanitized `ApiError` messages for failed edits. Status actions and
+reschedule remain POST endpoints with their existing semantics.
+
+AC013 TRACEABILITY:
+
+- requirement: AC-013;
+- implementation: Agenda edit flow plus `buildAppointmentPatch` and
+	existing `submit` refresh path;
+- frontend tests: PATCH method, endpoint, minimal payload, If-Match,
+	success response, sanitized 409 and sanitized 412;
+- API integration: real FastAPI subprocess, synthetic SQLite database,
+	real login token, valid PATCH 200 with ETag/version increment, stale
+	write 412 and domain conflict 409.
+
+TARGETED VALIDATION:
+
+- frontend tests: `7 passed`;
+- Vite build: PASS, 1582 modules transformed;
+- diagnostics: no errors in the three changed files;
+- isolated API integration: PASS for login, PATCH, ETag, 412 and 409.
+
+SELECTIVE INVALIDATION:
+
+The prior AC-013 `FAIL` is preserved as historical review evidence and
+is superseded for revalidation by this remediation candidate. No other
+Evidence is invalidated. Generation 8, database, migrations, pointer,
+manifest, backups/restores, provenance, R6/D5/AC-012, concurrency and
+unrelated SPEC-004 Evidence remain preserved.
+
+OPERATIONAL IMPACT:
+
+None. No operational database, license, Generation, pointer, manifest,
+backup or runtime artifact was changed. The frontend build output is a
+local generated artifact and was not promoted or released.
+
+RESIDUAL RISKS:
+
+- independent re-review must verify the rendered Agenda interaction and
+	role behavior, not only the request helper;
+- R9 / AC-016 remains pending and is unaffected;
+- full SPEC-004 acceptance remains pending.
+
+CURRENT STATE:
+
+`READY_FOR_SPEC004_AC013_INDEPENDENT_REVALIDATION`.
+
+The implementation is complete for the authorized remediation scope.
+No `QUALITY_GATE_PASS`, `ACCEPTED` or `DONE` is declared.
+
+
+======================================================================
+74F. SPEC004 AC-013 INDEPENDENT REVALIDATION — 2026-09-18
+======================================================================
+
+AC013_RESULT:
+
+`PASS_INDEPENDENTLY_REVALIDATED`.
+
+INDEPENDENT_FINDINGS:
+
+None for AC-013. The initial independent API assertion failure was a
+verifier issue: the client converted case-insensitive HTTP headers to a
+case-sensitive dictionary and queried `ETag` with the wrong key casing.
+The raw HTTP semantic was confirmed as ETag present.
+
+RENDERED_INTERACTION:
+
+Using the Vite preview with synthetic intercepted data and no database
+write, the reviewer verified:
+
+- login and Agenda render;
+- Editar opens the inline editor for `scheduled` appointment;
+- successful save sends PATCH and then exactly the appointments refresh
+	GET;
+- stale 412 renders the sanitized backend detail, leaves the editor open
+	and sends no refresh GET.
+
+PATCH / IF-MATCH:
+
+- endpoint: `/appointments/7`;
+- method: `PATCH`;
+- header: `If-Match: "3"`;
+- changed-only payload: `{"notes":"Alteracao renderizada"}`;
+- no PATCH path exists for status or reschedule controls.
+
+CONCURRENCY / API INTEGRATION:
+
+Independent isolated API verification with synthetic SQLite data and a
+real login token confirmed:
+
+- login: `200`;
+- valid PATCH: `200`;
+- version increment and ETag present;
+- stale If-Match: `412`;
+- domain conflict: `409`.
+
+AUTHORIZATION_BOUNDARY:
+
+Frontend does not infer or substitute identity. Backend authorization
+remains authoritative; prior independent R6/D5/AC-012 Evidence is
+preserved.
+
+HARNESS_QUALITY:
+
+Frontend tests: `7 passed`; backend agenda regression: `6 passed`;
+rendered interaction was independently exercised with network
+interception; API integration used a separate isolated subprocess and
+database. The earlier ETag assertion defect was corrected in the
+verifier only, with no product change.
+
+PRESERVED_EVIDENCE:
+
+All operational Generation 8, database, migration, pointer, manifest,
+backup/restore, provenance, authorization, concurrency and unrelated
+SPEC-004 Evidence remain valid.
+
+INVALIDATED_EVIDENCE:
+
+The AC-013 remediation candidate status is no longer merely pending;
+the prior AC-013 FAIL is superseded by this independent PASS. No other
+Evidence is invalidated.
+
+QUALITY_GATE:
+
+AC-013 is independently revalidated, but the overall SPEC-004 gate
+remains `UNDETERMINED` because R9 / AC-016 is still pending and no
+`QUALITY_GATE_PASS` is declared.
+
+NEXT_READY:
+
+Continue the Second Independent Quality Review exclusively with R9 /
+AC-016 and any other still-open indispensable requirement.
+
+
+======================================================================
+74G. SPEC004 R9 / AC-016 FINAL INDEPENDENT VERIFICATION — 2026-09-18
+======================================================================
+
+R9_RESULT:
+
+`PASS_INDEPENDENTLY_VERIFIED` for the required default activation chain.
+
+DEFAULT_SELECTION:
+
+All forbidden selection overrides were absent:
+
+- `CLINICA_OPERATIONAL_POINTER`;
+- `CLINICA_RUNTIME_CODE_ROOT`;
+- `CLINICA_RUNTIME_MANIFEST_DIR`;
+- `CLINICA_RUNTIME_ROOT`;
+- `BACKEND_DATABASE_PATH`.
+
+Only an isolated maintenance-lock path, read-only flag and temporary
+port were supplied; none substituted pointer, manifest, runtime code or
+database selection.
+
+LAUNCHER:
+
+The real `scripts/run_api.ps1` launcher was executed with byte capture.
+It started the supervisor and backend; its output recorded Uvicorn
+startup and health requests. The process was then terminated by the
+verifier, so its final return code `1` is test-harness termination and
+not an application startup failure.
+
+RUNTIME_MANIFEST:
+
+Default settings selected the real pointer and verified the real
+content-addressed manifest `cd806a...f519` against the active runtime
+code. No manifest or code-root override was used.
+
+DATABASE_BINDING:
+
+The selected database was the real Generation 8 canonical database
+`canonical-spec004-remediation-v5-1edb9c5c77a8.db`. Pointer, manifest
+and database hashes were unchanged before and after the read-only run;
+no WAL, SHM or journal sidecar was present.
+
+HEALTH:
+
+`GET /health` returned HTTP `200` with `{"status":"ok"}` through the
+launcher-started backend.
+
+LICENSE ENVIRONMENT:
+
+The operational license remains expired. This does not block the public
+health startup path verified here. It legitimately blocks non-public
+licensed routes, so authenticated operational smoke is not claimed by
+this check. `license.json` was not changed.
+
+AC016_RESULT:
+
+`PASS_INDEPENDENTLY_VERIFIED` based on the directly verified default
+launcher/health chain plus preserved, unaffected regression and build
+Evidence. The expired license limitation is recorded separately and
+does not invalidate the health-path proof.
+
+QUALITY_GATE:
+
+All currently material SPEC-004 requirements are independently proven
+or preserved by valid unaffected Evidence. `QUALITY_GATE_PASS`.
+
+NEXT_READY:
+
+`READY_FOR_HUMAN_SPEC004_FINAL_ACCEPTANCE`.
+
+No `ACCEPTED` or `DONE` is declared. Human final acceptance remains
+required.
+
+
+======================================================================
+74H. SPEC004 HUMAN FINAL ACCEPTANCE / CLOSURE CHECKPOINT — 2026-09-18
+======================================================================
+
+HUMAN_FINAL_ACCEPTANCE:
+
+`APPROVED`
+
+SPEC004_STATUS:
+
+`ACCEPTED/DONE`
+
+QUALITY_GATE:
+
+`PASS`
+
+FINAL DECISION:
+
+HUMAN approved final acceptance of `SPEC-004 — Agenda e Gestão de
+Atendimentos` after the independent quality review and independent
+revalidation results recorded above.
+
+CURRENT STATE:
+
+- SPEC-004: `ACCEPTED/DONE`;
+- Generation 8 remains the operational canonical Generation;
+- AC-013: `PASS_INDEPENDENTLY_REVALIDATED`;
+- R9: `PASS_INDEPENDENTLY_VERIFIED`;
+- AC-016: `PASS_INDEPENDENTLY_VERIFIED`;
+- no next SPEC is started automatically.
+
+VALID EVIDENCE:
+
+Operational Generation 8, database, migration, pointer, runtime
+manifest, backups/restores, provenance, regression, frontend build,
+AC-013 remediation and independent review Evidence remain preserved.
+Historical failures, incidents, remediation plans, checkpoints and
+quality-gate transitions remain in this handoff history and are not
+rewritten or removed.
+
+RESIDUAL CONDITIONS:
+
+The operational license remains expired and is an environmental/residual
+condition. It was not changed by this acceptance. Authenticated licensed
+runtime use may require a separate license decision or operation.
+
+ACCEPTED/DONE DOES NOT AUTHORIZE:
+
+- destructive cleanup;
+- deletion of Evidence, backups, Generations or manifests;
+- pointer rollback or runtime mutation;
+- license changes;
+- automatic start of another SPEC;
+- commit, push, merge or release.
+
+COMPLETED TASKS:
+
+- SPEC-004 implementation, remediation and targeted validation;
+- AC-013 independent revalidation;
+- R9 / AC-016 independent verification;
+- HUMAN final acceptance documentation.
+
+PENDING TASKS:
+
+- no SPEC-004 functional task remains pending;
+- optional separate license/environment decision;
+- Git closure commit decision by HUMAN;
+- no next SPEC without a new explicit decision.
+
+GIT BASELINE AT CLOSURE:
+
+- branch: `feature/spec-008-architecture-foundation`;
+- HEAD: `cbfd8fb29b6f65d80f0f63da7154ca04e066cde6`;
+- no staging, commit, push, merge or release performed.
+
+FILES_CHANGED AND CLASSIFICATION:
+
+`SPEC004_CLOSURE_REQUIRED`:
+
+- `CLINICA_GABRIELA_PROJECT_HANDOFF.txt` — this closure record;
+- `frontend/src/api.js` — AC-013 implementation;
+- `frontend/src/main.jsx` — AC-013 Agenda implementation;
+- `frontend/test/api.test.js` — AC-013 targeted tests.
+
+`PREEXISTING_UNRELATED`:
+
+- `.context/COMMANDS.md` — pre-existing documentation change unrelated
+	to this closure.
+
+`DO_NOT_STAGE`:
+
+- `.baseline-staging/`;
+- `.forensics/`;
+- `.homologation/`;
+- `.test-tmp-spec004-full/`;
+- `.test-tmp-spec004-lastfailed/`.
+
+These generated, forensic, homologation and temporary artifacts remain
+preserved and were not cleaned up or staged.
+
+STOP_CONDITION:
+
+`READY_FOR_HUMAN_SPEC004_CLOSURE_COMMIT_DECISION`
+
+NEXT_READY:
+
+Wait for a separate HUMAN Git decision. Do not start another SPEC
+automatically.
+
+
+======================================================================
+75. FINAL GOVERNANCE REMINDER
+======================================================================
+
+The purpose of the methodology is not bureaucracy.
+
+The purpose is to allow high autonomous execution while maintaining:
+
+SAFETY
+
+TRACEABILITY
+
+QUALITY
+
+RECOVERABILITY
+
+HUMAN AUTHORITY.
+
+The HUMAN should not need to orchestrate routine technical execution.
+
+The agent should not make product authority decisions.
+
+Therefore:
+
+HUMAN = AUTHORITY
+
+AGENT = ORCHESTRATOR / EXECUTOR
+
+INDEPENDENT REVIEWER = VERIFIER
+
+EVIDENCE = PROOF
+
+CHECKPOINT = RESUME BOUNDARY
+
+SPEC = CONTRACTUAL UNIT OF WORK
+
+QUALITY GATE = ACCEPTANCE EVIDENCE BOUNDARY
+
+FINAL ACCEPTANCE = HUMAN AUTHORITY
+
+======================================================================
+76. MANDATORY HANDOFF UPDATE CONTRACT
+======================================================================
+
+PROJECT_HANDOFF é parte do contrato operacional do projeto.
+
+Qualquer agente que produza uma ALTERAÇÃO MATERIAL no projeto é
+responsável por atualizar este documento antes de encerrar sua execução.
+
+Princípio:
+
+MATERIAL PROJECT CHANGE
+→ VALIDATION
+→ EVIDENCE / CHECKPOINT
+→ PROJECT_HANDOFF UPDATE
+→ TASK COMPLETION
+
+Uma tarefa material NÃO deve ser considerada completamente encerrada
+enquanto o handoff não refletir o novo checkpoint.
+
+--------------------------------------------------
+WHEN UPDATE IS MANDATORY
+--------------------------------------------------
+
+Atualizar PROJECT_HANDOFF quando ocorrer:
+
+- decisão HUMAN material;
+- mudança de SPEC;
+- mudança de fase;
+- mudança de CURRENT_STATE;
+- novo STOP_CONDITION;
+- Contract Freeze;
+- implementação material concluída;
+- commit material;
+- Quality Gate;
+- finding material;
+- remediation;
+- Evidence criada;
+- Evidence invalidada;
+- migration;
+- mudança de schema;
+- nova Generation;
+- mudança de pointer;
+- mudança de manifest;
+- operational promotion;
+- operational incident;
+- recovery;
+- rollback explicitamente autorizado;
+- mudança de risco residual;
+- HUMAN acceptance;
+- SPEC closure.
+
+--------------------------------------------------
+WHEN UPDATE IS NOT REQUIRED
+--------------------------------------------------
+
+Não atualizar por:
+
+- comando trivial;
+- leitura;
+- investigação sem novo resultado material;
+- teste repetido sem mudança de conclusão;
+- tentativa abortada sem impacto material e sem novo finding relevante;
+- alteração temporária posteriormente descartada.
+
+Evitar transformar PROJECT_HANDOFF em log de terminal.
+
+--------------------------------------------------
+UPDATE ORDER
+--------------------------------------------------
+
+Quando uma alteração material for concluída:
+
+1. validar o resultado;
+2. produzir/preservar Evidence;
+3. determinar novo checkpoint;
+4. atualizar CURRENT STATE;
+5. acrescentar evento ao HISTORY quando aplicável;
+6. atualizar VALID_EVIDENCE / INVALIDATED_EVIDENCE;
+7. atualizar COMPLETED_TASKS;
+8. atualizar PENDING_TASKS;
+9. atualizar BLOCKERS;
+10. atualizar NEXT_READY;
+11. validar consistência do handoff;
+12. somente então considerar a tarefa material encerrada.
+
+--------------------------------------------------
+CURRENT STATE VS HISTORY
+--------------------------------------------------
+
+CURRENT STATE:
+
+deve representar somente a realidade mais recente materialmente
+verificada.
+
+HISTORY:
+
+deve preservar estados anteriores relevantes.
+
+Nunca apagar:
+
+- falhas;
+- incidents;
+- recoveries;
+- Quality Gate failures;
+- Generations anteriores;
+- decisões HUMAN;
+- Evidence histórica
+
+apenas porque um estado posterior foi bem-sucedido.
+
+--------------------------------------------------
+NO SELF-CERTIFICATION
+--------------------------------------------------
+
+Atualizar PROJECT_HANDOFF NÃO transforma uma alegação em Evidence.
+
+O agente deve distinguir:
+
+REPORTED
+VERIFIED
+INDEPENDENTLY_VERIFIED
+
+quando relevante.
+
+Um executor não pode registrar seu próprio resultado como
+INDEPENDENTLY_VERIFIED.
+
+--------------------------------------------------
+GIT / HANDOFF CONSISTENCY
+--------------------------------------------------
+
+Se houver alteração material versionada:
+
+PROJECT_HANDOFF deve referenciar o commit relevante quando disponível.
+
+Se PROJECT_HANDOFF for versionado no próprio repositório, sua atualização
+deve seguir a mesma disciplina Git do projeto.
+
+Não executar commit automaticamente se o ambiente exigir autorização
+HUMAN.
+
+Nesse caso:
+
+1. atualizar o arquivo;
+2. validar;
+3. parar no approval gate;
+4. solicitar autorização HUMAN para o commit exato.
+
+--------------------------------------------------
+INTERRUPTED EXECUTION
+--------------------------------------------------
+
+Se execução for interrompida por:
+
+- créditos;
+- timeout;
+- provider failure;
+- environment failure;
+- session termination;
+
+e houver oportunidade segura de persistir contexto, registrar:
+
+CURRENT_PHASE
+CURRENT_STATE
+LAST_COMPLETED_STEP
+LAST_VERIFIED_CHECKPOINT
+FILES_CHANGED
+COMMITS
+TESTS_COMPLETED
+VALID_EVIDENCE
+INVALIDATED_EVIDENCE
+PENDING_WORK
+OPERATIONAL_STATE
+BLOCKERS
+NEXT_ACTION
+
+Se não houver oportunidade de atualizar PROJECT_HANDOFF:
+
+o próximo agente deve iniciar em:
+
+CONTEXT_RECOVERY
+
+e executar:
+
+REAL STATE
+↔ GIT
+↔ EVIDENCE
+↔ PROJECT_HANDOFF
+
+antes de qualquer nova mutação.
+
+--------------------------------------------------
+CONFLICT RULE
+--------------------------------------------------
+
+Se PROJECT_HANDOFF divergir do estado material:
+
+NÃO alterar o projeto para fazê-lo corresponder ao documento.
+
+Primeiro determinar qual estado é materialmente verdadeiro.
+
+Princípio:
+
+REAL VERIFIED STATE
+>
+STALE HANDOFF
+
+Depois atualizar PROJECT_HANDOFF para refletir a realidade verificada.
+
+Nunca o contrário.
+
+--------------------------------------------------
+AGENT RESPONSIBILITY
+--------------------------------------------------
+
+Todo novo agente deve assumir:
+
+"I am responsible not only for executing the authorized work, but also
+for leaving the project resumable by the next agent."
+
+Portanto:
+
+NO MATERIAL CHANGE WITHOUT TRACEABILITY.
+
+NO MATERIAL COMPLETION WITHOUT HANDOFF UPDATE.
+
+NO HANDOFF UPDATE WITHOUT VERIFICATION.
+======================================================================
+END OF CLÍNICA GABRIELA PROJECT HANDOFF — VERSION 2
+======================================================================

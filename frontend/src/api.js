@@ -8,6 +8,17 @@ export class ApiError extends Error {
   }
 }
 
+export function buildAppointmentPatch(appointment, form) {
+  const changes = {};
+  const scheduledAt = `${form.scheduled_date}T${form.scheduled_time}:00`;
+  if (scheduledAt !== appointment.scheduled_at.slice(0, 19)) changes.scheduled_at = scheduledAt;
+  if (Number(form.duration_minutes) !== appointment.duration_minutes) {
+    changes.duration_minutes = Number(form.duration_minutes);
+  }
+  if (form.notes !== (appointment.notes || "")) changes.notes = form.notes;
+  return changes;
+}
+
 export async function apiRequest(path, { token, fetchImpl = fetch, ...options } = {}) {
   const headers = new Headers(options.headers || {});
   headers.set("Content-Type", "application/json");

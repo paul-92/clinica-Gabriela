@@ -11,6 +11,7 @@ import {
   Home,
   Lock,
   LogOut,
+  Pencil,
   Plus,
   RefreshCw,
   Search,
@@ -19,7 +20,7 @@ import {
   UsersRound
 } from "lucide-react";
 import "./styles.css";
-import { ApiError, apiRequest, authenticate } from "./api.js";
+import { ApiError, apiRequest, authenticate, buildAppointmentPatch } from "./api.js";
 import { clearFrontendSession } from "./session.js";
 
 const today = new Date().toISOString().slice(0, 10);
@@ -480,6 +481,9 @@ function Psychologists({ data }) {
 
 function Agenda({ data, submit, user }) {
   const [filters, setFilters] = useState({ targetDate: today, psychologistId: "" });
+  const [editingAppointment, setEditingAppointment] = useState(null);
+  const [editForm, setEditForm] = useState(null);
+  const [editError, setEditError] = useState("");
   const [form, setForm] = useState({
     patient_id: data.patients[0]?.id || "",
     psychologist_id: data.psychologists[0]?.id || "",
@@ -524,6 +528,39 @@ function Agenda({ data, submit, user }) {
     }, "POST", { "If-Match": `"${appointment.version}"` });
   };
 
+  const startEdit = (appointment) => {
+    setEditingAppointment(appointment);
+    setEditError("");
+    setEditForm({
+      scheduled_date: appointment.scheduled_at.slice(0, 10),
+      scheduled_time: appointment.scheduled_at.slice(11, 16),
+      duration_minutes: String(appointment.duration_minutes),
+      notes: appointment.notes || ""
+    });
+  };
+
+  const cancelEdit = () => {
+    setEditingAppointment(null);
+    setEditForm(null);
+    setEditError("");
+  };
+
+  const saveEdit = async (event) => {
+    event.preventDefault();
+    const changes = buildAppointmentPatch(editingAppointment, editForm);
+    if (!Object.keys(changes).length) return;
+
+    setEditError("");
+    try {
+      await submit(`/appointments/${editingAppointment.id}`, changes, "PATCH", {
+        "If-Match": `"${editingAppointment.version}"`
+      });
+      cancelEdit();
+    } catch (error) {
+      setEditError(error instanceof ApiError ? error.message : "Nao foi possivel editar o atendimento.");
+    }
+  };
+
   return (
     <div className="splitGrid">
       <Panel title="Agenda de atendimentos">
@@ -556,11 +593,22 @@ function Agenda({ data, submit, user }) {
               </div>
               <div className="rowActions">
                 <span className={`statusTag ${appointment.status}`}>{statusLabels[appointment.status] || appointment.status}</span>
+                {appointment.status === "scheduled" ? <button onClick={() => startEdit(appointment)} title="Editar atendimento"><Pencil size={16} /> Editar</button> : null}
                 {appointment.status === "scheduled" && user.role !== "reception" ? <button onClick={() => changeStatus(appointment, "done")}>Realizar</button> : null}
                 {appointment.status === "scheduled" ? <button onClick={() => changeStatus(appointment, "no_show")}>Falta</button> : null}
                 {appointment.status === "scheduled" ? <button onClick={() => reschedule(appointment)}>Remarcar</button> : null}
                 {appointment.status === "scheduled" ? <button onClick={() => changeStatus(appointment, "canceled")}>Cancelar</button> : null}
               </div>
+              {editingAppointment?.id === appointment.id && editForm ? (
+                <form className="inlineFields" onSubmit={saveEdit}>
+                  <label>Data<input type="date" value={editForm.scheduled_date} onChange={(event) => setEditForm({ ...editForm, scheduled_date: event.target.value })} /></label>
+                  <label>Hora<input type="time" value={editForm.scheduled_time} onChange={(event) => setEditForm({ ...editForm, scheduled_time: event.target.value })} /></label>
+                  <label>Duracao<input value={editForm.duration_minutes} onChange={(event) => setEditForm({ ...editForm, duration_minutes: event.target.value })} /></label>
+                  <label>Observacoes<textarea value={editForm.notes} onChange={(event) => setEditForm({ ...editForm, notes: event.target.value })} /></label>
+                  {editError ? <div className="formError">{editError}</div> : null}
+                  <div className="rowActions"><button type="submit">Salvar</button><button type="button" onClick={cancelEdit}>Cancelar</button></div>
+                </form>
+              ) : null}
             </div>
           ))}
           {filtered.length === 0 ? <EmptyState text="Nenhum atendimento para os filtros selecionados." /> : null}
