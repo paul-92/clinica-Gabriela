@@ -1,526 +1,343 @@
 # SPEC-005 — Financeiro
 
-**Status:** DRAFT — especificação detalhada, pendente de validação funcional e implementação.  
+**Status:** CONTRACT FROZEN — implementação não autorizada
 **Prioridade:** P1  
-**Origem:** SPEC-001 — Auditoria  
-**Dependências:** SPEC-002, SPEC-003 e SPEC-008  
-**Implementação:** Não iniciada.
+**Dependências preservadas:** SPEC-002, SPEC-003, SPEC-004 e SPEC-008
+**Autoridade:** decisões HUMAN D005-01 a D005-07
+**Implementação/migração:** não iniciadas nem autorizadas
 
-## 1. Objetivo
-Definir as regras funcionais e técnicas do módulo financeiro da Clínica Gabriela, garantindo consistência entre receitas, despesas, pagamentos, períodos de apuração e indicadores apresentados na aplicação.
+## 1. Objetivo e autoridade
 
-A implementação deverá corrigir ambiguidades identificadas na auditoria, especialmente a diferença entre valores históricos acumulados e indicadores apresentados como mensais.
+Esta SPEC congela o contrato funcional e técnico do módulo financeiro. Não
+autoriza alteração de código, schema, banco, ponteiro, manifesto ou Generation.
+D005-01 a D005-07 são normativas e não podem ser reinterpretadas ou ampliadas.
 
-Nenhuma regra descrita nesta SPEC deve ser considerada implementada sem testes e evidências.
+Continuam herdados, sem reabertura: autenticação/autorização da SPEC-002;
+integridade, auditoria e privacidade da SPEC-003; agenda da SPEC-004; fonte de
+verdade e limites arquiteturais da SPEC-008.
 
-## 2. Princípios
-- O backend é a autoridade final sobre regras financeiras.
-- Valores monetários não devem utilizar lógica sujeita a erro de ponto flutuante.
-- Indicadores mensais devem considerar explicitamente o período selecionado.
-- Cancelamentos, estornos e exclusões não devem apagar histórico de forma silenciosa.
-- Receitas e despesas devem possuir status e datas com significado definido.
-- A interface não pode exibir um valor como “mensal” quando a consulta representa todo o histórico.
-- Regras de autorização devem respeitar a SPEC-002.
-- Dados financeiros reais da clínica não devem ser utilizados em testes automatizados.
+## 2. Escopo
 
-## 3. Escopo funcional
-O domínio financeiro deverá tratar, conforme o modelo existente:
+Abrange cobranças/receitas, pagamentos integrais, despesas, categorias
+controladas, datas financeiras, vínculos explícitos, filtros, indicadores
+separados por regime e histórico auditável.
 
-- receitas;
-- pagamentos;
-- despesas;
-- situação do pagamento;
-- data de competência;
-- data de vencimento, quando existente;
-- data de pagamento, quando existente;
-- vínculo com atendimento ou paciente, quando aplicável;
-- forma de pagamento, quando prevista;
-- observações;
-- cancelamento, estorno ou inativação;
-- indicadores e resumos por período.
+Ficam fora do escopo: pagamentos parciais, múltiplas liquidações, parcelamento,
+contabilidade fiscal, tributação, folha, nota fiscal, boleto, gateway, Pix
+automático, integração/conciliação bancária e cobrança automática. Combinações
+fora do escopo são rejeitadas, nunca representadas ambiguamente.
 
-Antes da implementação, os modelos, schemas, repositories, services, rotas, migrations e interfaces existentes deverão ser inventariados.
+## 3. Dinheiro — D005-02
 
-## 4. Representação monetária
-Valores financeiros deverão possuir precisão adequada para moeda.
+A representação canônica é **INTEGER CENTS** (R$ 150,37 = 15037).
 
-Não utilizar `float` como representação de negócio quando isso puder causar erros de arredondamento.
+- float não é representação canônica.
+- Valores normais são inteiros maiores que zero.
+- Zero e negativos são rejeitados; negativos não representam cancelamento,
+  estorno ou ajuste.
+- Conversões na API/UI são explícitas, determinísticas e testáveis.
+- Cálculos e agregações operam em centavos inteiros.
 
-A implementação deverá avaliar a melhor estratégia compatível com SQLite e SQLAlchemy, priorizando uma das abordagens:
+Conversão legada de FLOAT só converte equivalência exata e demonstrável em
+centavos. É proibido arredondar ou truncar silenciosamente. Valor incompatível
+ou ambíguo é REVIEW/BLOCK e faz a migração falhar fechada.
 
-1. `Decimal` com coluna numérica adequada; ou
-2. armazenamento em unidade inteira mínima, como centavos.
+## 4. Regimes e períodos — D005-01
 
-A estratégia escolhida deverá ser única e consistente em todo o domínio.
+O sistema suporta visões semanticamente separadas:
 
-Exemplo:
+1. **Caixa:** determinado pela data real de pagamento (paid_at).
+2. **Competência:** determinado por campo explícito de competência.
 
-```text
-R$ 123,45
-```
+A visão operacional inicial é caixa. Indicadores não misturam
+previsto/competência com caixa recebido sem rótulo explícito. Uma transação de
+setembro paga em outubro pertence a setembro na competência e a outubro no
+caixa. Períodos usam limites explícitos, preferencialmente [start, end).
 
-não deverá ser tratado internamente de forma que possa resultar em:
+Criação, competência, vencimento, pagamento, cancelamento e estorno são datas
+distintas e não são inferidas umas das outras.
 
-```text
-123.449999999
-```
+## 5. Ciclo de vida — D005-03 e D005-04
 
-## 5. Regras de valor
-Valores deverão ser validados conforme o tipo de lançamento.
+Estados persistidos canônicos: **pending, paid, canceled, reversed**.
 
-Regra inicial proposta:
+Overdue é derivado, nunca persistido:
 
-- receitas normais: valor maior que zero;
-- despesas normais: valor maior que zero;
-- estornos ou ajustes: devem usar operação ou status explícito, em vez de valor negativo arbitrário.
+status == pending AND due_date < reference_date → overdue
 
-Valores iguais a zero deverão ser rejeitados, salvo se houver regra funcional específica aprovada.
+A data de referência é explícita ou controlada pelo serviço. Transições:
 
-Valores negativos não deverão ser aceitos como atalho para cancelamento ou estorno.
-
-## 6. Status financeiros
-Os status atuais deverão ser inventariados antes da implementação.
-
-Estados conceituais possíveis para receitas ou pagamentos incluem:
-
-- Pendente;
-- Pago;
-- Cancelado;
-- Estornado;
-- Vencido, caso seja calculado ou persistido;
-- Parcial, somente se pagamentos parciais forem aprovados.
-
-Os nomes finais deverão respeitar os enums e contratos existentes.
-
-Strings arbitrárias não deverão ser aceitas.
-
-## 7. Transições de status
-A matriz definitiva será criada após o inventário.
-
-Proposta conceitual:
-
-| Origem | Destino | Condição |
+| Origem | Destino | Condição mínima |
 |---|---|---|
-| Pendente | Pago | Pagamento confirmado |
-| Pendente | Cancelado | Cobrança cancelada |
-| Pago | Estornado | Estorno autorizado |
-| Pago | Pendente | Somente se houver regra explícita de correção |
-| Cancelado | Pago | Não permitido sem reabertura explícita |
-
-Transições incoerentes deverão ser rejeitadas pelo backend.
-
-## 8. Datas financeiras
-Cada data deve possuir significado claro.
-
-A implementação deverá identificar e separar, quando aplicável:
-
-- data de criação;
-- competência;
-- vencimento;
-- pagamento;
-- cancelamento;
-- estorno.
-
-Não utilizar uma única data para representar conceitos diferentes sem decisão explícita.
-
-## 9. Competência e período
-Os indicadores financeiros deverão usar uma regra de período claramente definida.
-
-A competência mensal deverá ser baseada em um campo aprovado, por exemplo:
-
-- data do pagamento;
-- data da competência;
-- data do atendimento;
-- data de criação.
-
-A decisão deve ser funcional, não arbitrária.
-
-Até a aprovação, nenhum indicador deverá ser rotulado como “receita mensal” sem indicar qual data define o mês.
-
-## 10. Correção do resumo mensal
-A auditoria identificou que o resumo utilizado pela interface pode somar registros históricos enquanto a apresentação sugere um resultado mensal.
-
-A implementação deverá corrigir esse comportamento.
-
-Regra obrigatória:
-
-```text
-Indicador mensal = somente registros pertencentes ao período solicitado
-```
-
-Um resumo de setembro de 2026 não poderá incluir automaticamente valores de agosto, julho ou meses anteriores.
-
-O período deverá ser informado de forma explícita ao serviço ou derivado de uma seleção clara da interface.
-
-## 11. Intervalos de consulta
-Consultas por período deverão utilizar limites bem definidos.
-
-Exemplo conceitual para setembro de 2026:
-
-```text
-início: 2026-09-01 00:00:00
-fim exclusivo: 2026-10-01 00:00:00
-```
-
-Preferir intervalos com fim exclusivo para reduzir erros de horário final do dia.
-
-## 12. Receita
-Uma receita deverá possuir origem compreensível e status consistente.
-
-Quando vinculada a atendimento, o relacionamento deverá ser validado.
-
-Não criar registros financeiros órfãos para atendimentos ou pacientes inexistentes quando esses vínculos forem obrigatórios no modelo.
-
-A relação entre atendimento realizado, cancelado, falta e cobrança dependerá de aprovação funcional e integração com a SPEC-004.
-
-## 13. Despesas
-Despesas deverão possuir:
-
-- valor válido;
-- data ou competência;
-- descrição ou categoria conforme o modelo existente;
-- status, se aplicável.
-
-Despesas canceladas não deverão desaparecer silenciosamente do histórico.
-
-Categorias deverão ser validadas se o sistema possuir catálogo ou enum.
-
-## 14. Pagamentos
-O ato de marcar uma cobrança como paga deverá definir, no mínimo:
-
-- status;
-- data de pagamento;
-- valor;
-- forma de pagamento, quando aplicável.
-
-A implementação deverá impedir estados contraditórios, por exemplo:
-
-```text
-status = PAGO
-data_pagamento = nula
-```
-
-caso a regra de negócio exija data de pagamento.
-
-## 15. Pagamentos parciais
-Pagamentos parciais não serão assumidos como suportados.
-
-Antes de implementar parcelamento ou pagamento parcial, deverá haver decisão funcional explícita.
-
-Se não forem suportados, o sistema deverá impedir combinações que aparentem pagamento parcial.
-
-## 16. Cancelamento
-Cancelar uma cobrança ou despesa deverá preservar rastreabilidade.
-
-O cancelamento não deverá ser implementado por exclusão física silenciosa.
-
-Campos como:
-
-- cancelado_em;
-- cancelado_por;
-- motivo;
-
-poderão ser avaliados durante o inventário.
-
-## 17. Estorno
-Estorno deve ser diferente de cancelamento.
-
-Conceitualmente:
-
-```text
-Cancelamento = cobrança deixou de ser válida antes da liquidação
-Estorno = valor previamente pago foi revertido
-```
-
-A regra final deve ser validada com a clínica.
-
-Um estorno não deverá apagar o pagamento original.
-
-## 18. Exclusão física
-Registros financeiros utilizados operacionalmente não deverão ser excluídos fisicamente por padrão.
-
-Qualquer exclusão excepcional deverá possuir autorização e regra explícitas.
-
-Histórico financeiro deve permanecer auditável.
-
-## 19. Integração com agenda
-A SPEC-004 definirá os estados do atendimento.
-
-A SPEC-005 não deverá assumir automaticamente que:
-
-- atendimento realizado gera cobrança;
-- falta gera cobrança;
-- cancelamento elimina cobrança;
-- remarcação cria nova cobrança.
-
-Essas regras precisam de decisão funcional.
-
-A implementação deverá evitar acoplamento implícito antes dessa aprovação.
-
-## 20. Indicadores
-Indicadores poderão incluir, conforme aprovação e dados disponíveis:
-
-- receitas do período;
-- despesas do período;
-- saldo do período;
-- valores pendentes;
-- valores pagos;
-- quantidade de pagamentos;
-- inadimplência;
-- distribuição por forma de pagamento;
-- distribuição por categoria de despesa.
-
-Nenhum indicador deverá misturar períodos ou status incompatíveis.
-
-## 21. Saldo
-O saldo deverá possuir fórmula explícita.
-
-Proposta:
-
-```text
-saldo = receitas consideradas no período - despesas consideradas no período
-```
-
-A definição de “receita considerada” depende da regra aprovada: paga, competência, caixa ou outra.
-
-A interface deverá deixar claro se o indicador representa:
-
-- caixa realizado;
-- competência;
-- valores previstos.
-
-## 22. Regime financeiro
-A clínica deverá decidir se os principais indicadores utilizam:
-
-- regime de caixa;
-- regime de competência;
-- ambos, em visões separadas.
-
-Nenhuma dessas opções deverá ser presumida como regra definitiva durante a implementação.
-
-## 23. Filtros
-Consultas financeiras deverão suportar filtros coerentes com o modelo existente, podendo incluir:
-
-- período;
-- status;
-- paciente;
-- profissional;
-- forma de pagamento;
-- categoria;
-- tipo de lançamento.
-
-Filtros deverão ser aplicados no backend quando influenciam regras ou volume de dados.
-
-## 24. Autorização
-A autorização deverá respeitar a SPEC-002.
-
-Matriz inicial sujeita a aprovação:
-
-| Perfil | Visualizar financeiro | Criar/alterar | Cancelar/estornar |
-|---|---|---|---|
-| Admin | Sim | Sim | Sim |
-| Recepção | Sim* | Sim* | Sim* |
-| Psicólogo | Restrito ou não | Restrito ou não | Não por padrão |
-
-`*` O nível de acesso da recepção deverá ser aprovado.
-
-Dados financeiros não deverão ficar expostos apenas porque a interface possui uma rota acessível.
-
-## 25. API
-Preservar endpoints existentes quando possível.
-
-Operações equivalentes podem incluir:
-
-```text
-GET /finance/payments
-POST /finance/payments
-PUT/PATCH /finance/payments/{id}
-
-GET /finance/expenses
-POST /finance/expenses
-PUT/PATCH /finance/expenses/{id}
-
-GET /finance/summary
-```
-
-Os contratos finais deverão respeitar o backend existente.
-
-## 26. Erros controlados
-Erros técnicos não deverão ser expostos ao usuário.
-
-Exemplo inadequado:
-
-```text
-IntegrityError
-```
-
-Exemplo esperado:
-
-```text
-O valor informado deve ser maior que zero.
-```
-
-ou:
-
-```text
-Não é possível estornar um pagamento que ainda está pendente.
-```
-
-## 27. Testes obrigatórios
-| Cenário | Resultado esperado |
-|---|---|
-| Receita com valor zero | Rejeitada |
-| Receita com valor negativo | Rejeitada |
-| Despesa com valor zero | Rejeitada |
-| Despesa com valor negativo | Rejeitada |
-| Status inválido | Rejeitado |
-| Transição inválida | Rejeitada |
-| Pagamento válido | Persistido |
-| Cancelamento | Histórico preservado |
-| Estorno válido | Histórico preservado |
-| Estorno de pendente | Rejeitado |
-| Resumo mensal | Considera apenas o período |
-| Meses diferentes | Não são somados indevidamente |
-| Filtro por status | Resultado consistente |
-| Falha na persistência | Sem registro parcial |
-| Usuário sem permissão | Rejeitado |
-
-## 28. Casos de aceitação para período
-Dado:
-
-```text
-Agosto: R$ 1.000,00
-Setembro: R$ 2.000,00
-```
-
-Ao solicitar setembro:
-
-```text
-Resultado esperado: R$ 2.000,00
-```
-
-e não:
-
-```text
-R$ 3.000,00
-```
-
-Esse caso deverá possuir teste automatizado.
-
-## 29. Casos de precisão
-Operações monetárias deverão ser testadas para evitar erros de ponto flutuante.
-
-Exemplo:
-
-```text
-0,10 + 0,20 = 0,30
-```
-
-O resultado financeiro não poderá apresentar resíduos de representação binária.
-
-## 30. Transações
-Operações que alteram múltiplos registros relacionados deverão ser atômicas.
-
-Se qualquer etapa falhar:
-
-```text
-ROLLBACK
-```
-
-Nenhum estado parcial deverá permanecer persistido.
-
-## 31. Migrações
-Qualquer mudança de tipo monetário, status ou datas deverá utilizar migração segura.
-
-Antes de migrar:
-
-- inventariar dados existentes;
-- criar backup;
-- validar conversão;
-- testar rollback;
-- garantir que registros legados não sejam silenciosamente truncados ou arredondados de forma incorreta.
-
-A SPEC-006 deverá ser considerada antes de migrações destrutivas.
-
-## 32. Interface
-A interface Electron/React deverá consumir os valores reais do backend.
-
-Não exibir:
-
-- gráficos fictícios como dados reais;
-- valores históricos com rótulo mensal;
-- status locais diferentes do backend;
-- totais calculados apenas no frontend quando a regra pertence ao domínio.
-
-Estados de loading, vazio e erro deverão ser explícitos.
-
-## 33. Gates de implementação
-1. **Inventário:** modelos, schemas, repositories, services, rotas, migrations e interfaces.
-2. **Decisões funcionais:** caixa/competência, status, cancelamento, estorno, parcial, integração com agenda.
-3. **Testes de domínio:** demonstrar as inconsistências existentes.
-4. **Precisão monetária:** definir representação única.
-5. **Validações:** valores, datas, status e relacionamentos.
-6. **Período:** corrigir consultas mensais e filtros.
-7. **Transições:** pagamentos, cancelamentos e estornos.
-8. **Transações:** rollback e consistência.
-9. **Autorização:** aplicar SPEC-002.
-10. **API:** contratos e erros.
-11. **Interface:** indicadores e filtros reais.
-12. **Regressão:** executar testes relacionados e registrar evidências.
-
-## 34. Critérios de aceitação
-- **AC-001:** valores inválidos não são persistidos.
-- **AC-002:** cálculos monetários mantêm precisão adequada.
-- **AC-003:** resumo mensal considera somente o período solicitado.
-- **AC-004:** status inválidos ou transições incoerentes são rejeitados.
-- **AC-005:** cancelamentos e estornos preservam histórico.
-- **AC-006:** filtros por período e status retornam dados consistentes.
-- **AC-007:** operações financeiras não deixam estado parcial após erro.
-- **AC-008:** usuários sem permissão não acessam operações protegidas.
-- **AC-009:** a interface não apresenta valor acumulado como mensal.
-- **AC-010:** migrações financeiras preservam dados existentes.
-
-## 35. Fora do escopo
-Esta SPEC não define:
-
-- contabilidade fiscal;
-- emissão de nota fiscal;
-- integração bancária;
-- Pix automático;
-- conciliação bancária;
-- emissão de boleto;
-- gateway de pagamento;
-- folha de pagamento;
-- integração com sistemas contábeis;
-- cobrança automática por WhatsApp;
-- regras tributárias.
-
-Esses itens deverão ser tratados em Specs próprias se forem necessários.
-
-## 36. Definition of Done
-- [ ] Domínio financeiro atual inventariado.
-- [ ] Regime de caixa/competência aprovado.
-- [ ] Representação monetária definida e testada.
-- [ ] Valores inválidos rejeitados.
-- [ ] Status e transições aprovados.
-- [ ] Datas financeiras com significado definido.
-- [ ] Resumo mensal corrigido.
-- [ ] Filtros por período testados.
-- [ ] Cancelamento preserva histórico.
-- [ ] Estorno preserva histórico.
-- [ ] Transações e rollback testados.
-- [ ] Autorização aplicada no backend.
-- [ ] API retorna erros controlados.
-- [ ] Interface usa dados reais e períodos corretos.
-- [ ] Migrações testadas com backup e rollback.
-- [ ] Testes automatizados implementados.
-- [ ] Regressão executada.
-- [ ] Nenhum dado financeiro real utilizado nos testes.
-- [ ] Documentação atualizada.
-
-## 37. Estado desta SPEC
-Esta SPEC detalha o comportamento esperado do módulo financeiro, mas não representa implementação concluída.
-
-As decisões de negócio ainda pendentes — especialmente regime de caixa/competência, pagamentos parciais, cancelamentos, estornos, cobrança de faltas e integração com a agenda — deverão ser aprovadas antes da codificação definitiva.
-
-Nenhum gate ou critério de aceitação foi declarado concluído.
+| pending | paid | liquidação integral e paid_at informado |
+| pending | canceled | cancelamento autorizado e histórico preservado |
+| paid | reversed | estorno autorizado e original preservado |
+
+Qualquer outra transição e status arbitrário são rejeitados. Não há reabertura
+implícita. Cancelamento e estorno são distintos, explícitos e auditáveis; não
+apagam ou substituem o original.
+
+Uma cobrança tem no máximo uma liquidação integral. Pagamento parcial,
+múltiplas liquidações e parcelamento são rejeitados explicitamente e exigem
+novo contrato HUMAN para suporte futuro.
+
+## 6. Despesas e categorias — D005-07
+
+Despesas usam centavos inteiros, data/competência explícita e categoria de
+catálogo simples controlado. Texto livre irrestrito não é categoria canônica,
+nem o catálogo é enum de negócio inflexível codificado.
+
+Somente papel autorizado administra o catálogo. Despesas preservam histórico;
+cancelamento é explícito e auditável. Exclusão física não integra o ciclo
+operacional normal.
+
+## 7. Agenda — D005-05
+
+A criação de cobrança permanece manual. Transições de atendimento não criam,
+cancelam ou alteram finanças; appointment = done não cria cobrança.
+
+appointment_id só é associado quando fornecido explicitamente em operação
+autorizada e íntegra. Um appointment_id = NULL permanece NULL sem esse
+fornecimento. É proibida inferência por paciente, data, valor, profissional ou
+estado. A SPEC-004 permanece ACCEPTED/DONE.
+
+## 8. Autorização e erros — D005-06
+
+O backend é a autoridade; visibilidade no frontend é apenas UX. Aplica-se
+privilégio mínimo.
+
+| Capacidade | ADMIN | RECEPTION | PSYCHOLOGIST |
+|---|---:|---:|---:|
+| Visibilidade financeira | total | operacional | não |
+| Criar cobranças | sim | sim | não |
+| Atualizar campos | autorizados | operacionais permitidos | não |
+| Registrar pagamento | sim | sim | não |
+| Cancelar conforme ciclo | sim | sim, quando permitido | não |
+| Estornar | sim | não | não |
+| Gerir despesas sensíveis | sim | não | não |
+| Gerir categorias/configuração permitida | sim | não | não |
+
+Autenticação ausente/inválida retorna 401; autenticação válida sem permissão,
+403. Validação, transição e concorrência geram erros controlados, sem expor
+exceções internas, com semântica HTTP documentada pela futura API.
+
+## 9. Concorrência, atomicidade, auditoria e no-delete
+
+- Operações mutáveis são transacionais e atômicas; falha causa rollback.
+- Concorrência não gera pagamento duplicado, transição perdida ou
+  sobrescrita silenciosa.
+- O repositório detecta conflito de modo compatível com SQLite; o conflito
+  falha controladamente e exige nova leitura, sem last-write-wins silencioso.
+- Criação, pagamento, cancelamento, estorno e administração de
+  despesas/categorias registram ator, instante e mudança relevante.
+- Registros financeiros/auditoria não são fisicamente excluídos no fluxo normal.
+
+## 10. API e interface
+
+Endpoints existentes são preservados quando compatíveis; esta SPEC não inventa
+novo desenho de API. A API usa centavos, valida papel, status, transição,
+vínculo e período no backend e distingue 401 de 403.
+
+A UI usa dados autoritativos, inicia na visão de caixa, rotula regime/período,
+não apresenta acumulado como mensal e explicita loading, vazio e erro. Dados
+de demonstração não podem parecer dados reais.
+
+## 11. Migração futura
+
+**FORWARD_ONLY / ISOLATED_CANDIDATE / FAIL_CLOSED**
+
+A migração não será executada neste freeze. Execução futura exige:
+
+1. inventário privacy-safe;
+2. backup verificado e recuperação testada;
+3. dry-run isolado;
+4. conversão exata, sem arredondamento/truncamento;
+5. preservação de IDs e FKs;
+6. preservação de appointment_id = NULL;
+7. nenhuma inferência de competência, pagamento ou atendimento;
+8. ambiguidades REVIEW/BLOCK;
+9. integrity_check e foreign_key_check;
+10. reconciliação de contagens, IDs, vínculos e totais em centavos;
+11. teste de recovery;
+12. manifesto/Evidence sem PII, dados clínicos, credenciais ou valores
+    identificáveis;
+13. gate HUMAN separado para promoção.
+
+Generation 8/canonical não pode ser mutada. Falha interrompe o candidato sem
+promoção. Recovery preserva fonte/backup e descarta ou substitui somente o
+candidato isolado mediante autorização.
+
+## 12. Critérios de aceitação congelados
+
+- **AC-001 — Valor:** apenas positivos em INTEGER CENTS persistem; zero,
+  negativos e float canônico são rejeitados.
+- **AC-002 — Precisão/legado:** cálculo exato; conversão sem
+  arredondamento/truncamento; ambiguidades REVIEW/BLOCK fail-closed.
+- **AC-003 — Regimes/período:** caixa usa paid_at, competência usa campo
+  explícito, visões separadas e consultas [start,end).
+- **AC-004 — Ciclo:** apenas estados/transições autorizados; overdue derivado.
+- **AC-005 — Histórico:** cancelamento, estorno e cancelamento de despesa
+  preservam original/trilha, sem negativos ou delete normal.
+- **AC-006 — Liquidação:** parcial, múltipla liquidação e parcela rejeitados.
+- **AC-007 — Agenda:** transições não alteram finanças; vínculo explícito e
+  appointment_id = NULL preservado.
+- **AC-008 — Autorização/erros:** matriz aplicada no backend, com 401/403.
+- **AC-009 — Despesas/categorias:** catálogo controlado, administração
+  restrita e histórico preservado.
+- **AC-010 — Atomicidade/concorrência:** sem estado parcial, duplicado ou
+  sobrescrito.
+- **AC-011 — Migração/recovery:** candidato preserva IDs/FKs/nulls, passa
+  checks/reconciliação/recovery e exige promoção HUMAN.
+- **AC-012 — Interface/privacidade:** UI rotula regime/período e toda Evidence
+  é privacy-safe.
+
+Nenhum AC está declarado implementado ou aprovado por evidência nesta fase.
+
+## 13. Rastreabilidade
+
+| Decisão | Requisito | AC | Área planejada | Validação/Evidence planejada |
+|---|---|---|---|---|
+| D005-01 | regimes separados; caixa inicial; [start,end) | 003, 012 | service/repository/API/UI | fronteiras e setembro/outubro; captura sem PII |
+| D005-02 | INTEGER CENTS; conversão exata/fail-closed | 001, 002, 011 | model/schema/migration/API/UI | precisão e dry-run privacy-safe |
+| D005-03 | estados/transições; overdue; histórico | 004, 005, 010 | domain/service/repository/audit | matriz, relógio, rollback/trilha |
+| D005-04 | sem parcial/múltipla liquidação/parcela | 006 | schema/service/API | testes negativos |
+| D005-05 | faturamento manual; vínculo explícito | 007, 011 | service/API/FK | não efeito da agenda e NULL |
+| D005-06 | menor privilégio; backend; 401/403 | 008 | API/auth/UI | matriz por endpoint/papel |
+| D005-07 | catálogo controlado; despesa sem delete | 005, 009 | model/repository/service/API/UI | catálogo autorizado e histórico |
+
+## 14. DAG de execução congelado
+
+Cada unidade depende de autorização futura.
+
+### E001 — Contract Freeze
+- **INPUTS:** D005-01..07, SPECs herdadas, documentos vigentes.
+- **OUTPUTS:** contrato, ACs, rastreabilidade e DAG.
+- **DEPENDENCIES:** decisões HUMAN.
+- **AUTHORITY:** documentação somente.
+- **VALIDATION:** contradições, escopo e cobertura.
+- **EVIDENCE:** diff/checklist privacy-safe.
+- **ROLLBACK/RECOVERY BOUNDARY:** documentação não promovida.
+- **STOP CONDITIONS:** decisão ausente, contradição ou mutação de produto.
+
+### E002 — Red Harness / Fixtures
+- **INPUTS:** AC-001..012 e inventário.
+- **OUTPUTS:** testes red e fixtures sintéticas.
+- **DEPENDENCIES:** E001 e autorização.
+- **AUTHORITY:** testes sem mudar contrato.
+- **VALIDATION:** cada AC falha pela causa esperada.
+- **EVIDENCE:** resultados red sanitizados.
+- **ROLLBACK/RECOVERY BOUNDARY:** harness novo.
+- **STOP CONDITIONS:** dado real, não determinismo ou lacuna.
+
+### E003 — Monetary Model + Schema
+- **INPUTS:** AC-001/002 e schema.
+- **OUTPUTS:** modelo candidato em centavos, datas/status.
+- **DEPENDENCIES:** E002.
+- **AUTHORITY:** candidato isolado.
+- **VALIDATION:** precisão, constraints, compatibilidade.
+- **EVIDENCE:** testes/diff sanitizado.
+- **ROLLBACK/RECOVERY BOUNDARY:** descartar candidato.
+- **STOP CONDITIONS:** perda, ambiguidade ou impacto na Generation 8.
+
+### E004 — Forward-only Migration
+- **INPUTS:** E003, inventário e backup.
+- **OUTPUTS:** candidato, manifesto e reconciliação.
+- **DEPENDENCIES:** E003 e autorização HUMAN específica.
+- **AUTHORITY:** forward-only/isolated/fail-closed.
+- **VALIDATION:** dry-run, checks, exatidão, IDs/FKs/nulls/recovery.
+- **EVIDENCE:** manifesto/checks sanitizados.
+- **ROLLBACK/RECOVERY BOUNDARY:** descartar candidato; preservar fonte/backup.
+- **STOP CONDITIONS:** REVIEW/BLOCK, falha ou falta de gate.
+
+### E005 — Domain / Services
+- **INPUTS:** contrato e modelo candidato.
+- **OUTPUTS:** regimes, ciclo, despesas, vínculos.
+- **DEPENDENCIES:** E003; E004 quando necessário.
+- **AUTHORITY:** D005 sem expansão.
+- **VALIDATION:** AC-003..009.
+- **EVIDENCE:** suíte sanitizada.
+- **ROLLBACK/RECOVERY BOUNDARY:** transação/módulo candidato.
+- **STOP CONDITIONS:** inferência proibida ou nova decisão.
+
+### E006 — Repository / Concurrency
+- **INPUTS:** E003/E005 e SQLite.
+- **OUTPUTS:** atomicidade e conflitos detectados.
+- **DEPENDENCIES:** E005.
+- **AUTHORITY:** sem last-write-wins silencioso.
+- **VALIDATION:** corrida, duplicidade e rollback.
+- **EVIDENCE:** testes/logs sanitizados.
+- **ROLLBACK/RECOVERY BOUNDARY:** transação/candidato.
+- **STOP CONDITIONS:** parcial, duplicado ou conflito oculto.
+
+### E007 — API / Authorization / Errors
+- **INPUTS:** E005/E006 e SPEC-002.
+- **OUTPUTS:** API, papéis, erros controlados.
+- **DEPENDENCIES:** E006.
+- **AUTHORITY:** backend.
+- **VALIDATION:** endpoints, 401/403, conflito/validação.
+- **EVIDENCE:** integração sem tokens/PII.
+- **ROLLBACK/RECOVERY BOUNDARY:** rotas candidatas.
+- **STOP CONDITIONS:** bypass ou erro interno exposto.
+
+### E008 — Electron/React
+- **INPUTS:** API e apresentação.
+- **OUTPUTS:** caixa inicial, rótulos, estados UX.
+- **DEPENDENCIES:** E007.
+- **AUTHORITY:** UX sem autoridade local.
+- **VALIDATION:** UI/API e totais corretos.
+- **EVIDENCE:** build/testes/capturas sintéticas.
+- **ROLLBACK/RECOVERY BOUNDARY:** frontend candidato.
+- **STOP CONDITIONS:** fallback como real ou regra apenas na UI.
+
+### E009 — Legacy Authority Isolation
+- **INPUTS:** fluxos inventariados.
+- **OUTPUTS:** legado não atua como segunda autoridade.
+- **DEPENDENCIES:** E007/E008 e SPEC-008.
+- **AUTHORITY:** isolamento; licenciamento preservado.
+- **VALIDATION:** fonte única/regressão.
+- **EVIDENCE:** mapa/testes sanitizados.
+- **ROLLBACK/RECOVERY BOUNDARY:** roteamento sem tocar dados.
+- **STOP CONDITIONS:** duas autoridades ou divergência.
+
+### E010 — Regression / Privacy / Traceability
+- **INPUTS:** E002..E009 e matriz.
+- **OUTPUTS:** regressão e cobertura completa.
+- **DEPENDENCIES:** E009.
+- **AUTHORITY:** validação, sem autocertificação independente.
+- **VALIDATION:** suíte, privacidade, rastreabilidade 100%.
+- **EVIDENCE:** relatório sanitizado.
+- **ROLLBACK/RECOVERY BOUNDARY:** invalidar Evidence defeituosa.
+- **STOP CONDITIONS:** regressão, vazamento ou lacuna.
+
+### E011 — Operational Candidate
+- **INPUTS:** E004/E010 e backup/recovery.
+- **OUTPUTS:** candidato não promovido.
+- **DEPENDENCIES:** E010 e gates HUMAN.
+- **AUTHORITY:** preparar, não promover.
+- **VALIDATION:** smoke, integridade, reconciliação/recovery.
+- **EVIDENCE:** manifesto/checkpoint sanitizado.
+- **ROLLBACK/RECOVERY BOUNDARY:** descartar; preservar Generation 8.
+- **STOP CONDITIONS:** divergência, Evidence incompleta ou promoção sem gate.
+
+### E012 — Independent Quality Review
+- **INPUTS:** candidato e Evidence E001..E011.
+- **OUTPUTS:** parecer independente e findings.
+- **DEPENDENCIES:** E011.
+- **AUTHORITY:** revisão; promoção permanece HUMAN.
+- **VALIDATION:** reexecução e todos os ACs.
+- **EVIDENCE:** relatório independente privacy-safe.
+- **ROLLBACK/RECOVERY BOUNDARY:** reprovar/invalidate candidato.
+- **STOP CONDITIONS:** finding, Evidence insuficiente ou falta de independência.
+
+## 15. Estado e gates
+
+Freeze concluído com 7/7 decisões normativas/rastreáveis, AC-001..012 e DAG,
+sem mutação de produto ou dados. Implementação DONE exige E002–E012, Evidence,
+revisão independente e aceitação HUMAN.
+
+- D005-01..D005-07: HUMAN APPROVED / RECORDED.
+- Contrato: FROZEN.
+- Implementação: NOT AUTHORIZED / NOT STARTED.
+- MIGRATION: NOT AUTHORIZED / NOT EXECUTED.
+- Generation 8/canonical: preservada.
+- Próximo gate: READY_FOR_SPEC005_IMPLEMENTATION_AUTHORIZATION.

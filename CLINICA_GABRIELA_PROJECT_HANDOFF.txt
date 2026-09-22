@@ -3886,3 +3886,114 @@ POST_PUSH_HANDOFF_COMMIT_HUMAN_GATE
 NEXT_READY:
 SPEC-005 PRE-EXECUTION / CONTRACT RECOVERY, pending HUMAN authorization
 for the documentary handoff commit.
+
+
+======================================================================
+78. SPEC-005 CONTRACT RECOVERY / CONTRACT FREEZE — 2026-09-22
+======================================================================
+
+AUTHORITY: DOCUMENTATION ONLY
+
+CONTEXT_REVALIDATION:
+
+- repository: https://github.com/paul-92/clinica-Gabriela.git;
+- branch: feature/spec-008-architecture-foundation;
+- HEAD/upstream: 9dfd4174d3ca0aae53ea825a10e13cb683ab4ac5;
+- sync: 0/0;
+- SPEC-004 remains ACCEPTED/DONE and was not reopened;
+- Generation 8/canonical remains unchanged;
+- pre-existing worktree state was preserved.
+
+HUMAN_DECISIONS_RECORDED: 7/7
+
+- D005-01: APPROVED/RECORDED — separate cash/accrual views, initial cash
+  view and explicit [start,end) periods;
+- D005-02: APPROVED/RECORDED — INTEGER CENTS and exact fail-closed legacy
+  conversion without silent rounding/truncation;
+- D005-03: APPROVED/RECORDED — pending/paid/canceled/reversed, derived overdue
+  and history-preserving explicit transitions;
+- D005-04: APPROVED/RECORDED — partial, multiple settlements and installments
+  rejected as out of scope;
+- D005-05: APPROVED/RECORDED — manual billing and explicit appointment links;
+- D005-06: APPROVED/RECORDED — backend ADMIN/RECEPTION/PSYCHOLOGIST matrix
+  with least privilege and 401/403;
+- D005-07: APPROVED/RECORDED — controlled category catalog and
+  history-preserving expense lifecycle.
+
+CONTRACT_FREEZE: PASS
+
+The canonical SPEC-005 freezes monetary, period/regime, lifecycle, category,
+appointment, authorization, concurrency, audit, no-delete, API error,
+migration, recovery and privacy-safe Evidence contracts. AC-001–AC-012 and
+the traceability table cover all seven decisions.
+
+MIGRATION_CONTRACT:
+FORWARD_ONLY / ISOLATED_CANDIDATE / FAIL_CLOSED
+
+MIGRATION_EXECUTED: NO
+GENERATION_MUTATED: NO
+
+Migration requires privacy-safe inventory, verified backup, dry-run, exact
+conversion, preserved IDs/FKs/appointment NULLs, no inference, database
+checks, reconciliation, recovery test, manifest/Evidence and separate HUMAN
+promotion gate.
+
+EXECUTION_DAG_STATUS: FROZEN
+
+E001 Contract Freeze -> E002 Red Harness / Fixtures -> E003 Monetary Model +
+Schema -> E004 Forward-only Migration -> E005 Domain / Services -> E006
+Repository / Concurrency -> E007 API / Authorization / Errors -> E008
+Electron/React -> E009 Legacy Authority Isolation -> E010 Regression / Privacy
+/ Traceability -> E011 Operational Candidate -> E012 Independent Quality
+Review.
+
+Each unit has inputs, outputs, dependencies, authority, validation, Evidence,
+rollback/recovery boundary and stop conditions in canonical SPEC-005.
+
+FILES_MODIFIED:
+
+- docs/specs/SPEC-005-financeiro.md;
+- docs/specs/README.md;
+- CLINICA_GABRIELA_PROJECT_HANDOFF.txt.
+
+PRODUCT_CODE_MODIFIED: NO
+DATABASE_MUTATED: NO
+HANDOFF_UPDATED: YES
+SANITIZATION_GUARD: PASS
+
+VALIDATION_RESULT: PASS
+
+- no fiscal/accounting/banking expansion;
+- no partial-payment/installment domain;
+- no automatic agenda billing;
+- psychologist retains no financial access;
+- money is INTEGER CENTS and overdue is derived;
+- migration remains unexecuted and Generation 8 untouched;
+- no product code, database, pointer or manifest changed;
+- checkpoint contains no patient data, credentials or local sanitized metadata.
+
+PREEXISTING_STATE_PRESERVED:
+
+- .context/COMMANDS.md;
+- .baseline-staging/;
+- .forensics/;
+- .homologation/;
+- .sanitize-rewrite-worktree/;
+- inaccessible SPEC-004 temporary test directories reported by Git/rg.
+
+UNRESOLVED_CONTRACT_AMBIGUITIES:
+NONE WITHIN D005-01..D005-07 AUTHORITY
+
+NEW_HUMAN_DECISIONS_REQUIRED:
+NONE FOR CONTRACT FREEZE
+
+GIT_MUTATIONS: NO
+MUTATIONS_OUTSIDE_AUTHORIZED_SCOPE: NONE
+
+No staging, commit, push, merge, tag or release was performed.
+
+STOP_CONDITION:
+SPEC005_CONTRACT_FREEZE_COMPLETE
+
+NEXT_READY:
+READY_FOR_SPEC005_IMPLEMENTATION_AUTHORIZATION
