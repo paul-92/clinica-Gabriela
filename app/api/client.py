@@ -55,6 +55,14 @@ class DesktopSession:
     def __init__(self) -> None:
         self._token: str | None = None
         self._identity: DesktopIdentity | None = None
+        self._api_client = None
+
+    @property
+    def api_client(self):
+        return self._api_client
+
+    def bind_api_client(self, api_client) -> None:
+        self._api_client = api_client
 
     @property
     def identity(self) -> DesktopIdentity | None:
@@ -99,6 +107,7 @@ class DesktopApiClient:
         self.timeout = timeout
         self._opener = opener
         self.session = session or DesktopSession()
+        self.session.bind_api_client(self)
 
     def login(self, username: str, password: str) -> DesktopIdentity:
         self.session.clear()

@@ -1,12 +1,11 @@
-from app.controllers.finance_controller import FinanceController
+from app.controllers.finance_controller import FinanceController, format_cents
 
 
-def build_monthly_finance_report():
-    summary = FinanceController().summary()
+def build_monthly_finance_report(api_client):
+    summary = FinanceController(api_client).summary()
     return (
-        "Relatorio financeiro mensal\n"
-        f"Recebido: R$ {summary['paid']:.2f}\n"
-        f"Pendente: R$ {summary['pending']:.2f}\n"
-        f"Despesas: R$ {summary['expenses']:.2f}\n"
-        f"Saldo: R$ {summary['balance']:.2f}\n"
+        f"Relatorio financeiro - caixa [{summary['start']}, {summary['end']})\n"
+        f"Recebido em caixa: {format_cents(summary['income_cents'])}\n"
+        f"Despesas de caixa: {format_cents(summary['expense_cents'])}\n"
+        f"Saldo de caixa: {format_cents(summary['balance_cents'])}\n"
     )

@@ -48,10 +48,12 @@ EXPECTED_TABLES = frozenset(
         "clinical_record_audit_events",
         "payments",
         "expenses",
+        "expense_categories",
+        "financial_events",
         "clinic_settings",
     }
 )
-CANONICAL_SCHEMA_VERSION = "backend-models-v5-spec004-remediation"
+CANONICAL_SCHEMA_VERSION = "backend-models-v6-spec005-finance"
 
 
 class CanonicalDatabaseError(Exception):

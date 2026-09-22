@@ -19,7 +19,6 @@ def init_db():
     from app.models import (  # noqa: F401
         appointment,
         clinical_record,
-        finance,
         patient,
         psychologist,
         settings,

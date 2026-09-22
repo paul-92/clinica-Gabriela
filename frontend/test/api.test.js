@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { ApiError, apiRequest, authenticate, buildAppointmentPatch } from "../src/api.js";
+import { ApiError, apiRequest, authenticate, buildAppointmentPatch, canAccessFinancialUi, formatMoneyFromCents, parseMoneyToCents } from "../src/api.js";
 import { clearFrontendSession } from "../src/session.js";
 
 function jsonResponse(body, status = 200) {
@@ -113,4 +113,24 @@ test("logout descarta token e limpa dados da sessao", () => {
   assert.deepEqual(state.records, []);
   assert.deepEqual(state.patients, []);
   assert.equal(state.loading, false);
+});
+
+test("dinheiro financeiro converte texto para centavos sem deriva de float", () => {
+  assert.equal(parseMoneyToCents("0,10"), 10);
+  assert.equal(parseMoneyToCents("0.20"), 20);
+  assert.equal(parseMoneyToCents("150,37"), 15037);
+  assert.equal(formatMoneyFromCents(10 + 20), "R$ 0,30");
+  assert.equal(formatMoneyFromCents(15037), "R$ 150,37");
+});
+
+test("dinheiro financeiro rejeita arredondamento, zero e entradas ambiguas", () => {
+  for (const invalid of ["0", "-1,00", "1,001", "abc", ""] ) {
+    assert.throws(() => parseMoneyToCents(invalid), TypeError);
+  }
+});
+
+test("interface financeira fica indisponivel para psicologo", () => {
+  assert.equal(canAccessFinancialUi("admin"), true);
+  assert.equal(canAccessFinancialUi("reception"), true);
+  assert.equal(canAccessFinancialUi("psychologist"), false);
 });

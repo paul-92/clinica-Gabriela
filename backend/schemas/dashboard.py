@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from backend.schemas.common import ORMBase
 
@@ -15,8 +15,11 @@ class DashboardSummary(ORMBase):
     active_patients: int
     active_psychologists: int
     appointments_today: int
-    pending_payments: float
-    paid_payments: float
-    expenses: float
-    balance: float
+    finance_regime: str
+    finance_start: date
+    finance_end: date
+    receivable_cents: int
+    received_cents: int
+    expense_cents: int
+    balance_cents: int
     recent_appointments: list[DashboardAppointment]

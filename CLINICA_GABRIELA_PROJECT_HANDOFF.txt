@@ -3997,3 +3997,194 @@ SPEC005_CONTRACT_FREEZE_COMPLETE
 
 NEXT_READY:
 READY_FOR_SPEC005_IMPLEMENTATION_AUTHORIZATION
+
+
+======================================================================
+79. SPEC-005 E002-E010 IMPLEMENTATION CHECKPOINT — 2026-09-22
+======================================================================
+
+AUTHORITY:
+
+HUMAN authorized E002 through E010. E011, E012, operational migration,
+promotion, cutover and Git publication remained outside authority.
+
+CONTEXT_RECOVERY:
+
+- repository identity: PASS;
+- branch: feature/spec-008-architecture-foundation;
+- baseline HEAD: a2ca3f9df0728bb6e4b08b43a0f3c8bad295a767;
+- upstream sync at start: 0/0;
+- SPEC-005: CONTRACT FROZEN;
+- D005-01..D005-07: preserved;
+- AC-001..AC-012: covered.
+
+EXECUTION_STATUS:
+
+- E002 Red Harness / Fixtures: PASS;
+- E003 Monetary Model / Schema: PASS;
+- E004 Forward-only Migration: PASS_TECHNICAL;
+- E005 Domain / Services: PASS;
+- E006 Repository / Concurrency: PASS;
+- E007 API / Authorization / Errors: PASS;
+- E008 Electron / React: PASS;
+- E009 Legacy Authority Isolation: PASS;
+- E010 Regression / Privacy / Traceability: PASS.
+
+IMPLEMENTED_STATE:
+
+- canonical money is INTEGER CENTS with positive DB/input constraints;
+- cash and accrual use distinct explicit fields and [start,end) periods;
+- pending/paid/canceled/reversed lifecycle is explicit; overdue is derived;
+- cancellations, reversals and expense cancellations preserve records and
+  append-only audit events;
+- partial, multiple settlement and installment inputs are rejected;
+- Agenda does not create, infer, associate or mutate finance;
+- admin/reception/psychologist matrix is enforced by backend;
+- expenses use a controlled category catalog and admin-only mutation;
+- optimistic versioning, ETag/If-Match and stale 412 prevent silent lost writes;
+- Electron uses deterministic cent conversion, labels period/regime and has
+  loading/empty/error states without financial demo fallback;
+- Tkinter reads financial summary through the canonical API and its activation
+  path no longer imports or seeds the legacy financial domain.
+
+EVIDENCE:
+
+- docs/audit/spec005-20260922-e002-e010-implementation-report.md;
+- meaningful RED checkpoint: 4 failed / 1 passed for expected legacy gaps;
+- E003 schema gate: 5 passed;
+- E004 isolated migration: 5 passed;
+- integrated E003-E006 checkpoint: 17 passed;
+- API authorization/error matrix: 6 passed;
+- SPEC-005 targeted final: 27 passed;
+- inherited selected regression: 74 passed;
+- full Python suite: 264 passed;
+- frontend tests: 10 passed;
+- frontend build: PASS, 1,582 modules transformed;
+- compileall, diff check, privacy/secret scan and float/delete scan: PASS.
+
+REPAIR_LOOPS:
+
+1. pytest temporary ACL failures inside sandbox were re-run in a short,
+   isolated temporary root outside the sandbox;
+2. Vite/esbuild spawn EPERM was re-run outside the sandbox;
+3. one inherited Tkinter login compatibility failure (262 pass / 1 fail)
+   was repaired by binding the API client to the existing session contract;
+   selective revalidation passed 14 tests and final full suite passed 263.
+4. final E009 hardening disabled direct legacy service/repository use;
+   E009 passed 4 tests, targeted SPEC-005 passed 27 and final full suite
+   passed 264.
+
+OPERATIONAL_SENTINEL:
+
+- Generation: 8/canonical;
+- pointer SHA-256: d83a0654ce964f93c3191bb4a9bbe24fa78c55087666e6831f04f60630a1c50a;
+- manifest SHA-256: cd806a300f182c5d0f70cb6a6e4b2b0b9a574ff2f4cf02d7271cfcdaec5ef519;
+- database SHA-256: 1edb9c5c77a8eb56da6cb5254e2bf795aa56a1d8c94dbbc855d0b70d40f404c8;
+- integrity_check: ok;
+- foreign key violations: 0;
+- WAL/SHM/journal: absent;
+- Generation, pointer and manifest mutated: NO.
+
+LEGACY_FINANCE_INVENTORY:
+
+Read-only/privacy-safe inventory found 3 legacy payments and 3 legacy
+expenses. All stored monetary values are exactly representable in cents.
+All 6 records lack explicit competence fields and are therefore classified
+REVIEW/BLOCK for any future operational candidate. No competence, paid state
+or appointment association was inferred. This does not invalidate E004
+technical implementation; it prevents operational migration until a HUMAN
+review gate resolves the record-level competence data.
+
+FILES_CHANGED_CLASSIFICATION:
+
+- product: backend financial model/schema/repository/service/API/dashboard,
+  frontend financial UX/API utilities and Tkinter authority isolation;
+- migration: backend/migration/spec005.py and candidate CLI;
+- tests: five SPEC-005 Python suites plus frontend cases;
+- docs/evidence: API, frontend, architecture, canonical SPEC lifecycle,
+  commands, audit report and this handoff;
+- pre-existing unrelated worktree content remained preserved.
+
+GIT_AND_OPERATIONAL_CONTROLS:
+
+- staging/commit/push/merge/tag/release: NO;
+- migration against Generation 8: NO;
+- candidate promotion/cutover: NO;
+- pointer/manifest mutation: NO;
+- E011/E012: NOT EXECUTED;
+- independent verification: NOT CLAIMED.
+
+STOP_CONDITION:
+
+SPEC005_E002_E010_IMPLEMENTATION_COMPLETE
+
+NEXT_READY:
+
+READY_FOR_SPEC005_OPERATIONAL_CANDIDATE_HUMAN_GATE
+
+The next gate must resolve the privacy-safe REVIEW/BLOCK competence inventory
+before any E011 candidate operation. Do not infer values and do not mutate
+Generation 8.
+
+80. SPEC-005 PRE-COMMIT FINDINGS REMEDIATION — 2026-09-22
+======================================================================
+
+CONTEXT:
+
+- branch/HEAD/upstream: feature/spec-008-architecture-foundation /
+  a2ca3f9df0728bb6e4b08b43a0f3c8bad295a767 /
+  origin/feature/spec-008-architecture-foundation, sync 0/0;
+- initial pre-commit audit: FAIL, two material findings;
+- Evidence classification: VERIFIED_BY_IMPLEMENTATION_EXECUTOR;
+- E011/E012, staging, commit, push and operational migration: not executed.
+
+REMEDIATION:
+
+- F001 REMEDIATED/PASS: backend/migration/spec005.py now rejects source,
+  candidate and recovery paths that canonically resolve within the default or
+  configured operational runtime, plus pointer-resolved operational databases;
+  rejection occurs before migration mutation and covers normalized aliases;
+- F002 REMEDIATED/PASS: backend/database/seed.py now creates category,
+  payment and expense through the canonical FinanceService with an inactive,
+  explicitly synthetic seed actor, authorship and one creation event per fact;
+- architecture documentation and the existing implementation Evidence were
+  reconciled without erasing the initial audit history.
+- final pre-commit re-audit: PASS; exact future package contains 38 SPEC-005
+  candidates (29 tracked modifications plus 9 new files), with no staging;
+  preexisting forensic/homologation/baseline/sanitization worktrees remain
+  excluded.
+
+SELECTIVE_REVALIDATION:
+
+- F001 negative operational-path gate: 5 passed;
+- F002 seed traceability gate: 1 passed;
+- complete migration suite: 10 passed;
+- affected domain/repository/seed: 8 passed;
+- complete targeted SPEC-005 suite: 33 passed;
+- affected bootstrap/seed/migration regression: 92 passed;
+- prior full-suite Evidence of 264 passed remains valid and was not rerun:
+  changes are confined to the isolated SPEC-005 migrator and canonical seed
+  orchestration, and no targeted or affected regression exposed broader risk.
+
+OPERATIONAL_SENTINEL:
+
+- Generation: 8/canonical;
+- pointer SHA-256: d83a0654ce964f93c3191bb4a9bbe24fa78c55087666e6831f04f60630a1c50a;
+- manifest SHA-256: cd806a300f182c5d0f70cb6a6e4b2b0b9a574ff2f4cf02d7271cfcdaec5ef519;
+- database SHA-256: 1edb9c5c77a8eb56da6cb5254e2bf795aa56a1d8c94dbbc855d0b70d40f404c8;
+- integrity_check: ok; FK violations: 0; sidecars: 0;
+- Generation/pointer/operational manifest mutated: NO.
+
+LEGACY_BOUNDARY:
+
+- missing competence facts: 6;
+- classification: REVIEW/BLOCK;
+- inference or data mutation: NO.
+
+NEXT_READY:
+
+READY_FOR_SPEC005_E002_E010_COMMIT_HUMAN_GATE
+
+STOP_CONDITION:
+
+SPEC005_E002_E010_REMEDIATION_COMPLETE

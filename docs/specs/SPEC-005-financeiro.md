@@ -1,15 +1,17 @@
 # SPEC-005 — Financeiro
 
-**Status:** CONTRACT FROZEN — implementação não autorizada
+**Status:** CONTRACT FROZEN — E002–E010 implementados/verificados; E011–E012 não executados
 **Prioridade:** P1  
 **Dependências preservadas:** SPEC-002, SPEC-003, SPEC-004 e SPEC-008
 **Autoridade:** decisões HUMAN D005-01 a D005-07
-**Implementação/migração:** não iniciadas nem autorizadas
+**Implementação:** E002–E010 autorizados pelo HUMAN em 22/09/2026 e verificados
+**Migração operacional:** não autorizada / não executada
 
 ## 1. Objetivo e autoridade
 
-Esta SPEC congela o contrato funcional e técnico do módulo financeiro. Não
-autoriza alteração de código, schema, banco, ponteiro, manifesto ou Generation.
+Esta SPEC congela o contrato funcional e técnico do módulo financeiro. O freeze,
+isoladamente, não autoriza alteração de código, schema, banco, ponteiro, manifesto
+ou Generation. A autorização HUMAN posterior ficou limitada a E002–E010.
 D005-01 a D005-07 são normativas e não podem ser reinterpretadas ou ampliadas.
 
 Continuam herdados, sem reabertura: autenticação/autorização da SPEC-002;
@@ -331,13 +333,16 @@ Cada unidade depende de autorização futura.
 
 ## 15. Estado e gates
 
-Freeze concluído com 7/7 decisões normativas/rastreáveis, AC-001..012 e DAG,
-sem mutação de produto ou dados. Implementação DONE exige E002–E012, Evidence,
-revisão independente e aceitação HUMAN.
+Freeze concluído com 7/7 decisões normativas/rastreáveis, AC-001..012 e DAG.
+E002–E010 foram implementados e verificados sem migração operacional ou mutação da
+Generation 8. A conclusão integral da SPEC ainda exige E011, E012, revisão
+independente e aceitação HUMAN.
 
 - D005-01..D005-07: HUMAN APPROVED / RECORDED.
 - Contrato: FROZEN.
-- Implementação: NOT AUTHORIZED / NOT STARTED.
-- MIGRATION: NOT AUTHORIZED / NOT EXECUTED.
+- Implementação E002–E010: VERIFIED.
+- E011/E012: NOT AUTHORIZED / NOT EXECUTED.
+- MIGRATION operacional: NOT AUTHORIZED / NOT EXECUTED.
 - Generation 8/canonical: preservada.
-- Próximo gate: READY_FOR_SPEC005_IMPLEMENTATION_AUTHORIZATION.
+- Próximo gate: READY_FOR_SPEC005_OPERATIONAL_CANDIDATE_HUMAN_GATE, com REVIEW/BLOCK
+  privacy-safe para os registros legados sem competência explícita.

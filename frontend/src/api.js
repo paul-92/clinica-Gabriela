@@ -8,6 +8,34 @@ export class ApiError extends Error {
   }
 }
 
+export function parseMoneyToCents(value) {
+  const normalized = String(value).trim().replace(/\s/g, "").replace("R$", "").replace(",", ".");
+  if (!/^\d+(?:\.\d{1,2})?$/.test(normalized)) {
+    throw new TypeError("Informe um valor positivo com no maximo duas casas decimais.");
+  }
+  const [whole, fraction = ""] = normalized.split(".");
+  const cents = BigInt(whole) * 100n + BigInt(fraction.padEnd(2, "0"));
+  if (cents <= 0n || cents > BigInt(Number.MAX_SAFE_INTEGER)) {
+    throw new TypeError("Valor monetario fora do intervalo suportado.");
+  }
+  return Number(cents);
+}
+
+export function formatMoneyFromCents(value) {
+  if (!Number.isSafeInteger(value)) {
+    return "Valor invalido";
+  }
+  const negative = value < 0;
+  const absolute = BigInt(negative ? -value : value);
+  const whole = (absolute / 100n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  const fraction = (absolute % 100n).toString().padStart(2, "0");
+  return `${negative ? "-" : ""}R$ ${whole},${fraction}`;
+}
+
+export function canAccessFinancialUi(role) {
+  return role === "admin" || role === "reception";
+}
+
 export function buildAppointmentPatch(appointment, form) {
   const changes = {};
   const scheduledAt = `${form.scheduled_date}T${form.scheduled_time}:00`;

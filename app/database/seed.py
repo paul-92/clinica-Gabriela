@@ -2,7 +2,6 @@ from datetime import date, datetime, timedelta
 
 from app.database.session import get_session
 from app.models.appointment import Appointment, AppointmentStatus
-from app.models.finance import Expense, Payment, PaymentStatus
 from app.models.patient import Patient
 from app.models.psychologist import Psychologist
 from app.models.settings import ClinicSettings
@@ -59,21 +58,6 @@ def seed_database():
             status=AppointmentStatus.SCHEDULED.value,
             notes="Primeira sessao de exemplo.",
         )
-        payment = Payment(
-            patient_id=patient.id,
-            appointment_id=None,
-            due_date=date.today(),
-            amount=180.00,
-            status=PaymentStatus.PENDING.value,
-            payment_method="Pix",
-            description="Sessao inicial",
-        )
-        expense = Expense(
-            description="Aluguel da sala",
-            amount=1200.00,
-            expense_date=date.today(),
-            category="Estrutura",
-        )
         settings = ClinicSettings(
             clinic_name="Marilia Gabriela Gaspar | Psicologa",
             phone="(11) 3000-0000",
@@ -81,5 +65,5 @@ def seed_database():
             address="Atendimento online e presencial",
             default_session_value=180.00,
         )
-        session.add_all([appointment, payment, expense, settings])
+        session.add_all([appointment, settings])
         session.commit()

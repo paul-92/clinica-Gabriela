@@ -2,11 +2,11 @@ from datetime import date, datetime, timedelta
 
 from backend.database.session import SessionLocal
 from backend.models.appointment import Appointment, AppointmentStatus
-from backend.models.finance import Expense, Payment, PaymentStatus
 from backend.models.patient import Patient
 from backend.models.psychologist import Psychologist
 from backend.models.settings import ClinicSettings
 from backend.models.user import User, UserRole
+from backend.services.finance_service import FinanceService
 from backend.utils.security import hash_password
 from app.utils.initial_admin import get_initial_admin_config
 
@@ -28,6 +28,14 @@ def seed_database(session_factory=None):
         if session.query(Patient).first():
             session.commit()
             return
+        seed_actor = User(
+            name="Ator Sintetico do Seed",
+            username="__seed_finance_actor__",
+            password_hash="!disabled-seed-account!",
+            role=UserRole.ADMIN.value,
+            active=False,
+            password_reset_required=True,
+        )
         psychologist = Psychologist(
             full_name="Marilia Gabriela Gaspar",
             crp="11/20433",
@@ -51,7 +59,7 @@ def seed_database(session_factory=None):
             notes="Paciente de exemplo para demonstracao.",
             active=True,
         )
-        session.add_all([psychologist, patient])
+        session.add_all([seed_actor, psychologist, patient])
         session.flush()
 
         appointment = Appointment(
@@ -62,20 +70,6 @@ def seed_database(session_factory=None):
             status=AppointmentStatus.SCHEDULED.value,
             notes="Primeira sessao de exemplo.",
         )
-        payment = Payment(
-            patient_id=patient.id,
-            due_date=date.today(),
-            amount=180.0,
-            status=PaymentStatus.PENDING.value,
-            payment_method="Pix",
-            description="Sessao inicial",
-        )
-        expense = Expense(
-            description="Aluguel da sala",
-            amount=1200.0,
-            expense_date=date.today(),
-            category="Estrutura",
-        )
         settings = ClinicSettings(
             clinic_name="Marilia Gabriela Gaspar | Psicologa",
             phone="(11) 3000-0000",
@@ -83,5 +77,29 @@ def seed_database(session_factory=None):
             address="Atendimento online e presencial",
             default_session_value=180.0,
         )
-        session.add_all([appointment, payment, expense, settings])
-        session.commit()
+        session.add_all([appointment, settings])
+        session.flush()
+
+        finance = FinanceService(session)
+        category = finance.create_category({"name": "Estrutura", "active": True}, seed_actor)
+        finance.create_payment(
+            {
+                "patient_id": patient.id,
+                "competence_date": date.today(),
+                "due_date": date.today(),
+                "amount_cents": 18000,
+                "payment_method": "Pix",
+                "description": "Sessao inicial",
+            },
+            seed_actor,
+        )
+        finance.create_expense(
+            {
+                "description": "Aluguel da sala",
+                "amount_cents": 120000,
+                "expense_date": date.today(),
+                "competence_date": date.today(),
+                "category_id": category.id,
+            },
+            seed_actor,
+        )

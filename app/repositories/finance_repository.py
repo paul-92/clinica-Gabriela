@@ -1,12 +1,19 @@
-from app.models.finance import Expense, Payment
+"""Compatibilidade nominal do legado; persistencia financeira local desativada."""
+
+
+class LegacyFinanceAuthorityDisabled(RuntimeError):
+    pass
 
 
 class FinanceRepository:
     def __init__(self, session):
-        self.session = session
+        del session
+        raise LegacyFinanceAuthorityDisabled(
+            "Persistencia financeira Tkinter desativada; use a API canonica."
+        )
 
     def payments(self):
-        return self.session.query(Payment).order_by(Payment.due_date.desc()).all()
+        raise LegacyFinanceAuthorityDisabled("Leitura financeira local desativada.")
 
     def expenses(self):
-        return self.session.query(Expense).order_by(Expense.expense_date.desc()).all()
+        raise LegacyFinanceAuthorityDisabled("Leitura financeira local desativada.")

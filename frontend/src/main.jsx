@@ -20,20 +20,29 @@ import {
   UsersRound
 } from "lucide-react";
 import "./styles.css";
-import { ApiError, apiRequest, authenticate, buildAppointmentPatch } from "./api.js";
+import { ApiError, apiRequest, authenticate, buildAppointmentPatch, canAccessFinancialUi, formatMoneyFromCents, parseMoneyToCents } from "./api.js";
 import { clearFrontendSession } from "./session.js";
 
 const today = new Date().toISOString().slice(0, 10);
+const defaultPeriodStart = `${today.slice(0, 7)}-01`;
+const defaultPeriodEnd = (() => {
+  const value = new Date(`${defaultPeriodStart}T00:00:00Z`);
+  value.setUTCMonth(value.getUTCMonth() + 1);
+  return value.toISOString().slice(0, 10);
+})();
 
 const fallback = {
   dashboard: {
     active_patients: 2,
     active_psychologists: 1,
     appointments_today: 1,
-    pending_payments: 720,
-    paid_payments: 3240,
-    expenses: 1200,
-    balance: 2040,
+    finance_regime: "cash",
+    finance_start: defaultPeriodStart,
+    finance_end: defaultPeriodEnd,
+    receivable_cents: 0,
+    received_cents: 0,
+    expense_cents: 0,
+    balance_cents: 0,
     recent_appointments: []
   },
   patients: [
@@ -94,31 +103,17 @@ const fallback = {
       future_attachments: ""
     }
   ],
-  payments: [
-    {
-      id: 1,
-      patient_id: 1,
-      due_date: today,
-      amount: 180,
-      status: "pending",
-      payment_method: "Pix",
-      description: "Sessao individual"
-    }
-  ],
-  expenses: [
-    {
-      id: 1,
-      description: "Aluguel da sala",
-      amount: 1200,
-      expense_date: today,
-      category: "Estrutura"
-    }
-  ],
+  payments: [],
+  expenses: [],
+  categories: [],
   finance: {
-    paid: 3240,
-    pending: 720,
-    expenses: 1200,
-    balance: 2040
+    regime: "cash",
+    start: defaultPeriodStart,
+    end: defaultPeriodEnd,
+    income_cents: 0,
+    receivable_cents: 0,
+    expense_cents: 0,
+    balance_cents: 0
   },
   license: {
     valid: true,
@@ -148,15 +143,12 @@ const statusLabels = {
   done: "Realizado",
   no_show: "Falta",
   pending: "Pendente",
-  paid: "Pago"
+  paid: "Pago",
+  active: "Ativa",
+  reversed: "Estornado"
 };
 
-function money(value) {
-  return new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL"
-  }).format(value || 0);
-}
+const money = formatMoneyFromCents;
 
 function App() {
   const [session, setSession] = useState(null);
@@ -169,7 +161,9 @@ function App() {
     records: [],
     payments: [],
     expenses: [],
-    finance: { paid: 0, pending: 0, expenses: 0, balance: 0 },
+    categories: [],
+    finance: fallback.finance,
+    financeError: "",
     license: null,
     online: false,
     loading: true
@@ -187,7 +181,9 @@ function App() {
       const recordsRequest = currentSession.user.role === "psychologist"
         ? apiRequest("/clinical-records", { token })
         : Promise.resolve([]);
-      const [health, license, dashboard, patients, psychologists, appointments, records, payments, expenses, finance] =
+      const financeAllowed = canAccessFinancialUi(currentSession.user.role);
+      const financeQuery = `start=${defaultPeriodStart}&end=${defaultPeriodEnd}&regime=cash`;
+      const [health, license, dashboard, patients, psychologists, appointments, records, payments, expenses, finance, categories] =
       await Promise.all([
         apiRequest("/health"),
         apiRequest("/license/status"),
@@ -196,14 +192,40 @@ function App() {
         apiRequest("/psychologists", { token }),
         apiRequest("/appointments", { token }),
         recordsRequest,
-        apiRequest("/finance/payments", { token }),
-        apiRequest("/finance/expenses", { token }),
-        apiRequest("/finance/summary", { token })
+        financeAllowed ? apiRequest(`/finance/payments?${financeQuery}`, { token }) : Promise.resolve([]),
+        financeAllowed ? apiRequest(`/finance/expenses?${financeQuery}`, { token }) : Promise.resolve([]),
+        financeAllowed ? apiRequest(`/finance/summary?${financeQuery}`, { token }) : Promise.resolve(fallback.finance),
+        financeAllowed ? apiRequest("/finance/categories", { token }) : Promise.resolve([])
       ]);
-      setState({ license, dashboard, patients, psychologists, appointments, records, payments, expenses, finance, online: Boolean(health), loading: false });
+      setState({ license, dashboard, patients, psychologists, appointments, records, payments, expenses, finance, categories, financeError: "", online: Boolean(health), loading: false });
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) logout();
-      setState((current) => ({ ...current, online: error.status !== null, loading: false }));
+      setState((current) => ({
+        ...current,
+        payments: [], expenses: [], categories: [], finance: fallback.finance,
+        financeError: error instanceof ApiError ? error.message : "Nao foi possivel carregar o financeiro.",
+        online: error.status !== null, loading: false
+      }));
+    }
+  };
+
+  const loadFinance = async ({ start, end, regime }) => {
+    const query = new URLSearchParams({ start, end, regime }).toString();
+    setState((current) => ({ ...current, loading: true, financeError: "" }));
+    try {
+      const [payments, expenses, finance] = await Promise.all([
+        apiRequest(`/finance/payments?${query}`, { token: session.token }),
+        apiRequest(`/finance/expenses?${query}`, { token: session.token }),
+        apiRequest(`/finance/summary?${query}`, { token: session.token })
+      ]);
+      setState((current) => ({ ...current, payments, expenses, finance, loading: false, financeError: "" }));
+    } catch (error) {
+      setState((current) => ({
+        ...current,
+        payments: [], expenses: [], finance: { ...fallback.finance, start, end, regime },
+        loading: false,
+        financeError: error instanceof ApiError ? error.message : "Nao foi possivel carregar o periodo financeiro."
+      }));
     }
   };
 
@@ -237,7 +259,7 @@ function App() {
       <Sidebar activeView={activeView} setActiveView={setActiveView} user={session.user} onLogout={logout} />
       <main className="workspace">
         <Topbar online={state.online} loading={state.loading} onRefresh={loadData} activeView={activeView} license={state.license} />
-        <ViewRouter activeView={activeView} data={state} submit={submit} reload={loadData} user={session.user} />
+        <ViewRouter activeView={activeView} data={state} submit={submit} reload={loadData} loadFinance={loadFinance} user={session.user} />
       </main>
     </div>
   );
@@ -321,6 +343,7 @@ function Sidebar({ activeView, setActiveView, user, onLogout }) {
   const visibleNavItems = navItems.filter((item) => {
     if (item.id === "records") return user.role === "psychologist";
     if (item.id === "settings") return user.role === "admin";
+    if (item.id === "finance" || item.id === "reports") return canAccessFinancialUi(user.role);
     return true;
   });
   return (
@@ -389,14 +412,14 @@ function Topbar({ online, loading, onRefresh, activeView, license }) {
   );
 }
 
-function ViewRouter({ activeView, data, submit, reload, user }) {
+function ViewRouter({ activeView, data, submit, reload, loadFinance, user }) {
   const map = {
     dashboard: <Dashboard data={data} />,
     patients: <Patients data={data} reload={reload} />,
     psychologists: <Psychologists data={data} />,
     agenda: <Agenda data={data} submit={submit} user={user} />,
     records: <ClinicalRecords data={data} submit={submit} />,
-    finance: <Finance data={data} submit={submit} />,
+    finance: user.role === "psychologist" ? <EmptyState text="Modulo financeiro indisponivel para este perfil." /> : <Finance data={data} submit={submit} loadFinance={loadFinance} user={user} />,
     reports: <Reports data={data} />,
     settings: <Settings />
   };
@@ -412,8 +435,8 @@ function Dashboard({ data }) {
       <div className="metricGrid">
         <Metric title="Pacientes ativos" value={data.dashboard.active_patients} icon={UsersRound} />
         <Metric title="Agenda hoje" value={data.dashboard.appointments_today} icon={CalendarDays} />
-        <Metric title="A receber" value={money(data.dashboard.pending_payments)} icon={BadgeDollarSign} />
-        <Metric title="Saldo mensal" value={money(data.dashboard.balance)} icon={ChartNoAxesColumnIncreasing} />
+        <Metric title="Recebido no caixa do mes" value={money(data.dashboard.received_cents)} icon={BadgeDollarSign} />
+        <Metric title="Saldo de caixa do mes" value={money(data.dashboard.balance_cents)} icon={ChartNoAxesColumnIncreasing} />
       </div>
       <div className="contentGrid">
         <Panel title="Proximos atendimentos">
@@ -424,8 +447,8 @@ function Dashboard({ data }) {
             <InfoRow label="Agendados" value={scheduled} />
             <InfoRow label="Realizados" value={done} />
             <InfoRow label="Cancelados" value={canceled} />
-            <InfoRow label="Despesas" value={money(data.dashboard.expenses)} />
-            <InfoRow label="Recebido" value={money(data.dashboard.paid_payments)} strong />
+            <InfoRow label="Despesas de caixa" value={money(data.dashboard.expense_cents)} />
+            <InfoRow label="Recebido em caixa" value={money(data.dashboard.received_cents)} strong />
           </div>
         </Panel>
       </div>
@@ -804,50 +827,109 @@ function ClinicalRecords({ data, submit }) {
   );
 }
 
-function Finance({ data, submit }) {
+function Finance({ data, submit, loadFinance, user }) {
+  const [period, setPeriod] = useState({ start: defaultPeriodStart, end: defaultPeriodEnd, regime: "cash" });
+  const [formError, setFormError] = useState("");
   const [paymentForm, setPaymentForm] = useState({
     patient_id: data.patients[0]?.id || "",
+    competence_date: today,
     due_date: today,
-    amount: 180,
-    status: "pending",
-    payment_method: "Pix",
+    amount: "180,00",
+    payment_method: "",
     description: "Sessao individual"
   });
   const [expenseForm, setExpenseForm] = useState({
     description: "",
-    amount: 0,
+    amount: "",
     expense_date: today,
-    category: "Operacional"
+    competence_date: today,
+    category_id: ""
   });
   const patientById = Object.fromEntries(data.patients.map((patient) => [patient.id, patient]));
 
   const savePayment = async (event) => {
     event.preventDefault();
-    await submit("/finance/payments", {
-      ...paymentForm,
-      patient_id: Number(paymentForm.patient_id),
-      amount: Number(paymentForm.amount)
-    });
+    setFormError("");
+    try {
+      await submit("/finance/payments", {
+        ...paymentForm,
+        patient_id: Number(paymentForm.patient_id),
+        amount_cents: parseMoneyToCents(paymentForm.amount)
+      });
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : "Nao foi possivel criar a cobranca.");
+    }
   };
 
   const saveExpense = async (event) => {
     event.preventDefault();
-    await submit("/finance/expenses", {
-      ...expenseForm,
-      amount: Number(expenseForm.amount)
-    });
+    setFormError("");
+    try {
+      await submit("/finance/expenses", {
+        ...expenseForm,
+        category_id: Number(expenseForm.category_id),
+        amount_cents: parseMoneyToCents(expenseForm.amount)
+      });
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : "Nao foi possivel criar a despesa.");
+    }
+  };
+
+  const paymentAction = async (payment, action) => {
+    const reason = action === "pay" ? null : window.prompt(action === "reverse" ? "Motivo do estorno" : "Motivo do cancelamento");
+    if (action !== "pay" && !reason?.trim()) return;
+    const payload = action === "pay" ? { paid_at: today, payment_method: "Pix" } : { reason: reason.trim() };
+    try {
+      await submit(`/finance/payments/${payment.id}/${action}`, payload, "POST", { "If-Match": `"${payment.version}"` });
+    } catch (error) {
+      setFormError(error instanceof ApiError ? error.message : "Acao financeira nao concluida.");
+    }
+  };
+
+  const cancelExpense = async (expense) => {
+    const reason = window.prompt("Motivo do cancelamento da despesa");
+    if (!reason?.trim()) return;
+    try {
+      await submit(`/finance/expenses/${expense.id}/cancel`, { reason: reason.trim() }, "POST", { "If-Match": `"${expense.version}"` });
+    } catch (error) {
+      setFormError(error instanceof ApiError ? error.message : "Cancelamento nao concluido.");
+    }
   };
 
   return (
     <div className="financeLayout">
+      <Panel title="Periodo financeiro explicito">
+        <form className="inlineFields" onSubmit={(event) => { event.preventDefault(); loadFinance(period); }}>
+          <label>
+            Inicio inclusivo
+            <input type="date" value={period.start} onChange={(event) => setPeriod({ ...period, start: event.target.value })} />
+          </label>
+          <label>
+            Fim exclusivo
+            <input type="date" value={period.end} onChange={(event) => setPeriod({ ...period, end: event.target.value })} />
+          </label>
+          <label>
+            Regime
+            <select value={period.regime} onChange={(event) => setPeriod({ ...period, regime: event.target.value })}>
+              <option value="cash">Caixa (paid_at)</option>
+              <option value="accrual">Competencia explicita</option>
+            </select>
+          </label>
+          <button className="primaryButton" disabled={data.loading}>Aplicar periodo</button>
+        </form>
+        <p>Consulta atual: {data.finance.regime === "cash" ? "Caixa" : "Competencia"}, [{data.finance.start}, {data.finance.end}).</p>
+        {data.loading ? <div className="emptyState">Carregando dados financeiros...</div> : null}
+        {data.financeError ? <div className="formError">{data.financeError}</div> : null}
+        {formError ? <div className="formError">{formError}</div> : null}
+      </Panel>
       <div className="metricGrid">
-        <Metric title="Recebido" value={money(data.finance.paid)} icon={BadgeDollarSign} />
-        <Metric title="Pendente" value={money(data.finance.pending)} icon={CalendarDays} />
-        <Metric title="Despesas" value={money(data.finance.expenses)} icon={ClipboardList} />
-        <Metric title="Saldo" value={money(data.finance.balance)} icon={ChartNoAxesColumnIncreasing} />
+        <Metric title={data.finance.regime === "cash" ? "Recebido em caixa" : "Receita por competencia"} value={money(data.finance.income_cents)} icon={BadgeDollarSign} />
+        <Metric title="A receber por competencia" value={money(data.finance.receivable_cents)} icon={CalendarDays} />
+        <Metric title={data.finance.regime === "cash" ? "Despesas de caixa" : "Despesas por competencia"} value={money(data.finance.expense_cents)} icon={ClipboardList} />
+        <Metric title={`Saldo (${data.finance.regime === "cash" ? "caixa" : "competencia"})`} value={money(data.finance.balance_cents)} icon={ChartNoAxesColumnIncreasing} />
       </div>
       <div className="splitGrid">
-        <Panel title="Nova receita">
+        <Panel title="Nova cobranca manual">
           <form className="stackForm" onSubmit={savePayment}>
             <label>
               Paciente
@@ -859,6 +941,10 @@ function Finance({ data, submit }) {
             </label>
             <div className="inlineFields">
               <label>
+                Competencia
+                <input type="date" value={paymentForm.competence_date} onChange={(event) => setPaymentForm({ ...paymentForm, competence_date: event.target.value })} />
+              </label>
+              <label>
                 Vencimento
                 <input type="date" value={paymentForm.due_date} onChange={(event) => setPaymentForm({ ...paymentForm, due_date: event.target.value })} />
               </label>
@@ -868,14 +954,6 @@ function Finance({ data, submit }) {
               </label>
             </div>
             <div className="inlineFields">
-              <label>
-                Status
-                <select value={paymentForm.status} onChange={(event) => setPaymentForm({ ...paymentForm, status: event.target.value })}>
-                  <option value="pending">Pendente</option>
-                  <option value="paid">Pago</option>
-                  <option value="canceled">Cancelado</option>
-                </select>
-              </label>
               <label>
                 Forma
                 <input value={paymentForm.payment_method} onChange={(event) => setPaymentForm({ ...paymentForm, payment_method: event.target.value })} />
@@ -887,17 +965,21 @@ function Finance({ data, submit }) {
             </label>
             <button className="primaryButton">
               <Plus size={18} />
-              Lancar receita
+              Criar cobranca pendente
             </button>
           </form>
         </Panel>
-        <Panel title="Nova despesa">
+        {user.role === "admin" ? <Panel title="Nova despesa">
           <form className="stackForm" onSubmit={saveExpense}>
             <label>
               Descricao
               <input value={expenseForm.description} onChange={(event) => setExpenseForm({ ...expenseForm, description: event.target.value })} />
             </label>
             <div className="inlineFields">
+              <label>
+                Competencia
+                <input type="date" value={expenseForm.competence_date} onChange={(event) => setExpenseForm({ ...expenseForm, competence_date: event.target.value })} />
+              </label>
               <label>
                 Data
                 <input type="date" value={expenseForm.expense_date} onChange={(event) => setExpenseForm({ ...expenseForm, expense_date: event.target.value })} />
@@ -909,33 +991,48 @@ function Finance({ data, submit }) {
             </div>
             <label>
               Categoria
-              <input value={expenseForm.category} onChange={(event) => setExpenseForm({ ...expenseForm, category: event.target.value })} />
+              <select value={expenseForm.category_id} onChange={(event) => setExpenseForm({ ...expenseForm, category_id: event.target.value })} required>
+                <option value="">Selecione</option>
+                {data.categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
+              </select>
             </label>
             <button className="primaryButton">
               <Plus size={18} />
               Lancar despesa
             </button>
           </form>
-        </Panel>
+        </Panel> : <Panel title="Despesas"><EmptyState text="Administracao de despesas restrita ao perfil administrador." /></Panel>}
       </div>
       <div className="contentGrid">
         <Panel title="Receitas">
           <DataTable
-            columns={["Paciente", "Vencimento", "Valor", "Forma", "Status"]}
+            columns={["Paciente", "Competencia", "Vencimento", "Valor", "Forma", "Status", "Acoes"]}
             rows={data.payments.map((payment) => [
               patientById[payment.patient_id]?.full_name || "Paciente",
+              payment.competence_date,
               payment.due_date,
-              money(payment.amount),
+              money(payment.amount_cents),
               payment.payment_method,
-              statusLabels[payment.status] || payment.status
+              payment.overdue ? "Vencido" : statusLabels[payment.status] || payment.status,
+              <div className="tableActions">
+                {payment.status === "pending" ? <button onClick={() => paymentAction(payment, "pay")}>Pagar</button> : null}
+                {payment.status === "pending" ? <button onClick={() => paymentAction(payment, "cancel")}>Cancelar</button> : null}
+                {payment.status === "paid" && user.role === "admin" ? <button onClick={() => paymentAction(payment, "reverse")}>Estornar</button> : null}
+              </div>
             ])}
           />
+          {!data.loading && data.payments.length === 0 ? <EmptyState text="Nenhuma cobranca no periodo e regime selecionados." /> : null}
         </Panel>
         <Panel title="Despesas">
           <DataTable
-            columns={["Descricao", "Data", "Valor", "Categoria"]}
-            rows={data.expenses.map((expense) => [expense.description, expense.expense_date, money(expense.amount), expense.category])}
+            columns={["Descricao", "Competencia", "Data", "Valor", "Categoria", "Status", "Acoes"]}
+            rows={data.expenses.map((expense) => [
+              expense.description, expense.competence_date, expense.expense_date, money(expense.amount_cents),
+              expense.category_name, statusLabels[expense.status] || expense.status,
+              user.role === "admin" && expense.status === "active" ? <button onClick={() => cancelExpense(expense)}>Cancelar</button> : ""
+            ])}
           />
+          {!data.loading && data.expenses.length === 0 ? <EmptyState text="Nenhuma despesa no periodo e regime selecionados." /> : null}
         </Panel>
       </div>
     </div>
@@ -951,7 +1048,7 @@ function Reports({ data }) {
       ["Prontuarios registrados", data.records.length],
       ["Receitas cadastradas", data.payments.length],
       ["Despesas cadastradas", data.expenses.length],
-      ["Saldo mensal", money(data.finance.balance)]
+      [`Saldo do periodo (${data.finance.regime === "cash" ? "caixa" : "competencia"})`, money(data.finance.balance_cents)]
     ],
     [data]
   );

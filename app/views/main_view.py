@@ -28,6 +28,7 @@ class MainView(AppWindow):
         super().__init__("Marilia Gabriela Gaspar")
         self.user = user
         self.desktop_session = desktop_session
+        self.api_client = desktop_session.api_client if desktop_session is not None else None
         self.protocol("WM_DELETE_WINDOW", self._close_session)
         self._build()
 
@@ -46,13 +47,16 @@ class MainView(AppWindow):
         notebook.pack(fill="both", expand=True, padx=16, pady=(0, 16))
 
         pages = [
-            ("Dashboard", DashboardPage(notebook)),
+            ("Dashboard", DashboardPage(notebook, self.api_client, self.user)),
             ("Pacientes", PatientsPage(notebook)),
             ("Psicologos", PlaceholderPage(notebook, "Cadastro de psicologos")),
             ("Agenda", AgendaPage(notebook)),
-            ("Financeiro", FinancePage(notebook)),
-            ("Relatorios", ReportsPage(notebook)),
         ]
+        if self.user.role != "psychologist":
+            pages.extend([
+                ("Financeiro", FinancePage(notebook, self.api_client)),
+                ("Relatorios", ReportsPage(notebook, self.api_client)),
+            ])
         if can_access_module(self.user.role, "clinical_records"):
             pages.insert(4, ("Prontuario", PlaceholderPage(notebook, "Prontuario e evolucao clinica")))
         if can_access_module(self.user.role, "settings"):

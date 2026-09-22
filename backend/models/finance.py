@@ -1,29 +1,75 @@
 from enum import Enum
 
-from sqlalchemy import Date, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import CheckConstraint, Date, DateTime, DDL, ForeignKey, Index, Integer, String, Text, event, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.database.session import Base
 
 
 class PaymentStatus(str, Enum):
-    PAID = "paid"
     PENDING = "pending"
+    PAID = "paid"
     CANCELED = "canceled"
+    REVERSED = "reversed"
+
+
+class ExpenseStatus(str, Enum):
+    ACTIVE = "active"
+    CANCELED = "canceled"
+
+
+class ExpenseCategory(Base):
+    __tablename__ = "expense_categories"
+    __table_args__ = (CheckConstraint("length(trim(name)) > 0", name="ck_expense_categories_name"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(80), nullable=False, unique=True)
+    active: Mapped[bool] = mapped_column(nullable=False, default=True, server_default="1")
+    version: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default="1")
+    created_by_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="NO ACTION"), nullable=True)
+    created_at = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    updated_at = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
 
 
 class Payment(Base):
     __tablename__ = "payments"
+    __table_args__ = (
+        CheckConstraint("amount_cents > 0", name="ck_payments_amount_positive"),
+        CheckConstraint("status IN ('pending','paid','canceled','reversed')", name="ck_payments_status"),
+        CheckConstraint(
+            "(status = 'pending' AND paid_at IS NULL AND canceled_at IS NULL AND reversed_at IS NULL) OR "
+            "(status = 'paid' AND paid_at IS NOT NULL AND canceled_at IS NULL AND reversed_at IS NULL) OR "
+            "(status = 'canceled' AND paid_at IS NULL AND canceled_at IS NOT NULL AND reversed_at IS NULL AND length(trim(cancellation_reason)) > 0) OR "
+            "(status = 'reversed' AND paid_at IS NOT NULL AND canceled_at IS NULL AND reversed_at IS NOT NULL AND length(trim(reversal_reason)) > 0)",
+            name="ck_payments_lifecycle",
+        ),
+        Index("ix_payments_cash_period", "status", "paid_at"),
+        Index("ix_payments_accrual_period", "competence_date", "status"),
+        Index("ix_payments_due_status", "due_date", "status"),
+        Index("ix_payments_patient", "patient_id"),
+        Index("ix_payments_appointment", "appointment_id"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    patient_id: Mapped[int] = mapped_column(ForeignKey("patients.id"), nullable=False)
-    appointment_id = mapped_column(ForeignKey("appointments.id"), nullable=True)
+    patient_id: Mapped[int] = mapped_column(ForeignKey("patients.id", ondelete="NO ACTION"), nullable=False)
+    appointment_id: Mapped[int | None] = mapped_column(ForeignKey("appointments.id", ondelete="NO ACTION"), nullable=True)
+    competence_date = mapped_column(Date, nullable=False)
     due_date = mapped_column(Date, nullable=False)
     paid_at = mapped_column(Date, nullable=True)
-    amount: Mapped[float] = mapped_column(Float, nullable=False)
-    status: Mapped[str] = mapped_column(String(30), default=PaymentStatus.PENDING.value)
-    payment_method: Mapped[str] = mapped_column(String(50), default="")
-    description = mapped_column(Text, default="")
+    amount_cents: Mapped[int] = mapped_column(Integer, nullable=False)
+    status: Mapped[str] = mapped_column(String(30), nullable=False, default=PaymentStatus.PENDING.value, server_default="pending")
+    payment_method: Mapped[str] = mapped_column(String(50), nullable=False, default="", server_default="")
+    description: Mapped[str] = mapped_column(Text, nullable=False, default="", server_default="")
+    version: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default="1")
+    created_by_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="NO ACTION"), nullable=True)
+    canceled_by_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="NO ACTION"), nullable=True)
+    reversed_by_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="NO ACTION"), nullable=True)
+    canceled_at = mapped_column(DateTime(timezone=True), nullable=True)
+    reversed_at = mapped_column(DateTime(timezone=True), nullable=True)
+    cancellation_reason: Mapped[str] = mapped_column(Text, nullable=False, default="", server_default="")
+    reversal_reason: Mapped[str] = mapped_column(Text, nullable=False, default="", server_default="")
+    created_at = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    updated_at = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
 
     patient = relationship("Patient")
     appointment = relationship("Appointment")
@@ -31,9 +77,70 @@ class Payment(Base):
 
 class Expense(Base):
     __tablename__ = "expenses"
+    __table_args__ = (
+        CheckConstraint("amount_cents > 0", name="ck_expenses_amount_positive"),
+        CheckConstraint("status IN ('active','canceled')", name="ck_expenses_status"),
+        CheckConstraint(
+            "(status = 'active' AND canceled_at IS NULL) OR "
+            "(status = 'canceled' AND canceled_at IS NOT NULL AND length(trim(cancellation_reason)) > 0)",
+            name="ck_expenses_lifecycle",
+        ),
+        Index("ix_expenses_cash_period", "expense_date", "status"),
+        Index("ix_expenses_accrual_period", "competence_date", "status"),
+        Index("ix_expenses_category", "category_id"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     description: Mapped[str] = mapped_column(String(160), nullable=False)
-    amount: Mapped[float] = mapped_column(Float, nullable=False)
+    amount_cents: Mapped[int] = mapped_column(Integer, nullable=False)
     expense_date = mapped_column(Date, nullable=False)
-    category: Mapped[str] = mapped_column(String(80), default="")
+    competence_date = mapped_column(Date, nullable=False)
+    category_id: Mapped[int] = mapped_column(ForeignKey("expense_categories.id", ondelete="NO ACTION"), nullable=False)
+    status: Mapped[str] = mapped_column(String(30), nullable=False, default=ExpenseStatus.ACTIVE.value, server_default="active")
+    version: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default="1")
+    created_by_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="NO ACTION"), nullable=True)
+    canceled_by_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="NO ACTION"), nullable=True)
+    canceled_at = mapped_column(DateTime(timezone=True), nullable=True)
+    cancellation_reason: Mapped[str] = mapped_column(Text, nullable=False, default="", server_default="")
+    created_at = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    updated_at = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
+
+    category = relationship("ExpenseCategory")
+
+
+class FinancialEvent(Base):
+    __tablename__ = "financial_events"
+    __table_args__ = (
+        CheckConstraint("resource_type IN ('payment','expense','expense_category')", name="ck_financial_events_resource_type"),
+        CheckConstraint("length(trim(event_type)) > 0", name="ck_financial_events_event_type"),
+        Index("ix_financial_events_resource", "resource_type", "resource_id", "created_at"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    resource_type: Mapped[str] = mapped_column(String(32), nullable=False)
+    resource_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    actor_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="NO ACTION"), nullable=True)
+    event_type: Mapped[str] = mapped_column(String(40), nullable=False)
+    from_status: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    to_status: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    reason: Mapped[str] = mapped_column(Text, nullable=False, default="", server_default="")
+    created_at = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+
+
+for table in (Payment.__table__, Expense.__table__, ExpenseCategory.__table__):
+    event.listen(table, "after_create", DDL(f"""
+CREATE TRIGGER IF NOT EXISTS spec005_{table.name}_no_delete
+BEFORE DELETE ON {table.name}
+BEGIN SELECT RAISE(ABORT, '{table.name} history is protected'); END
+"""))
+
+event.listen(FinancialEvent.__table__, "after_create", DDL("""
+CREATE TRIGGER IF NOT EXISTS spec005_financial_events_no_update
+BEFORE UPDATE ON financial_events
+BEGIN SELECT RAISE(ABORT, 'financial_events is append-only'); END
+"""))
+event.listen(FinancialEvent.__table__, "after_create", DDL("""
+CREATE TRIGGER IF NOT EXISTS spec005_financial_events_no_delete
+BEFORE DELETE ON financial_events
+BEGIN SELECT RAISE(ABORT, 'financial_events is append-only'); END
+"""))

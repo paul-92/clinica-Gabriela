@@ -3,15 +3,15 @@ from tkinter import messagebox, ttk
 
 from app.controllers.appointment_controller import AppointmentController
 from app.controllers.dashboard_controller import DashboardController
-from app.controllers.finance_controller import FinanceController
+from app.controllers.finance_controller import FinanceController, format_cents
 from app.controllers.patient_controller import PatientController
 from app.reports.monthly_finance_report import build_monthly_finance_report
 
 
 class DashboardPage(ttk.Frame):
-    def __init__(self, parent):
+    def __init__(self, parent, api_client, user):
         super().__init__(parent, padding=16)
-        self.controller = DashboardController()
+        self.controller = DashboardController(api_client, user.role)
         self._build()
 
     def _build(self):
@@ -19,9 +19,12 @@ class DashboardPage(ttk.Frame):
         values = [
             ("Pacientes", summary["patients_count"]),
             ("Atendimentos hoje", summary["today_appointments"]),
-            ("Pendente", f"R$ {summary['finance']['pending']:.2f}"),
-            ("Saldo", f"R$ {summary['finance']['balance']:.2f}"),
         ]
+        if summary["finance"] is not None:
+            values.extend([
+                ("Recebido no caixa do mes", format_cents(summary["finance"]["income_cents"])),
+                ("Saldo de caixa do mes", format_cents(summary["finance"]["balance_cents"])),
+            ])
         for index, (title, value) in enumerate(values):
             card = ttk.Frame(self, style="Panel.TFrame", padding=18)
             card.grid(row=0, column=index, sticky="nsew", padx=6, pady=6)
@@ -128,33 +131,34 @@ class AgendaPage(ttk.Frame):
 
 
 class FinancePage(ttk.Frame):
-    def __init__(self, parent):
+    def __init__(self, parent, api_client):
         super().__init__(parent, padding=16)
-        self.controller = FinanceController()
+        self.controller = FinanceController(api_client)
         self._build()
 
     def _build(self):
         summary = self.controller.summary()
         text = (
-            f"Sessoes pagas: R$ {summary['paid']:.2f}\n"
-            f"Sessoes pendentes: R$ {summary['pending']:.2f}\n"
-            f"Despesas: R$ {summary['expenses']:.2f}\n"
-            f"Saldo mensal: R$ {summary['balance']:.2f}"
+            f"Regime: Caixa | Periodo [{summary['start']}, {summary['end']})\n"
+            f"Recebido em caixa: {format_cents(summary['income_cents'])}\n"
+            f"Despesas de caixa: {format_cents(summary['expense_cents'])}\n"
+            f"Saldo de caixa: {format_cents(summary['balance_cents'])}"
         )
         ttk.Label(self, text="Financeiro", font=("Segoe UI", 14, "bold")).pack(anchor="w")
         ttk.Label(self, text=text, font=("Segoe UI", 12)).pack(anchor="w", pady=14)
 
 
 class ReportsPage(ttk.Frame):
-    def __init__(self, parent):
+    def __init__(self, parent, api_client):
         super().__init__(parent, padding=16)
+        self.api_client = api_client
         self._build()
 
     def _build(self):
         ttk.Label(self, text="Relatorios", font=("Segoe UI", 14, "bold")).pack(anchor="w")
         report = tk.Text(self, height=12)
         report.pack(fill="both", expand=True, pady=12)
-        report.insert("1.0", build_monthly_finance_report())
+        report.insert("1.0", build_monthly_finance_report(self.api_client))
 
 
 class SettingsPage(ttk.Frame):

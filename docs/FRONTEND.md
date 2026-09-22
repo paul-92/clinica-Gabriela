@@ -20,7 +20,8 @@ O app abre uma janela desktop Electron e consome o backend em `http://127.0.0.1:
 - Psicologos
 - Agenda com filtro por data, filtro por psicologo, criacao de atendimento e mudanca de status
 - Prontuario com ficha de atendimento, evolucao clinica, conduta, encaminhamentos e historico
-- Financeiro com resumo, lancamento de receitas, lancamento de despesas e tabelas
+- Financeiro com período `[start,end)`, regime de caixa/competência explicitamente
+  rotulado, cobranças manuais, ciclo de vida e despesas/categorias controladas
 - Relatorios
 - Configuracoes
 
@@ -38,10 +39,20 @@ A interface consulta:
 - `PUT /appointments/{appointment_id}`
 - `GET /clinical-records`
 - `POST /clinical-records`
-- `GET /finance/payments`
+- `GET /finance/payments` com período/regime explícitos
 - `POST /finance/payments`
-- `GET /finance/expenses`
+- `PATCH /finance/payments/{id}` e ações `pay`, `cancel`, `reverse`
+- `GET /finance/expenses` com período/regime explícitos
 - `POST /finance/expenses`
-- `GET /finance/summary`
+- `POST /finance/expenses/{id}/cancel`
+- `GET/POST /finance/categories` e `PATCH /finance/categories/{id}`
+- `GET /finance/summary` com período/regime explícitos
 
-Se a API estiver desligada, a interface usa dados locais de demonstracao para que as telas continuem navegaveis.
+O frontend financeiro recebe e envia centavos inteiros. A conversão de texto usa
+operações decimais determinísticas; `Number` não é usado para calcular totais.
+Administração de despesas/categorias e estorno aparecem somente para admin;
+psicólogos não veem o módulo financeiro. Essas regras visuais não substituem a
+autorização do backend.
+
+Se a API falhar, o financeiro exibe estado controlado de erro e limpa os dados da
+visão; não apresenta fallback/demo como se fosse dado autoritativo.

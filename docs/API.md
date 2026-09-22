@@ -39,9 +39,17 @@ Depois acesse:
 - `POST /clinical-records/{id}/finalize`
 - `POST /clinical-records/{id}/rectifications`
 - `DELETE /clinical-records/{id}` (somente DRAFT elegível)
-- `GET/POST /finance/payments`
-- `GET/POST /finance/expenses`
-- `GET /finance/summary`
+- `GET /finance/payments?start=YYYY-MM-DD&end=YYYY-MM-DD&regime=cash|accrual`
+- `POST /finance/payments` (cobrança manual pendente, `amount_cents` inteiro)
+- `GET/PATCH /finance/payments/{id}` (`PATCH` exige `If-Match`)
+- `POST /finance/payments/{id}/pay`
+- `POST /finance/payments/{id}/cancel`
+- `POST /finance/payments/{id}/reverse` (somente admin)
+- `GET /finance/expenses?start=YYYY-MM-DD&end=YYYY-MM-DD&regime=cash|accrual`
+- `POST /finance/expenses` e `POST /finance/expenses/{id}/cancel` (somente admin)
+- `GET/POST /finance/categories` e `PATCH /finance/categories/{id}` (mutações somente admin)
+- `GET /finance/summary?start=YYYY-MM-DD&end=YYYY-MM-DD&regime=cash|accrual`
+- `GET /finance/events/{resource_type}/{resource_id}` (auditoria somente admin)
 - `GET/PUT /settings`
 
 O timezone IANA efetivo de `settings` governa novos horários da agenda. Horários locais
@@ -58,3 +66,19 @@ reinterpretados automaticamente.
 - `PUT` permanece temporariamente disponível para compatibilidade e está deprecado.
 - Prontuários `FINALIZED` e `LEGACY_PRESERVED` são imutáveis; correções são
   retificações append-only.
+
+## Contrato financeiro SPEC-005
+
+- Dinheiro e agregados financeiros usam centavos inteiros (`amount_cents`); zero,
+  negativo, float canônico, arredondamento e truncamento são rejeitados.
+- Caixa usa `paid_at`; competência usa `competence_date`; todos os períodos são
+  explícitos e seguem `[start,end)`.
+- Estados persistidos da cobrança: `pending`, `paid`, `canceled`, `reversed`.
+  `overdue` é apenas derivado.
+- Pagamento parcial, múltiplas liquidações e parcelamento retornam `422`.
+- Cobranças são manuais. Agenda não cria, associa, cancela nem altera finanças.
+- Admin tem autoridade integral; recepção opera cobranças, sem estorno nem
+  administração de despesas/categorias; psicólogo recebe `403`.
+- Escritas versionadas usam `ETag`/`If-Match`; versão obsoleta retorna `412`.
+- Cancelamentos, estornos e despesas preservam o registro e a trilha append-only;
+  não existe endpoint de exclusão financeira.
