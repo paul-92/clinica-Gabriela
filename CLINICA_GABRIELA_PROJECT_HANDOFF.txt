@@ -3851,3 +3851,38 @@ NO HANDOFF UPDATE WITHOUT VERIFICATION.
 ======================================================================
 END OF CLÍNICA GABRIELA PROJECT HANDOFF — VERSION 2
 ======================================================================
+
+======================================================================
+77. POST-PUBLICATION CHECKPOINT — SPEC-004 SANITIZED BRANCH
+======================================================================
+
+HUMAN push authorization: CONFIRMED.
+
+Independent Post-Sanitization Audit: PASS.
+
+The sanitized HEAD was published to the authorized remote feature
+branch. The remote branch was created, its HEAD was confirmed equal to
+the sanitized local HEAD, and upstream tracking was configured.
+
+Publication controls:
+
+- push type: NORMAL;
+- force push: NO;
+- merge: NO;
+- release: NO;
+- local safety ref: PRESERVED AND NOT PUBLISHED.
+
+Project state remains unchanged:
+
+- SPEC-004: ACCEPTED/DONE;
+- Quality Gate: PASS;
+- operational Generation: 8/canonical.
+
+This publication does not reopen SPEC-004 and does not start SPEC-005.
+
+STOP_CONDITION:
+POST_PUSH_HANDOFF_COMMIT_HUMAN_GATE
+
+NEXT_READY:
+SPEC-005 PRE-EXECUTION / CONTRACT RECOVERY, pending HUMAN authorization
+for the documentary handoff commit.
