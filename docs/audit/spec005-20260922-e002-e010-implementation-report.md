@@ -4,6 +4,20 @@ Data: 22/09/2026
 Classificação: `VERIFIED_BY_IMPLEMENTATION_EXECUTOR`; não é revisão independente E012
 Escopo: E002 a E010 somente
 
+> **Emenda HUMAN posterior:** a decisão D005-08 tornou canônica a competência
+> mensal explícita por `competence_year` + `competence_month` e proibiu dia
+> representativo artificial. Este relatório permanece como evidência histórica da
+> execução realizada, mas seus resultados dependentes de `competence_date: DATE`
+> estão seletivamente invalidados para fins de E011. Schema, API, frontend,
+> migração, filtros, relatórios, testes e documentação devem ser reconciliados e
+> revalidados. E011/E012, candidato operacional, promoção e cutover continuam não
+> autorizados.
+>
+> A reconciliação foi posteriormente executada e validada pelo executor. A
+> invalidação seletiva e a nova Evidence estão registradas no
+> [relatório D005-08](spec005-20260922-d00508-reconciliation-report.md). Este
+> relatório permanece histórico e não é reclassificado retroativamente.
+
 ## Contexto e fronteira operacional
 
 - branch: `feature/spec-008-architecture-foundation`;

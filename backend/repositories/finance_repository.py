@@ -10,13 +10,21 @@ class PaymentRepository(BaseRepository):
 
     def list_filtered(self, start, end, regime, status=None, patient_id=None):
         query = self.db.query(Payment)
-        period_column = Payment.paid_at if regime == "cash" else Payment.competence_date
-        query = query.filter(period_column >= start, period_column < end)
+        if regime == "cash":
+            period_column = Payment.paid_at
+            query = query.filter(period_column >= start, period_column < end)
+            ordering = (period_column.desc(), Payment.id.desc())
+        else:
+            period_key = Payment.competence_year * 12 + Payment.competence_month
+            start_key = start[0] * 12 + start[1]
+            end_key = end[0] * 12 + end[1]
+            query = query.filter(period_key >= start_key, period_key < end_key)
+            ordering = (Payment.competence_year.desc(), Payment.competence_month.desc(), Payment.id.desc())
         if status:
             query = query.filter(Payment.status == status)
         if patient_id is not None:
             query = query.filter(Payment.patient_id == patient_id)
-        return query.order_by(period_column.desc(), Payment.id.desc()).all()
+        return query.order_by(*ordering).all()
 
     def get(self, payment_id):
         return self.db.get(Payment, payment_id)
@@ -35,13 +43,22 @@ class ExpenseRepository(BaseRepository):
         super().__init__(db, Expense)
 
     def list_filtered(self, start, end, regime, status=None, category_id=None):
-        period_column = Expense.expense_date if regime == "cash" else Expense.competence_date
-        query = self.db.query(Expense).filter(period_column >= start, period_column < end)
+        query = self.db.query(Expense)
+        if regime == "cash":
+            period_column = Expense.expense_date
+            query = query.filter(period_column >= start, period_column < end)
+            ordering = (period_column.desc(), Expense.id.desc())
+        else:
+            period_key = Expense.competence_year * 12 + Expense.competence_month
+            start_key = start[0] * 12 + start[1]
+            end_key = end[0] * 12 + end[1]
+            query = query.filter(period_key >= start_key, period_key < end_key)
+            ordering = (Expense.competence_year.desc(), Expense.competence_month.desc(), Expense.id.desc())
         if status:
             query = query.filter(Expense.status == status)
         if category_id is not None:
             query = query.filter(Expense.category_id == category_id)
-        return query.order_by(period_column.desc(), Expense.id.desc()).all()
+        return query.order_by(*ordering).all()
 
     def get(self, expense_id):
         return self.db.get(Expense, expense_id)

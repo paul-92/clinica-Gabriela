@@ -1,18 +1,22 @@
 # SPEC-005 — Financeiro
 
-**Status:** CONTRACT FROZEN — E002–E010 implementados/verificados; E011–E012 não executados
+**Status:** D005-08 RECONCILED BY EXECUTOR — revisão independente pendente; E011–E012 não executados
 **Prioridade:** P1  
 **Dependências preservadas:** SPEC-002, SPEC-003, SPEC-004 e SPEC-008
-**Autoridade:** decisões HUMAN D005-01 a D005-07
-**Implementação:** E002–E010 autorizados pelo HUMAN em 22/09/2026 e verificados
+**Autoridade:** decisões HUMAN D005-01 a D005-08
+**Implementação:** E002–E010 reconciliados com D005-08 e revalidados pelo executor
 **Migração operacional:** não autorizada / não executada
 
 ## 1. Objetivo e autoridade
 
-Esta SPEC congela o contrato funcional e técnico do módulo financeiro. O freeze,
-isoladamente, não autoriza alteração de código, schema, banco, ponteiro, manifesto
-ou Generation. A autorização HUMAN posterior ficou limitada a E002–E010.
-D005-01 a D005-07 são normativas e não podem ser reinterpretadas ou ampliadas.
+Esta SPEC congela o contrato funcional e técnico do módulo financeiro. A decisão
+HUMAN D005-08, registrada em 22/09/2026, emenda o contrato para representar a
+competência canônica exclusivamente como ano e mês. Uma autorização HUMAN posterior
+permitiu reconciliar código, schema declarativo, API, serviços/repositories,
+frontend, relatórios/filtros, migrador isolado, testes, documentação e Evidence.
+Ela não autoriza alteração de banco operacional, ponteiro, manifesto ou Generation,
+nem E011, E012, migração operacional, criação/promoção de candidato ou cutover.
+D005-01 a D005-08 são normativas e não podem ser reinterpretadas ou ampliadas.
 
 Continuam herdados, sem reabertura: autenticação/autorização da SPEC-002;
 integridade, auditoria e privacidade da SPEC-003; agenda da SPEC-004; fonte de
@@ -49,15 +53,33 @@ ou ambíguo é REVIEW/BLOCK e faz a migração falhar fechada.
 O sistema suporta visões semanticamente separadas:
 
 1. **Caixa:** determinado pela data real de pagamento (paid_at).
-2. **Competência:** determinado por campo explícito de competência.
+2. **Competência:** determinada pelo par explícito `competence_year` +
+   `competence_month`.
 
 A visão operacional inicial é caixa. Indicadores não misturam
 previsto/competência com caixa recebido sem rótulo explícito. Uma transação de
 setembro paga em outubro pertence a setembro na competência e a outubro no
-caixa. Períodos usam limites explícitos, preferencialmente [start, end).
+caixa.
 
-Criação, competência, vencimento, pagamento, cancelamento e estorno são datas
-distintas e não são inferidas umas das outras.
+### 4.1 Representação canônica mensal — D005-08
+
+- A competência é um período mensal, nunca um dia factual.
+- Persistência, domínio e API usam `competence_year` inteiro e
+  `competence_month` inteiro; o mês válido está no intervalo `1..12` e a
+  combinação é obrigatória.
+- A forma textual de apresentação e intercâmbio humano é `YYYY-MM`, com mês em
+  dois dígitos. Assim, `2026-07` significa julho de 2026 como período financeiro.
+- `competence_date`, `DATE`, timestamp, primeiro/último dia do mês e qualquer dia
+  sentinela ou representativo são proibidos como representação canônica.
+- Filtros de competência recebem limites mensais explícitos e usam intervalo
+  semiaberto `[start_month, end_month)`. A ordenação/comparação é cronológica pelo
+  par `(year, month)`, sem conversão persistida para dia.
+- Filtros de caixa continuam usando `paid_at` e limites temporais `[start, end)`.
+  Nenhum filtro, total ou relatório pode usar competência para preencher caixa ou
+  `paid_at` para preencher competência.
+
+Criação, competência mensal, vencimento, pagamento, cancelamento e estorno são
+conceitos distintos e não são inferidos uns dos outros.
 
 ## 5. Ciclo de vida — D005-03 e D005-04
 
@@ -85,7 +107,8 @@ novo contrato HUMAN para suporte futuro.
 
 ## 6. Despesas e categorias — D005-07
 
-Despesas usam centavos inteiros, data/competência explícita e categoria de
+Despesas usam centavos inteiros, competência mensal explícita pelo mesmo par
+`competence_year` + `competence_month` e categoria de
 catálogo simples controlado. Texto livre irrestrito não é categoria canônica,
 nem o catálogo é enum de negócio inflexível codificado.
 
@@ -148,7 +171,8 @@ de demonstração não podem parecer dados reais.
 
 **FORWARD_ONLY / ISOLATED_CANDIDATE / FAIL_CLOSED**
 
-A migração não será executada neste freeze. Execução futura exige:
+A migração operacional não foi executada. O migrador reconciliado foi validado
+somente com snapshots e candidatos sintéticos isolados. Execução futura exige:
 
 1. inventário privacy-safe;
 2. backup verificado e recuperação testada;
@@ -156,7 +180,7 @@ A migração não será executada neste freeze. Execução futura exige:
 4. conversão exata, sem arredondamento/truncamento;
 5. preservação de IDs e FKs;
 6. preservação de appointment_id = NULL;
-7. nenhuma inferência de competência, pagamento ou atendimento;
+7. nenhuma inferência de competência, dia representativo, pagamento ou atendimento;
 8. ambiguidades REVIEW/BLOCK;
 9. integrity_check e foreign_key_check;
 10. reconciliação de contagens, IDs, vínculos e totais em centavos;
@@ -175,8 +199,9 @@ candidato isolado mediante autorização.
   negativos e float canônico são rejeitados.
 - **AC-002 — Precisão/legado:** cálculo exato; conversão sem
   arredondamento/truncamento; ambiguidades REVIEW/BLOCK fail-closed.
-- **AC-003 — Regimes/período:** caixa usa paid_at, competência usa campo
-  explícito, visões separadas e consultas [start,end).
+- **AC-003 — Regimes/período:** caixa usa `paid_at`; competência usa somente
+  `competence_year` + `competence_month`, apresentada como `YYYY-MM`; visões são
+  separadas e consultas usam limites semiabertos no respectivo domínio temporal.
 - **AC-004 — Ciclo:** apenas estados/transições autorizados; overdue derivado.
 - **AC-005 — Histórico:** cancelamento, estorno e cancelamento de despesa
   preservam original/trilha, sem negativos ou delete normal.
@@ -193,7 +218,8 @@ candidato isolado mediante autorização.
 - **AC-012 — Interface/privacidade:** UI rotula regime/período e toda Evidence
   é privacy-safe.
 
-Nenhum AC está declarado implementado ou aprovado por evidência nesta fase.
+Os ACs dependentes da representação de competência foram revalidados pelo executor
+após D005-08. Essa evidência não é revisão independente e não autoriza E011.
 
 ## 13. Rastreabilidade
 
@@ -206,6 +232,7 @@ Nenhum AC está declarado implementado ou aprovado por evidência nesta fase.
 | D005-05 | faturamento manual; vínculo explícito | 007, 011 | service/API/FK | não efeito da agenda e NULL |
 | D005-06 | menor privilégio; backend; 401/403 | 008 | API/auth/UI | matriz por endpoint/papel |
 | D005-07 | catálogo controlado; despesa sem delete | 005, 009 | model/repository/service/API/UI | catálogo autorizado e histórico |
+| D005-08 | competência mensal explícita; nenhum dia artificial; caixa separado | 003, 011, 012 | model/schema/migration/service/repository/API/UI/reports | constraints ano/mês, fronteiras mensais, ausência de `competence_date`, R1–R6 e bloqueio R2 |
 
 ## 14. DAG de execução congelado
 
@@ -233,10 +260,10 @@ Cada unidade depende de autorização futura.
 
 ### E003 — Monetary Model + Schema
 - **INPUTS:** AC-001/002 e schema.
-- **OUTPUTS:** modelo candidato em centavos, datas/status.
+- **OUTPUTS:** modelo candidato em centavos, competência ano/mês, datas factuais/status.
 - **DEPENDENCIES:** E002.
 - **AUTHORITY:** candidato isolado.
-- **VALIDATION:** precisão, constraints, compatibilidade.
+- **VALIDATION:** precisão, constraints de ano/mês, ausência de dia artificial e compatibilidade.
 - **EVIDENCE:** testes/diff sanitizado.
 - **ROLLBACK/RECOVERY BOUNDARY:** descartar candidato.
 - **STOP CONDITIONS:** perda, ambiguidade ou impacto na Generation 8.
@@ -253,7 +280,7 @@ Cada unidade depende de autorização futura.
 
 ### E005 — Domain / Services
 - **INPUTS:** contrato e modelo candidato.
-- **OUTPUTS:** regimes, ciclo, despesas, vínculos.
+- **OUTPUTS:** regimes separados, competência mensal, ciclo, despesas, vínculos.
 - **DEPENDENCIES:** E003; E004 quando necessário.
 - **AUTHORITY:** D005 sem expansão.
 - **VALIDATION:** AC-003..009.
@@ -333,16 +360,24 @@ Cada unidade depende de autorização futura.
 
 ## 15. Estado e gates
 
-Freeze concluído com 7/7 decisões normativas/rastreáveis, AC-001..012 e DAG.
-E002–E010 foram implementados e verificados sem migração operacional ou mutação da
-Generation 8. A conclusão integral da SPEC ainda exige E011, E012, revisão
-independente e aceitação HUMAN.
+O contrato possui 8/8 decisões normativas/rastreáveis, AC-001..012 e DAG. A
+representação anterior `competence_date: DATE` e sua Evidence dependente foram
+invalidadas seletivamente. As camadas afetadas foram reconciliadas e revalidadas pelo
+executor conforme o
+[plano de reconciliação](../audit/spec005-20260922-competence-reconciliation-plan.md)
+e o
+[relatório D005-08](../audit/spec005-20260922-d00508-reconciliation-report.md).
 
-- D005-01..D005-07: HUMAN APPROVED / RECORDED.
-- Contrato: FROZEN.
-- Implementação E002–E010: VERIFIED.
+- D005-01..D005-08: HUMAN APPROVED / RECORDED.
+- Contrato: AMENDED / MONTHLY COMPETENCE CANONICAL.
+- Implementação E002–E010: D005-08 RECONCILED / EXECUTOR VALIDATED.
 - E011/E012: NOT AUTHORIZED / NOT EXECUTED.
-- MIGRATION operacional: NOT AUTHORIZED / NOT EXECUTED.
-- Generation 8/canonical: preservada.
-- Próximo gate: READY_FOR_SPEC005_OPERATIONAL_CANDIDATE_HUMAN_GATE, com REVIEW/BLOCK
-  privacy-safe para os registros legados sem competência explícita.
+- MIGRATION operacional/candidate promotion/cutover: NOT AUTHORIZED / NOT EXECUTED.
+- Generation 8/canonical: deve permanecer preservada e inalterada.
+- R1–R6: competência HUMAN `2026-07`, a materializar futuramente como ano `2026`
+  e mês `7`, nunca como data diária.
+- R2: `status=paid`, `paid_at` ausente/desconhecido, `REVIEW/BLOCK`; deve ficar fora
+  de qualquer candidato que exija cobrança canônica válida. A invariant
+  `paid → paid_at obrigatório` permanece sem exceção.
+- Próximo gate: `READY_FOR_SPEC005_D005_08_INDEPENDENT_REVIEW`. A revisão não é E012
+  e uma autorização HUMAN posterior e separada continua obrigatória para E011.

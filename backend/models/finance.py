@@ -35,6 +35,8 @@ class Payment(Base):
     __tablename__ = "payments"
     __table_args__ = (
         CheckConstraint("amount_cents > 0", name="ck_payments_amount_positive"),
+        CheckConstraint("competence_year BETWEEN 1 AND 9999", name="ck_payments_competence_year"),
+        CheckConstraint("competence_month BETWEEN 1 AND 12", name="ck_payments_competence_month"),
         CheckConstraint("status IN ('pending','paid','canceled','reversed')", name="ck_payments_status"),
         CheckConstraint(
             "(status = 'pending' AND paid_at IS NULL AND canceled_at IS NULL AND reversed_at IS NULL) OR "
@@ -44,7 +46,7 @@ class Payment(Base):
             name="ck_payments_lifecycle",
         ),
         Index("ix_payments_cash_period", "status", "paid_at"),
-        Index("ix_payments_accrual_period", "competence_date", "status"),
+        Index("ix_payments_accrual_period", "competence_year", "competence_month", "status"),
         Index("ix_payments_due_status", "due_date", "status"),
         Index("ix_payments_patient", "patient_id"),
         Index("ix_payments_appointment", "appointment_id"),
@@ -53,7 +55,8 @@ class Payment(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     patient_id: Mapped[int] = mapped_column(ForeignKey("patients.id", ondelete="NO ACTION"), nullable=False)
     appointment_id: Mapped[int | None] = mapped_column(ForeignKey("appointments.id", ondelete="NO ACTION"), nullable=True)
-    competence_date = mapped_column(Date, nullable=False)
+    competence_year: Mapped[int] = mapped_column(Integer, nullable=False)
+    competence_month: Mapped[int] = mapped_column(Integer, nullable=False)
     due_date = mapped_column(Date, nullable=False)
     paid_at = mapped_column(Date, nullable=True)
     amount_cents: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -79,6 +82,8 @@ class Expense(Base):
     __tablename__ = "expenses"
     __table_args__ = (
         CheckConstraint("amount_cents > 0", name="ck_expenses_amount_positive"),
+        CheckConstraint("competence_year BETWEEN 1 AND 9999", name="ck_expenses_competence_year"),
+        CheckConstraint("competence_month BETWEEN 1 AND 12", name="ck_expenses_competence_month"),
         CheckConstraint("status IN ('active','canceled')", name="ck_expenses_status"),
         CheckConstraint(
             "(status = 'active' AND canceled_at IS NULL) OR "
@@ -86,7 +91,7 @@ class Expense(Base):
             name="ck_expenses_lifecycle",
         ),
         Index("ix_expenses_cash_period", "expense_date", "status"),
-        Index("ix_expenses_accrual_period", "competence_date", "status"),
+        Index("ix_expenses_accrual_period", "competence_year", "competence_month", "status"),
         Index("ix_expenses_category", "category_id"),
     )
 
@@ -94,7 +99,8 @@ class Expense(Base):
     description: Mapped[str] = mapped_column(String(160), nullable=False)
     amount_cents: Mapped[int] = mapped_column(Integer, nullable=False)
     expense_date = mapped_column(Date, nullable=False)
-    competence_date = mapped_column(Date, nullable=False)
+    competence_year: Mapped[int] = mapped_column(Integer, nullable=False)
+    competence_month: Mapped[int] = mapped_column(Integer, nullable=False)
     category_id: Mapped[int] = mapped_column(ForeignKey("expense_categories.id", ondelete="NO ACTION"), nullable=False)
     status: Mapped[str] = mapped_column(String(30), nullable=False, default=ExpenseStatus.ACTIVE.value, server_default="active")
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default="1")

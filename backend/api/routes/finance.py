@@ -36,27 +36,40 @@ def _required_version(if_match):
 
 @router.get("/summary", response_model=FinanceSummary)
 def finance_summary(
-    start: date,
-    end: date,
+    start: date | None = None,
+    end: date | None = None,
     regime: str = Query("cash", pattern="^(cash|accrual)$"),
+    start_year: int | None = Query(None, ge=1, le=9999),
+    start_month: int | None = Query(None, ge=1, le=12),
+    end_year: int | None = Query(None, ge=1, le=9999),
+    end_month: int | None = Query(None, ge=1, le=12),
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    return FinanceService(db).summary(start, end, regime, current_user)
+    return FinanceService(db).summary(
+        start, end, regime, current_user, start_year, start_month, end_year, end_month
+    )
 
 
 @router.get("/payments", response_model=list[PaymentRead])
 def list_payments(
-    start: date,
-    end: date,
+    start: date | None = None,
+    end: date | None = None,
     regime: str = Query("cash", pattern="^(cash|accrual)$"),
+    start_year: int | None = Query(None, ge=1, le=9999),
+    start_month: int | None = Query(None, ge=1, le=12),
+    end_year: int | None = Query(None, ge=1, le=9999),
+    end_month: int | None = Query(None, ge=1, le=12),
     status: str | None = None,
     patient_id: int | None = None,
     reference_date: date | None = None,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    return FinanceService(db).list_payments(start, end, regime, status, patient_id, reference_date, current_user)
+    return FinanceService(db).list_payments(
+        start, end, regime, status, patient_id, reference_date, current_user,
+        start_year, start_month, end_year, end_month,
+    )
 
 
 @router.post("/payments", response_model=PaymentRead, status_code=201)
@@ -106,15 +119,22 @@ def reverse_payment(payment_id: int, payload: PaymentAction, response: Response,
 
 @router.get("/expenses", response_model=list[ExpenseRead])
 def list_expenses(
-    start: date,
-    end: date,
+    start: date | None = None,
+    end: date | None = None,
     regime: str = Query("cash", pattern="^(cash|accrual)$"),
+    start_year: int | None = Query(None, ge=1, le=9999),
+    start_month: int | None = Query(None, ge=1, le=12),
+    end_year: int | None = Query(None, ge=1, le=9999),
+    end_month: int | None = Query(None, ge=1, le=12),
     status: str | None = None,
     category_id: int | None = None,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    return FinanceService(db).list_expenses(start, end, regime, status, category_id, current_user)
+    return FinanceService(db).list_expenses(
+        start, end, regime, status, category_id, current_user,
+        start_year, start_month, end_year, end_month,
+    )
 
 
 @router.post("/expenses", response_model=ExpenseRead, status_code=201)

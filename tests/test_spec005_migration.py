@@ -12,8 +12,14 @@ from backend.migration.spec005 import (
 )
 
 
-def _legacy_database(path, *, amounts=(0.10, 0.20), include_competence=True):
-    competence_column = ", competence_date DATE" if include_competence else ""
+def _legacy_database(
+    path, *, amounts=(0.10, 0.20), include_competence=True, daily_competence=False,
+    payment_status="pending", paid_at=None,
+):
+    if daily_competence:
+        competence_column = ", competence_date DATE"
+    else:
+        competence_column = ", competence_year INTEGER, competence_month INTEGER" if include_competence else ""
     with sqlite3.connect(path) as connection:
         connection.executescript(
             f"""
@@ -36,14 +42,20 @@ def _legacy_database(path, *, amounts=(0.10, 0.20), include_competence=True):
             """
         )
         payment_columns = "id,patient_id,appointment_id,due_date,paid_at,amount,status,payment_method,description"
-        payment_values = [301, 101, None, "2031-02-10", None, amounts[0], "pending", "", "Sintetico A"]
+        payment_values = [301, 101, None, "2031-02-10", paid_at, amounts[0], payment_status, "", "Sintetico A"]
         expense_columns = "id,description,amount,expense_date,category"
         expense_values = [401, "Despesa sintetica", amounts[1], "2031-02-11", "Operacional"]
         if include_competence:
-            payment_columns += ",competence_date"
-            payment_values.append("2031-02-01")
-            expense_columns += ",competence_date"
-            expense_values.append("2031-02-01")
+            if daily_competence:
+                payment_columns += ",competence_date"
+                payment_values.append("2031-02-01")
+                expense_columns += ",competence_date"
+                expense_values.append("2031-02-01")
+            else:
+                payment_columns += ",competence_year,competence_month"
+                payment_values.extend([2031, 2])
+                expense_columns += ",competence_year,competence_month"
+                expense_values.extend([2031, 2])
         connection.execute(
             f"INSERT INTO payments({payment_columns}) VALUES({','.join('?' for _ in payment_values)})",
             payment_values,
@@ -70,9 +82,12 @@ def test_ac002_and_ac011_forward_only_candidate_is_exact_and_preserves_identity(
     assert evidence.operational_migration_executed is False
     with sqlite3.connect(output) as connection:
         payment = connection.execute(
-            "SELECT id,patient_id,appointment_id,amount_cents,competence_date FROM payments"
+            "SELECT id,patient_id,appointment_id,amount_cents,competence_year,competence_month FROM payments"
         ).fetchone()
-        assert payment == (301, 101, None, 10, "2031-02-01")
+        assert payment == (301, 101, None, 10, 2031, 2)
+        assert "competence_date" not in {
+            row[1] for row in connection.execute("PRAGMA table_info(payments)")
+        }
         assert connection.execute("SELECT COUNT(*) FROM financial_events").fetchone()[0] == 2
 
 
@@ -93,10 +108,44 @@ def test_ac003_migration_never_infers_competence(tmp_path):
     output = tmp_path / "candidate.db"
     _legacy_database(source, include_competence=False)
 
-    with pytest.raises(Spec005ReviewBlock, match="competencia explicita"):
+    with pytest.raises(Spec005ReviewBlock, match="competence_year explicito"):
         migrate_finance_candidate(source, output)
 
     assert not output.exists()
+
+
+def test_d00508_migration_rejects_legacy_daily_competence_without_fabricating_month(tmp_path):
+    source = tmp_path / "snapshot.db"
+    output = tmp_path / "candidate.db"
+    _legacy_database(source, daily_competence=True)
+
+    with pytest.raises(Spec005ReviewBlock, match="competence_date diario"):
+        migrate_finance_candidate(source, output)
+
+    assert not output.exists()
+
+
+def test_d00508_r2_paid_without_paid_at_remains_review_block(tmp_path):
+    source = tmp_path / "snapshot-r2.db"
+    output = tmp_path / "candidate-r2.db"
+    _legacy_database(source, payment_status="paid", paid_at=None)
+
+    with pytest.raises(Spec005ReviewBlock, match="pagamento sem paid_at explicito"):
+        migrate_finance_candidate(source, output)
+
+    assert not output.exists()
+
+
+def test_d00508_human_decision_records_r1_r6_as_2026_07_and_blocks_r2():
+    decision_path = Path(__file__).parents[1] / "docs" / "audit" / "spec005-20260922-human-legacy-data-decision.json"
+    decision = json.loads(decision_path.read_text(encoding="utf-8"))
+    records = {item["review_id"]: item for item in decision["decisions"]}
+
+    assert set(records) == {"R1", "R2", "R3", "R4", "R5", "R6"}
+    assert all((item["competence_year"], item["competence_month"]) == (2026, 7) for item in records.values())
+    assert records["R2"]["paid_at"] is None
+    assert records["R2"]["paid_at_inference_authorized"] is False
+    assert records["R2"]["unresolved_treatment"].startswith("REVIEW/BLOCK")
 
 
 def _assert_rejected_before_mutation(source, output, recovery=None):

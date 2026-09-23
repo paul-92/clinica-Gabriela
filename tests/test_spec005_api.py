@@ -67,7 +67,8 @@ def _charge(amount_cents=1000):
     return {
         "patient_id": 101,
         "appointment_id": None,
-        "competence_date": "2031-02-01",
+        "competence_year": 2031,
+        "competence_month": 2,
         "due_date": "2031-02-10",
         "amount_cents": amount_cents,
         "payment_method": "",
@@ -110,7 +111,8 @@ def test_ac008_reception_operates_charges_but_not_reversal_or_expenses(api_facto
                 "description": "Despesa sintetica",
                 "amount_cents": 100,
                 "expense_date": "2031-02-02",
-                "competence_date": "2031-02-01",
+                "competence_year": 2031,
+                "competence_month": 2,
                 "category_id": 1,
             },
         ).status_code == 403
@@ -126,7 +128,8 @@ def test_ac008_admin_category_expense_and_reversal_matrix(api_factory):
                 "description": "Despesa sintetica",
                 "amount_cents": 200,
                 "expense_date": "2031-02-02",
-                "competence_date": "2031-02-01",
+                "competence_year": 2031,
+                "competence_month": 2,
                 "category_id": category.json()["id"],
             },
         )
@@ -153,6 +156,15 @@ def test_ac001_ac006_and_period_contract_return_422(api_factory):
             assert "traceback" not in response.text.lower()
         assert admin.get("/finance/summary").status_code == 422
         assert admin.get("/finance/summary?start=2031-03-01&end=2031-02-01").status_code == 422
+        assert admin.get(
+            "/finance/summary?regime=accrual&start_year=2031&start_month=2&end_year=2031&end_month=1"
+        ).status_code == 422
+        assert admin.post(
+            "/finance/payments", json={**_charge(), "competence_date": "2031-02-01"}
+        ).status_code == 422
+        assert admin.post(
+            "/finance/payments", json={key: value for key, value in _charge().items() if key != "competence_month"}
+        ).status_code == 422
 
 
 def test_ac010_etag_stale_version_is_412_and_conflict_is_409(api_factory):
@@ -190,7 +202,7 @@ def test_ac010_etag_stale_version_is_412_and_conflict_is_409(api_factory):
 def test_ac003_summary_uses_explicit_half_open_period(api_factory):
     with api_factory("admin") as admin:
         first = admin.post("/finance/payments", json=_charge(10)).json()
-        second_payload = {**_charge(20), "competence_date": "2031-03-01"}
+        second_payload = {**_charge(20), "competence_month": 3}
         second = admin.post("/finance/payments", json=second_payload).json()
         admin.post(
             f"/finance/payments/{first['id']}/pay",
@@ -203,7 +215,29 @@ def test_ac003_summary_uses_explicit_half_open_period(api_factory):
             headers={"If-Match": '"1"'},
         )
         cash = admin.get("/finance/summary?start=2031-02-01&end=2031-03-01&regime=cash")
-        accrual = admin.get("/finance/summary?start=2031-02-01&end=2031-03-01&regime=accrual")
+        accrual = admin.get(
+            "/finance/summary?regime=accrual&start_year=2031&start_month=2&end_year=2031&end_month=3"
+        )
         assert cash.json()["income_cents"] == 10
         assert accrual.json()["income_cents"] == 10
         assert cash.json()["regime"] == "cash"
+        assert accrual.json()["start"] == "2031-02"
+        assert accrual.json()["end"] == "2031-03"
+        assert "competence_date" not in first
+        assert first["competence_period"] == "2031-02"
+
+
+def test_d00508_accrual_filter_crosses_december_to_january(api_factory):
+    with api_factory("admin") as admin:
+        december = admin.post(
+            "/finance/payments", json={**_charge(10), "competence_year": 2030, "competence_month": 12}
+        )
+        january = admin.post(
+            "/finance/payments", json={**_charge(20), "competence_year": 2031, "competence_month": 1}
+        )
+        assert december.status_code == january.status_code == 201
+        response = admin.get(
+            "/finance/payments?regime=accrual&start_year=2030&start_month=12&end_year=2031&end_month=1"
+        )
+        assert response.status_code == 200
+        assert [item["competence_period"] for item in response.json()] == ["2030-12"]

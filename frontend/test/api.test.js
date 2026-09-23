@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { ApiError, apiRequest, authenticate, buildAppointmentPatch, canAccessFinancialUi, formatMoneyFromCents, parseMoneyToCents } from "../src/api.js";
+import { ApiError, apiRequest, authenticate, buildAppointmentPatch, buildFinancePeriodQuery, canAccessFinancialUi, formatCompetencePeriod, formatMoneyFromCents, nextCompetencePeriod, parseCompetencePeriod, parseMoneyToCents } from "../src/api.js";
 import { clearFrontendSession } from "../src/session.js";
 
 function jsonResponse(body, status = 200) {
@@ -133,4 +133,25 @@ test("interface financeira fica indisponivel para psicologo", () => {
   assert.equal(canAccessFinancialUi("admin"), true);
   assert.equal(canAccessFinancialUi("reception"), true);
   assert.equal(canAccessFinancialUi("psychologist"), false);
+});
+
+test("competencia financeira usa somente ano e mes", () => {
+  assert.deepEqual(parseCompetencePeriod("2026-07"), { competence_year: 2026, competence_month: 7 });
+  assert.equal(formatCompetencePeriod(2026, 7), "2026-07");
+  assert.equal(nextCompetencePeriod("2030-12"), "2031-01");
+  for (const invalid of ["2026-00", "2026-13", "2026-07-01", ""] ) {
+    assert.throws(() => parseCompetencePeriod(invalid), TypeError);
+  }
+});
+
+test("filtro accrual envia fronteiras mensais sem fabricar dia", () => {
+  const query = buildFinancePeriodQuery({
+    regime: "accrual", accrualStart: "2030-12", accrualEnd: "2031-01",
+    cashStart: "", cashEnd: ""
+  });
+  const params = new URLSearchParams(query);
+  assert.deepEqual(Object.fromEntries(params), {
+    regime: "accrual", start_year: "2030", start_month: "12", end_year: "2031", end_month: "1"
+  });
+  assert.equal(query.includes("-01-01"), false);
 });

@@ -38,14 +38,16 @@ def test_ac001_canonical_schema_uses_positive_integer_cents_only():
         PaymentCreate(
             patient_id=1,
             due_date=date(2031, 1, 2),
-            competence_date=date(2031, 1, 1),
+            competence_year=2031,
+            competence_month=1,
             amount_cents=0,
         )
     with pytest.raises(ValidationError):
         PaymentCreate(
             patient_id=1,
             due_date=date(2031, 1, 2),
-            competence_date=date(2031, 1, 1),
+            competence_year=2031,
+            competence_month=1,
             amount_cents=10.5,
         )
 
@@ -54,7 +56,8 @@ def test_ac003_and_ac004_schema_has_explicit_regime_lifecycle_and_version_fields
     columns = _columns("payments")
 
     assert {
-        "competence_date",
+        "competence_year",
+        "competence_month",
         "paid_at",
         "status",
         "version",
@@ -63,7 +66,39 @@ def test_ac003_and_ac004_schema_has_explicit_regime_lifecycle_and_version_fields
         "canceled_at",
         "reversed_at",
     } <= set(columns)
+    assert "competence_date" not in columns
     assert "overdue" not in columns
+
+
+@pytest.mark.parametrize("month", [0, 13])
+def test_d00508_schema_rejects_invalid_month(month):
+    with pytest.raises(ValidationError):
+        PaymentCreate(
+            patient_id=1,
+            due_date=date(2031, 1, 2),
+            competence_year=2031,
+            competence_month=month,
+            amount_cents=100,
+        )
+
+
+def test_d00508_schema_requires_complete_month_and_rejects_daily_legacy_field():
+    with pytest.raises(ValidationError):
+        PaymentCreate(
+            patient_id=1,
+            due_date=date(2031, 1, 2),
+            competence_year=2031,
+            amount_cents=100,
+        )
+    with pytest.raises(ValidationError):
+        PaymentCreate(
+            patient_id=1,
+            due_date=date(2031, 1, 2),
+            competence_year=2031,
+            competence_month=1,
+            competence_date=date(2031, 1, 1),
+            amount_cents=100,
+        )
 
 
 def test_ac005_and_ac009_schema_has_append_only_history_and_controlled_categories():
@@ -105,9 +140,33 @@ def test_ac001_database_constraints_reject_non_positive_amount_and_invalid_statu
             payment_model(
                 patient_id=person.id,
                 amount_cents=0,
-                competence_date=date(2031, 1, 1),
+                competence_year=2031,
+                competence_month=1,
                 due_date=date(2031, 1, 2),
                 status="invented",
+            )
+        )
+        with pytest.raises(IntegrityError):
+            db.commit()
+
+
+@pytest.mark.parametrize(("year", "month"), [(0, 1), (10000, 1), (2031, 0), (2031, 13)])
+def test_d00508_database_constraints_reject_invalid_year_month(year, month):
+    engine = create_engine("sqlite:///:memory:", future=True)
+    Base.metadata.create_all(engine)
+    sessions = sessionmaker(bind=engine, future=True)
+    with sessions() as db:
+        person = patient.Patient(full_name="Pessoa Sintetica", active=True)
+        db.add(person)
+        db.commit()
+        db.add(
+            finance.Payment(
+                patient_id=person.id,
+                amount_cents=100,
+                competence_year=year,
+                competence_month=month,
+                due_date=date(2031, 1, 2),
+                status="pending",
             )
         )
         with pytest.raises(IntegrityError):

@@ -36,6 +36,44 @@ export function canAccessFinancialUi(role) {
   return role === "admin" || role === "reception";
 }
 
+export function parseCompetencePeriod(value) {
+  const match = /^(\d{4})-(\d{2})$/.exec(String(value));
+  if (!match) throw new TypeError("Informe a competencia no formato AAAA-MM.");
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  if (year < 1 || year > 9999 || month < 1 || month > 12) {
+    throw new TypeError("Competencia mensal invalida.");
+  }
+  return { competence_year: year, competence_month: month };
+}
+
+export function formatCompetencePeriod(year, month) {
+  if (!Number.isInteger(year) || !Number.isInteger(month) || year < 1 || year > 9999 || month < 1 || month > 12) {
+    return "Competencia invalida";
+  }
+  return `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}`;
+}
+
+export function nextCompetencePeriod(value) {
+  const { competence_year: year, competence_month: month } = parseCompetencePeriod(value);
+  return month === 12 ? `${String(year + 1).padStart(4, "0")}-01` : `${String(year).padStart(4, "0")}-${String(month + 1).padStart(2, "0")}`;
+}
+
+export function buildFinancePeriodQuery(period) {
+  if (period.regime === "cash") {
+    return new URLSearchParams({ start: period.cashStart, end: period.cashEnd, regime: "cash" }).toString();
+  }
+  const start = parseCompetencePeriod(period.accrualStart);
+  const end = parseCompetencePeriod(period.accrualEnd);
+  return new URLSearchParams({
+    regime: "accrual",
+    start_year: String(start.competence_year),
+    start_month: String(start.competence_month),
+    end_year: String(end.competence_year),
+    end_month: String(end.competence_month)
+  }).toString();
+}
+
 export function buildAppointmentPatch(appointment, form) {
   const changes = {};
   const scheduledAt = `${form.scheduled_date}T${form.scheduled_time}:00`;

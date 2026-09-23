@@ -17,6 +17,12 @@ O backend/FastAPI é a única autoridade financeira. O modelo canônico usa cent
 inteiros, serviços transacionais, versão otimista e eventos append-only. A interface
 Electron consome esse contrato; o caminho Tkinter consulta o mesmo resumo via API.
 
+A competência financeira canônica tem granularidade mensal e é representada pelo
+par inteiro `competence_year` + `competence_month`, apresentado como `YYYY-MM`.
+Ela não é uma data diária e não pode ser persistida ou transportada como primeiro
+dia, último dia ou outro dia artificial. Consultas e relatórios mantêm competência
+mensal separada do caixa, cuja autoridade temporal continua sendo `paid_at`.
+
 O bootstrap/seed Tkinter não registra nem cria fatos financeiros e o caminho de
 ativação desktop não importa o antigo model/service/repository financeiro. Service e
 repository legados falham explicitamente se chamados; os models históricos ficam
@@ -33,3 +39,6 @@ Generation 8/canonical, ponteiro e manifestos operacionais não são alterados p
 implementação ou pelo dry-run da SPEC-005. Origem, candidato e recovery são
 rejeitados antes de qualquer mutação quando resolvem dentro do runtime operacional
 ou para o banco apontado pelo pointer, inclusive por caminho normalizado/alias.
+A implementação baseada em `competence_date: DATE` foi substituída e revalidada pelo
+executor em todas as camadas afetadas. Essa reconciliação não criou candidato
+operacional e não autoriza alterar a Generation 8/canonical.

@@ -69,10 +69,22 @@ reinterpretados automaticamente.
 
 ## Contrato financeiro SPEC-005
 
+O contrato abaixo incorpora a decisão HUMAN D005-08. A implementação foi
+reconciliada e validada pelo executor, sem executar E011 ou criar candidato
+operacional.
+
 - Dinheiro e agregados financeiros usam centavos inteiros (`amount_cents`); zero,
   negativo, float canônico, arredondamento e truncamento são rejeitados.
-- Caixa usa `paid_at`; competência usa `competence_date`; todos os períodos são
-  explícitos e seguem `[start,end)`.
+- Caixa usa `paid_at`. Competência é mensal e usa exclusivamente o par inteiro
+  `competence_year` + `competence_month`, apresentado como `YYYY-MM`; não existe
+  dia representativo canônico. Filtros mantêm os regimes separados e usam limites
+  semiabertos no respectivo domínio temporal.
+- Payloads de cobrança e despesa exigem `competence_year` e `competence_month` e
+  retornam também `competence_period` como apresentação `YYYY-MM`.
+- Consultas CASH usam `start`/`end` como datas ISO. Consultas ACCRUAL não aceitam
+  datas diárias: usam `start_year`, `start_month`, `end_year` e `end_month`.
+- Payload legado com `competence_date` retorna `422`; não existe alias que fabrique
+  primeiro ou último dia do mês.
 - Estados persistidos da cobrança: `pending`, `paid`, `canceled`, `reversed`.
   `overdue` é apenas derivado.
 - Pagamento parcial, múltiplas liquidações e parcelamento retornam `422`.

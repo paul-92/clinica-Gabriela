@@ -66,11 +66,12 @@ def actor(role):
     return SimpleNamespace(id={"admin": 201, "reception": 202, "psychologist": 203}[role], role=role)
 
 
-def charge(amount_cents=10, competence=date(2031, 1, 31), due=date(2031, 2, 5)):
+def charge(amount_cents=10, competence=(2031, 1), due=date(2031, 2, 5)):
     return {
         "patient_id": 101,
         "appointment_id": None,
-        "competence_date": competence,
+        "competence_year": competence[0],
+        "competence_month": competence[1],
         "due_date": due,
         "amount_cents": amount_cents,
         "payment_method": "",
@@ -82,12 +83,16 @@ def test_ac002_exact_cent_arithmetic_and_ac003_period_boundaries(finance_db):
     with finance_db() as db:
         service = FinanceService(db)
         first = service.create_payment(charge(10), actor("reception"))
-        second = service.create_payment(charge(20, competence=date(2031, 2, 1)), actor("reception"))
+        second = service.create_payment(charge(20, competence=(2031, 2)), actor("reception"))
         service.register_payment(first["id"], {"paid_at": date(2031, 2, 1), "payment_method": "Pix"}, 1, actor("reception"))
         service.register_payment(second["id"], {"paid_at": date(2031, 3, 1), "payment_method": "Pix"}, 1, actor("reception"))
 
-        january_accrual = service.summary(date(2031, 1, 1), date(2031, 2, 1), "accrual", actor("admin"))
-        february_accrual = service.summary(date(2031, 2, 1), date(2031, 3, 1), "accrual", actor("admin"))
+        january_accrual = service.summary(
+            None, None, "accrual", actor("admin"), 2031, 1, 2031, 2
+        )
+        february_accrual = service.summary(
+            None, None, "accrual", actor("admin"), 2031, 2, 2031, 3
+        )
         february_cash = service.summary(date(2031, 2, 1), date(2031, 3, 1), "cash", actor("admin"))
         march_cash = service.summary(date(2031, 3, 1), date(2031, 4, 1), "cash", actor("admin"))
 
@@ -103,7 +108,8 @@ def test_ac004_overdue_is_derived_and_lifecycle_is_explicit(finance_db):
         service = FinanceService(db)
         item = service.create_payment(charge(due=date(2031, 1, 10)), actor("reception"))
         listed = service.list_payments(
-            date(2031, 1, 1), date(2031, 2, 1), "accrual", reference_date=date(2031, 1, 11), actor=actor("reception")
+            None, None, "accrual", reference_date=date(2031, 1, 11), actor=actor("reception"),
+            start_year=2031, start_month=1, end_year=2031, end_month=2,
         )
         assert listed[0]["overdue"] is True
         assert db.get(Payment, item["id"]).status == "pending"
@@ -178,7 +184,8 @@ def test_ac009_controlled_categories_and_expense_history(finance_db):
                 "description": "Despesa sintetica",
                 "amount_cents": 250,
                 "expense_date": date(2031, 2, 3),
-                "competence_date": date(2031, 2, 1),
+                "competence_year": 2031,
+                "competence_month": 2,
                 "category_id": category.id,
             },
             actor("admin"),

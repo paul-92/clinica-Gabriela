@@ -81,11 +81,13 @@ def seed_database(session_factory=None):
         session.flush()
 
         finance = FinanceService(session)
+        competence_today = date.today()
         category = finance.create_category({"name": "Estrutura", "active": True}, seed_actor)
         finance.create_payment(
             {
                 "patient_id": patient.id,
-                "competence_date": date.today(),
+                "competence_year": competence_today.year,
+                "competence_month": competence_today.month,
                 "due_date": date.today(),
                 "amount_cents": 18000,
                 "payment_method": "Pix",
@@ -98,7 +100,8 @@ def seed_database(session_factory=None):
                 "description": "Aluguel da sala",
                 "amount_cents": 120000,
                 "expense_date": date.today(),
-                "competence_date": date.today(),
+                "competence_year": competence_today.year,
+                "competence_month": competence_today.month,
                 "category_id": category.id,
             },
             seed_actor,

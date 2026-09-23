@@ -161,6 +161,19 @@ def _validate_payment(row):
         raise Spec005ReviewBlock("REVIEW/BLOCK: estorno sem motivo")
 
 
+def _validate_competence(row, resource):
+    if "competence_date" in row:
+        raise Spec005ReviewBlock(
+            f"REVIEW/BLOCK: {resource} usa competence_date diario incompatível com D005-08"
+        )
+    year = _require_explicit(row, "competence_year", resource)
+    month = _require_explicit(row, "competence_month", resource)
+    if isinstance(year, bool) or not isinstance(year, int) or not 1 <= year <= 9999:
+        raise Spec005ReviewBlock(f"REVIEW/BLOCK: {resource} com ano de competencia invalido")
+    if isinstance(month, bool) or not isinstance(month, int) or not 1 <= month <= 12:
+        raise Spec005ReviewBlock(f"REVIEW/BLOCK: {resource} com mes de competencia invalido")
+
+
 def _id_hash(rows):
     payload = ",".join(str(row["id"]) for row in rows).encode("ascii")
     return hashlib.sha256(payload).hexdigest()
@@ -180,8 +193,14 @@ def inventory_finance_snapshot(source) -> dict:
         return {
             "payment_count": len(payment_rows),
             "expense_count": len(expense_rows),
-            "payment_has_explicit_competence": "competence_date" in _columns(connection, "payments"),
-            "expense_has_explicit_competence": "competence_date" in _columns(connection, "expenses"),
+            "payment_has_explicit_competence": {
+                "competence_year", "competence_month"
+            } <= _columns(connection, "payments"),
+            "expense_has_explicit_competence": {
+                "competence_year", "competence_month"
+            } <= _columns(connection, "expenses"),
+            "payment_has_legacy_daily_competence": "competence_date" in _columns(connection, "payments"),
+            "expense_has_legacy_daily_competence": "competence_date" in _columns(connection, "expenses"),
             "null_appointment_count": sum(row.get("appointment_id") is None for row in payment_rows),
             "payment_ids_sha256": _id_hash(payment_rows),
             "expense_ids_sha256": _id_hash(expense_rows),
@@ -203,7 +222,8 @@ def _create_target_schema(connection):
           id INTEGER PRIMARY KEY,
           patient_id INTEGER NOT NULL REFERENCES patients(id) ON DELETE NO ACTION,
           appointment_id INTEGER REFERENCES appointments(id) ON DELETE NO ACTION,
-          competence_date DATE NOT NULL, due_date DATE NOT NULL, paid_at DATE,
+          competence_year INTEGER NOT NULL, competence_month INTEGER NOT NULL,
+          due_date DATE NOT NULL, paid_at DATE,
           amount_cents INTEGER NOT NULL,
           status VARCHAR(30) NOT NULL DEFAULT 'pending',
           payment_method VARCHAR(50) NOT NULL DEFAULT '', description TEXT NOT NULL DEFAULT '',
@@ -216,6 +236,8 @@ def _create_target_schema(connection):
           created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
           updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
           CONSTRAINT ck_payments_amount_positive CHECK (amount_cents > 0),
+          CONSTRAINT ck_payments_competence_year CHECK (competence_year BETWEEN 1 AND 9999),
+          CONSTRAINT ck_payments_competence_month CHECK (competence_month BETWEEN 1 AND 12),
           CONSTRAINT ck_payments_status CHECK (status IN ('pending','paid','canceled','reversed')),
           CONSTRAINT ck_payments_lifecycle CHECK (
             (status='pending' AND paid_at IS NULL AND canceled_at IS NULL AND reversed_at IS NULL) OR
@@ -226,7 +248,8 @@ def _create_target_schema(connection):
         );
         CREATE TABLE expenses (
           id INTEGER PRIMARY KEY, description VARCHAR(160) NOT NULL,
-          amount_cents INTEGER NOT NULL, expense_date DATE NOT NULL, competence_date DATE NOT NULL,
+          amount_cents INTEGER NOT NULL, expense_date DATE NOT NULL,
+          competence_year INTEGER NOT NULL, competence_month INTEGER NOT NULL,
           category_id INTEGER NOT NULL REFERENCES expense_categories(id) ON DELETE NO ACTION,
           status VARCHAR(30) NOT NULL DEFAULT 'active', version INTEGER NOT NULL DEFAULT 1,
           created_by_user_id INTEGER REFERENCES users(id) ON DELETE NO ACTION,
@@ -235,6 +258,8 @@ def _create_target_schema(connection):
           created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
           updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
           CONSTRAINT ck_expenses_amount_positive CHECK (amount_cents > 0),
+          CONSTRAINT ck_expenses_competence_year CHECK (competence_year BETWEEN 1 AND 9999),
+          CONSTRAINT ck_expenses_competence_month CHECK (competence_month BETWEEN 1 AND 12),
           CONSTRAINT ck_expenses_status CHECK (status IN ('active','canceled')),
           CONSTRAINT ck_expenses_lifecycle CHECK (
             (status='active' AND canceled_at IS NULL) OR
@@ -250,12 +275,12 @@ def _create_target_schema(connection):
           CONSTRAINT ck_financial_events_event_type CHECK (length(trim(event_type)) > 0)
         );
         CREATE INDEX ix_payments_cash_period ON payments(status, paid_at);
-        CREATE INDEX ix_payments_accrual_period ON payments(competence_date, status);
+        CREATE INDEX ix_payments_accrual_period ON payments(competence_year, competence_month, status);
         CREATE INDEX ix_payments_due_status ON payments(due_date, status);
         CREATE INDEX ix_payments_patient ON payments(patient_id);
         CREATE INDEX ix_payments_appointment ON payments(appointment_id);
         CREATE INDEX ix_expenses_cash_period ON expenses(expense_date, status);
-        CREATE INDEX ix_expenses_accrual_period ON expenses(competence_date, status);
+        CREATE INDEX ix_expenses_accrual_period ON expenses(competence_year, competence_month, status);
         CREATE INDEX ix_expenses_category ON expenses(category_id);
         CREATE INDEX ix_financial_events_resource ON financial_events(resource_type, resource_id, created_at);
         CREATE TRIGGER spec005_payments_no_delete BEFORE DELETE ON payments
@@ -294,16 +319,12 @@ def migrate_finance_candidate(source, output, recovery=None) -> FinanceMigration
     with _read_only_connection(source_path) as source_connection:
         payments = _rows(source_connection, "payments")
         expenses = _rows(source_connection, "expenses")
-        if "competence_date" not in _columns(source_connection, "payments") and payments:
-            raise Spec005ReviewBlock("REVIEW/BLOCK: cobrancas sem competencia explicita")
-        if "competence_date" not in _columns(source_connection, "expenses") and expenses:
-            raise Spec005ReviewBlock("REVIEW/BLOCK: despesas sem competencia explicita")
         for row in payments:
-            _require_explicit(row, "competence_date", "cobranca")
+            _validate_competence(row, "cobranca")
             _validate_payment(row)
             row["amount_cents"] = exact_cents(row.get("amount"))
         for row in expenses:
-            _require_explicit(row, "competence_date", "despesa")
+            _validate_competence(row, "despesa")
             _require_explicit(row, "category", "despesa")
             if row.get("status") not in (None, "active", "canceled"):
                 raise Spec005ReviewBlock("REVIEW/BLOCK: estado de despesa legado invalido")
@@ -330,11 +351,12 @@ def migrate_finance_candidate(source, output, recovery=None) -> FinanceMigration
         for row in payments:
             connection.execute(
                 """INSERT INTO payments(
-                  id,patient_id,appointment_id,competence_date,due_date,paid_at,amount_cents,status,
+                  id,patient_id,appointment_id,competence_year,competence_month,due_date,paid_at,amount_cents,status,
                   payment_method,description,version,canceled_at,reversed_at,cancellation_reason,reversal_reason
-                ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                 (
-                    row["id"], row["patient_id"], row.get("appointment_id"), row["competence_date"],
+                    row["id"], row["patient_id"], row.get("appointment_id"),
+                    row["competence_year"], row["competence_month"],
                     row["due_date"], row.get("paid_at"), row["amount_cents"], row["status"],
                     row.get("payment_method") or "", row.get("description") or "", row.get("version") or 1,
                     row.get("canceled_at"), row.get("reversed_at"), row.get("cancellation_reason") or "",
@@ -348,12 +370,13 @@ def migrate_finance_candidate(source, output, recovery=None) -> FinanceMigration
         for row in expenses:
             connection.execute(
                 """INSERT INTO expenses(
-                  id,description,amount_cents,expense_date,competence_date,category_id,status,version,
+                  id,description,amount_cents,expense_date,competence_year,competence_month,category_id,status,version,
                   canceled_at,cancellation_reason
-                ) VALUES(?,?,?,?,?,?,?,?,?,?)""",
+                ) VALUES(?,?,?,?,?,?,?,?,?,?,?)""",
                 (
                     row["id"], row["description"], row["amount_cents"], row["expense_date"],
-                    row["competence_date"], category_ids[str(row["category"]).strip()],
+                    row["competence_year"], row["competence_month"],
+                    category_ids[str(row["category"]).strip()],
                     row.get("status") or "active", row.get("version") or 1, row.get("canceled_at"),
                     row.get("cancellation_reason") or "",
                 ),

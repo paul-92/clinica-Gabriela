@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from pydantic import ConfigDict, Field, StrictInt, field_validator
+from pydantic import ConfigDict, Field, StrictInt, field_validator, model_validator
 
 from backend.schemas.common import ORMBase
 
@@ -12,7 +12,8 @@ class FinanceInput(ORMBase):
 class PaymentBase(FinanceInput):
     patient_id: int
     appointment_id: int | None = None
-    competence_date: date
+    competence_year: StrictInt = Field(ge=1, le=9999)
+    competence_month: StrictInt = Field(ge=1, le=12)
     due_date: date
     amount_cents: StrictInt = Field(gt=0)
     payment_method: str = ""
@@ -28,15 +29,24 @@ class PaymentCreate(PaymentBase):
 
 class PaymentUpdate(FinanceInput):
     appointment_id: int | None = None
-    competence_date: date | None = None
+    competence_year: StrictInt | None = Field(default=None, ge=1, le=9999)
+    competence_month: StrictInt | None = Field(default=None, ge=1, le=12)
     due_date: date | None = None
     amount_cents: StrictInt | None = Field(default=None, gt=0)
     payment_method: str | None = None
     description: str | None = None
 
+    @model_validator(mode="after")
+    def complete_competence_pair(self):
+        changed = self.model_fields_set
+        if ("competence_year" in changed) != ("competence_month" in changed):
+            raise ValueError("Ano e mes da competencia devem ser informados juntos.")
+        return self
+
 
 class PaymentRead(PaymentBase):
     id: int
+    competence_period: str
     paid_at: date | None
     status: str
     version: int
@@ -72,7 +82,8 @@ class ExpenseBase(FinanceInput):
     description: str
     amount_cents: StrictInt = Field(gt=0)
     expense_date: date
-    competence_date: date
+    competence_year: StrictInt = Field(ge=1, le=9999)
+    competence_month: StrictInt = Field(ge=1, le=12)
     category_id: int
 
 
@@ -82,6 +93,7 @@ class ExpenseCreate(ExpenseBase):
 
 class ExpenseRead(ExpenseBase):
     id: int
+    competence_period: str
     status: str
     version: int
     category_name: str = ""
@@ -129,8 +141,8 @@ class FinancialEventRead(ORMBase):
 
 class FinanceSummary(ORMBase):
     regime: str
-    start: date
-    end: date
+    start: str
+    end: str
     income_cents: int
     receivable_cents: int
     expense_cents: int

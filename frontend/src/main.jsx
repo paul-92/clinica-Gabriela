@@ -20,7 +20,7 @@ import {
   UsersRound
 } from "lucide-react";
 import "./styles.css";
-import { ApiError, apiRequest, authenticate, buildAppointmentPatch, canAccessFinancialUi, formatMoneyFromCents, parseMoneyToCents } from "./api.js";
+import { ApiError, apiRequest, authenticate, buildAppointmentPatch, buildFinancePeriodQuery, canAccessFinancialUi, formatCompetencePeriod, formatMoneyFromCents, nextCompetencePeriod, parseCompetencePeriod, parseMoneyToCents } from "./api.js";
 import { clearFrontendSession } from "./session.js";
 
 const today = new Date().toISOString().slice(0, 10);
@@ -30,6 +30,8 @@ const defaultPeriodEnd = (() => {
   value.setUTCMonth(value.getUTCMonth() + 1);
   return value.toISOString().slice(0, 10);
 })();
+const defaultCompetencePeriod = today.slice(0, 7);
+const defaultCompetenceEnd = nextCompetencePeriod(defaultCompetencePeriod);
 
 const fallback = {
   dashboard: {
@@ -209,8 +211,8 @@ function App() {
     }
   };
 
-  const loadFinance = async ({ start, end, regime }) => {
-    const query = new URLSearchParams({ start, end, regime }).toString();
+  const loadFinance = async (period) => {
+    const query = buildFinancePeriodQuery(period);
     setState((current) => ({ ...current, loading: true, financeError: "" }));
     try {
       const [payments, expenses, finance] = await Promise.all([
@@ -222,7 +224,12 @@ function App() {
     } catch (error) {
       setState((current) => ({
         ...current,
-        payments: [], expenses: [], finance: { ...fallback.finance, start, end, regime },
+        payments: [], expenses: [], finance: {
+          ...fallback.finance,
+          start: period.regime === "cash" ? period.cashStart : period.accrualStart,
+          end: period.regime === "cash" ? period.cashEnd : period.accrualEnd,
+          regime: period.regime
+        },
         loading: false,
         financeError: error instanceof ApiError ? error.message : "Nao foi possivel carregar o periodo financeiro."
       }));
@@ -828,11 +835,17 @@ function ClinicalRecords({ data, submit }) {
 }
 
 function Finance({ data, submit, loadFinance, user }) {
-  const [period, setPeriod] = useState({ start: defaultPeriodStart, end: defaultPeriodEnd, regime: "cash" });
+  const [period, setPeriod] = useState({
+    cashStart: defaultPeriodStart,
+    cashEnd: defaultPeriodEnd,
+    accrualStart: defaultCompetencePeriod,
+    accrualEnd: defaultCompetenceEnd,
+    regime: "cash"
+  });
   const [formError, setFormError] = useState("");
   const [paymentForm, setPaymentForm] = useState({
     patient_id: data.patients[0]?.id || "",
-    competence_date: today,
+    competence_period: defaultCompetencePeriod,
     due_date: today,
     amount: "180,00",
     payment_method: "",
@@ -842,7 +855,7 @@ function Finance({ data, submit, loadFinance, user }) {
     description: "",
     amount: "",
     expense_date: today,
-    competence_date: today,
+    competence_period: defaultCompetencePeriod,
     category_id: ""
   });
   const patientById = Object.fromEntries(data.patients.map((patient) => [patient.id, patient]));
@@ -851,10 +864,12 @@ function Finance({ data, submit, loadFinance, user }) {
     event.preventDefault();
     setFormError("");
     try {
+      const { competence_period: competencePeriod, amount, ...fields } = paymentForm;
       await submit("/finance/payments", {
-        ...paymentForm,
+        ...fields,
+        ...parseCompetencePeriod(competencePeriod),
         patient_id: Number(paymentForm.patient_id),
-        amount_cents: parseMoneyToCents(paymentForm.amount)
+        amount_cents: parseMoneyToCents(amount)
       });
     } catch (error) {
       setFormError(error instanceof Error ? error.message : "Nao foi possivel criar a cobranca.");
@@ -865,10 +880,12 @@ function Finance({ data, submit, loadFinance, user }) {
     event.preventDefault();
     setFormError("");
     try {
+      const { competence_period: competencePeriod, amount, ...fields } = expenseForm;
       await submit("/finance/expenses", {
-        ...expenseForm,
+        ...fields,
+        ...parseCompetencePeriod(competencePeriod),
         category_id: Number(expenseForm.category_id),
-        amount_cents: parseMoneyToCents(expenseForm.amount)
+        amount_cents: parseMoneyToCents(amount)
       });
     } catch (error) {
       setFormError(error instanceof Error ? error.message : "Nao foi possivel criar a despesa.");
@@ -902,17 +919,21 @@ function Finance({ data, submit, loadFinance, user }) {
         <form className="inlineFields" onSubmit={(event) => { event.preventDefault(); loadFinance(period); }}>
           <label>
             Inicio inclusivo
-            <input type="date" value={period.start} onChange={(event) => setPeriod({ ...period, start: event.target.value })} />
+            {period.regime === "cash"
+              ? <input type="date" value={period.cashStart} onChange={(event) => setPeriod({ ...period, cashStart: event.target.value })} />
+              : <input type="month" value={period.accrualStart} onChange={(event) => setPeriod({ ...period, accrualStart: event.target.value })} />}
           </label>
           <label>
             Fim exclusivo
-            <input type="date" value={period.end} onChange={(event) => setPeriod({ ...period, end: event.target.value })} />
+            {period.regime === "cash"
+              ? <input type="date" value={period.cashEnd} onChange={(event) => setPeriod({ ...period, cashEnd: event.target.value })} />
+              : <input type="month" value={period.accrualEnd} onChange={(event) => setPeriod({ ...period, accrualEnd: event.target.value })} />}
           </label>
           <label>
             Regime
             <select value={period.regime} onChange={(event) => setPeriod({ ...period, regime: event.target.value })}>
               <option value="cash">Caixa (paid_at)</option>
-              <option value="accrual">Competencia explicita</option>
+              <option value="accrual">Competencia mensal (AAAA-MM)</option>
             </select>
           </label>
           <button className="primaryButton" disabled={data.loading}>Aplicar periodo</button>
@@ -942,7 +963,7 @@ function Finance({ data, submit, loadFinance, user }) {
             <div className="inlineFields">
               <label>
                 Competencia
-                <input type="date" value={paymentForm.competence_date} onChange={(event) => setPaymentForm({ ...paymentForm, competence_date: event.target.value })} />
+                <input type="month" value={paymentForm.competence_period} onChange={(event) => setPaymentForm({ ...paymentForm, competence_period: event.target.value })} />
               </label>
               <label>
                 Vencimento
@@ -978,7 +999,7 @@ function Finance({ data, submit, loadFinance, user }) {
             <div className="inlineFields">
               <label>
                 Competencia
-                <input type="date" value={expenseForm.competence_date} onChange={(event) => setExpenseForm({ ...expenseForm, competence_date: event.target.value })} />
+                <input type="month" value={expenseForm.competence_period} onChange={(event) => setExpenseForm({ ...expenseForm, competence_period: event.target.value })} />
               </label>
               <label>
                 Data
@@ -1009,7 +1030,7 @@ function Finance({ data, submit, loadFinance, user }) {
             columns={["Paciente", "Competencia", "Vencimento", "Valor", "Forma", "Status", "Acoes"]}
             rows={data.payments.map((payment) => [
               patientById[payment.patient_id]?.full_name || "Paciente",
-              payment.competence_date,
+              payment.competence_period || formatCompetencePeriod(payment.competence_year, payment.competence_month),
               payment.due_date,
               money(payment.amount_cents),
               payment.payment_method,
@@ -1027,7 +1048,7 @@ function Finance({ data, submit, loadFinance, user }) {
           <DataTable
             columns={["Descricao", "Competencia", "Data", "Valor", "Categoria", "Status", "Acoes"]}
             rows={data.expenses.map((expense) => [
-              expense.description, expense.competence_date, expense.expense_date, money(expense.amount_cents),
+              expense.description, expense.competence_period || formatCompetencePeriod(expense.competence_year, expense.competence_month), expense.expense_date, money(expense.amount_cents),
               expense.category_name, statusLabels[expense.status] || expense.status,
               user.role === "admin" && expense.status === "active" ? <button onClick={() => cancelExpense(expense)}>Cancelar</button> : ""
             ])}

@@ -14,7 +14,7 @@ Este diretório reúne as especificações funcionais, técnicas, arquiteturais,
 | SPEC-002 | Autenticação e autorização seguras | READY FOR IMPLEMENTATION | P0 | implementar primeiro |
 | SPEC-003 | Integridade clínica | ACCEPTED / DONE | P1 | preservar Evidence e recovery; manutenção futura somente |
 | SPEC-004 | Agenda e atendimentos | BASELINE FUNCTIONAL APPROVED | P1 | pronta para implementação orquestrada; implementação ainda não iniciada |
-| SPEC-005 | Financeiro | CONTRACT FROZEN — implementação não autorizada | P1 | aguardar autorização HUMAN de implementação |
+| SPEC-005 | Financeiro | D005-08 RECONCILED — executor validated | P1 | revisão independente D005-08; E011 permanece sem autorização |
 | SPEC-006 | Backup e recuperação | DRAFT detalhada | P1 | implementar antes de migrations críticas |
 | SPEC-007 | Testes automatizados | DRAFT detalhada | P1 transversal | aplicar desde o início |
 | SPEC-008 | Unificação arquitetural | DRAFT detalhada | P1 | inventário e decisão após SPEC-002 |
@@ -333,6 +333,8 @@ precisão monetária
 Gate mínimo:
 
 - [ ] dinheiro não depende de `float` inadequado;
+- [ ] competência usa ano/mês explícitos, sem dia representativo artificial;
+- [ ] caixa (`paid_at`) e competência mensal permanecem separados;
 - [ ] período dos indicadores é explícito;
 - [ ] resumo mensal não soma histórico inteiro;
 - [ ] transições de status estão definidas;

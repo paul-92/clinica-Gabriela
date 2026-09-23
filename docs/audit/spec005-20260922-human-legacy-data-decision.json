@@ -1,0 +1,109 @@
+{
+  "authority": "HUMAN/Product Owner",
+  "baseline": {
+    "database_checksum_sha256": "1edb9c5c77a8eb56da6cb5254e2bf795aa56a1d8c94dbbc855d0b70d40f404c8",
+    "generation": 8,
+    "pointer_checksum_sha256": "d83a0654ce964f93c3191bb4a9bbe24fa78c55087666e6831f04f60630a1c50a",
+    "runtime_manifest_checksum_sha256": "cd806a300f182c5d0f70cb6a6e4b2b0b9a574ff2f4cf02d7271cfcdaec5ef519",
+    "state": "canonical"
+  },
+  "contract_amendment": {
+    "canonical_fields": [
+      "competence_year",
+      "competence_month"
+    ],
+    "canonical_granularity": "month",
+    "canonical_text_representation": "YYYY-MM",
+    "cash_time_authority": "paid_at",
+    "cash_and_accrual_must_remain_separate": true,
+    "competence_date_prohibited": true,
+    "decision_id": "D005-08",
+    "representative_day_prohibited": true
+  },
+  "decision": "approve_explicit_year_month_competence_and_record_legacy_period",
+  "decisions": [
+    {
+      "competence_month": 7,
+      "competence_period": "2026-07",
+      "competence_year": 2026,
+      "review_id": "R1",
+      "status_treatment": "not_changed_by_this_decision"
+    },
+    {
+      "competence_month": 7,
+      "competence_period": "2026-07",
+      "competence_year": 2026,
+      "paid_at": null,
+      "paid_at_inference_authorized": false,
+      "paid_at_is_unknown": true,
+      "review_id": "R2",
+      "paid_requires_paid_at_invariant_relaxation_authorized": false,
+      "status_treatment": "retain_paid",
+      "unresolved_treatment": "REVIEW/BLOCK_EXCLUDE_FROM_CANONICAL_CANDIDATE_UNTIL_TRUSTED_PAID_AT"
+    },
+    {
+      "competence_month": 7,
+      "competence_period": "2026-07",
+      "competence_year": 2026,
+      "review_id": "R3",
+      "status_treatment": "not_changed_by_this_decision"
+    },
+    {
+      "competence_month": 7,
+      "competence_period": "2026-07",
+      "competence_year": 2026,
+      "review_id": "R4",
+      "status_treatment": "not_changed_by_this_decision"
+    },
+    {
+      "competence_month": 7,
+      "competence_period": "2026-07",
+      "competence_year": 2026,
+      "review_id": "R5",
+      "status_treatment": "not_changed_by_this_decision"
+    },
+    {
+      "competence_month": 7,
+      "competence_period": "2026-07",
+      "competence_year": 2026,
+      "review_id": "R6",
+      "status_treatment": "not_changed_by_this_decision"
+    }
+  ],
+  "materialization_boundary": {
+    "canonical_competence_date_authorized": false,
+    "canonical_year_month_authorized_for_future_reconciliation": true,
+    "day_materialization_authorized": false,
+    "reason": "HUMAN defined competence as a monthly financial period and prohibited fabrication of a day value",
+    "required_for_future_gate": "reconciled year-month contract and implementation with fresh validation evidence"
+  },
+  "privacy": {
+    "contains_clinical_data": false,
+    "contains_direct_identifiers": false,
+    "contains_internal_primary_keys": false,
+    "review_identifiers_are_temporary": true
+  },
+  "recorded_at": "2026-09-22",
+  "restrictions": {
+    "candidate_database_creation_authorized": false,
+    "commit_authorized": false,
+    "cutover_authorized": false,
+    "e011_authorized": false,
+    "e012_authorized": false,
+    "migration_authorized": false,
+    "operational_data_mutation_authorized": false,
+    "operational_manifest_mutation_authorized": false,
+    "pointer_mutation_authorized": false,
+    "promotion_authorized": false,
+    "push_authorized": false
+  },
+  "review_set": {
+    "classification_before_decision": "REVIEW/BLOCK",
+    "count": 6,
+    "mapping_persisted": false,
+    "r2_classification_after_decision": "REVIEW/BLOCK",
+    "source": "privacy-minimized read-only review package R1-R6"
+  },
+  "specification": "SPEC-005",
+  "state": "IMPLEMENTATION_RECONCILED_PENDING_INDEPENDENT_REVIEW"
+}

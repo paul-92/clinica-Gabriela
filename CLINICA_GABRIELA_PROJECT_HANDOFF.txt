@@ -4,7 +4,7 @@ VERSÃO 2 — CONTEXTO + METODOLOGIA + CONTINUIDADE
 ======================================================================
 
 LAST_DOCUMENT_UPDATE:
-2026-09-18
+2026-09-23
 
 DOCUMENT_PURPOSE:
 Preservar o estado técnico, operacional, metodológico e decisório do
@@ -63,51 +63,36 @@ Aplicação desktop para clínica de psicologia.
 
 CURRENT_SPEC:
 
-SPEC-004 — Agenda e Gestão de Atendimentos
+SPEC-005 — Financeiro
 
 CURRENT_SPEC_STATUS:
 
-OPEN
+OPEN - D005-08 RECONCILED / INDEPENDENT REVIEW PASS
 
 CURRENT_PHASE:
 
-SECOND INDEPENDENT QUALITY REVIEW
+D005-08 COMMIT GATE
 
 CURRENT_STATE:
 
-READY_FOR_SPEC004_SECOND_INDEPENDENT_QUALITY_REVIEW
+READY_FOR_SPEC005_D00508_COMMIT_GATE
 
 LAST_VERIFIED_CHECKPOINT:
 
-READY_FOR_SPEC004_SECOND_INDEPENDENT_QUALITY_REVIEW
+SPEC005_D00508_INDEPENDENT_REVIEW_PASS
 
 IMPORTANT:
 
-A Second Independent Quality Review chegou a ser iniciada, mas foi
-interrompida porque os créditos do agente acabaram.
+A implementação E002–E010 foi reconciliada pelo executor com a
+competência mensal explícita `competence_year` + `competence_month`.
 
-Essa interrupção NÃO representa:
-
-QUALITY_GATE_PASS
-
-nem:
-
-QUALITY_GATE_FAIL.
-
-SPEC-004 NÃO está:
-
-ACCEPTED/DONE.
+E011 e E012 NÃO foram executados. Nenhum candidato operacional foi
+criado ou promovido. Generation 8/canonical, pointer, manifest e banco
+operacional permanecem inalterados.
 
 NEXT_READY:
 
-Retomar a Second Independent Quality Review a partir do último
-checkpoint materialmente verificável.
-
-Antes de repetir qualquer teste:
-
-descobrir se a execução interrompida deixou Evidence ou checkpoints
-parciais válidos.
-
+READY_FOR_SPEC005_D00508_COMMIT_GATE
 
 ======================================================================
 2. REPOSITORY
@@ -4188,3 +4173,143 @@ READY_FOR_SPEC005_E002_E010_COMMIT_HUMAN_GATE
 STOP_CONDITION:
 
 SPEC005_E002_E010_REMEDIATION_COMPLETE
+
+
+======================================================================
+81. SPEC-005 D005-08 IMPLEMENTATION RECONCILIATION — 2026-09-22
+======================================================================
+
+AUTHORITY:
+
+HUMAN autorizou reconciliar integralmente a implementação E002–E010
+com D005-08, incluindo código, schema declarativo, API, repositories,
+services, frontend, relatórios/filtros, migrador isolado, testes,
+documentação, Evidence e handoff.
+
+Permaneceram proibidos: Generation 8/canonical, banco operacional,
+pointer, operational manifest, E011, E012, migração operacional,
+candidate promotion, cutover, inferência de `paid_at` para R2,
+commit, push, merge, rebase, tag, release e cleanup destrutivo.
+
+CONTEXT_RECOVERY:
+
+- repository root: `<PROJECT_ROOT>`;
+- branch: `feature/spec-008-architecture-foundation`;
+- HEAD inicial: `b466fb8481d049d1e954c3960238b8af04ae5018`;
+- upstream sync: `0/0`;
+- handoff, Git, SPEC, decisões, Evidence e estado real reconciliados;
+- worktree preexistente/não relacionado preservado.
+
+D005_08_IMPLEMENTATION_STATUS:
+
+`RECONCILED / VALIDATED_BY_IMPLEMENTATION_EXECUTOR`
+
+SCHEMA_RECONCILIATION:
+
+- `competence_date` removido das tabelas canônicas de cobranças e despesas;
+- `competence_year INTEGER NOT NULL` e `competence_month INTEGER NOT NULL`;
+- checks de ano `1..9999` e mês `1..12`;
+- índices ACCRUAL por ano/mês/status;
+- `paid -> paid_at obrigatório` preservado.
+
+API_SERVICE_REPOSITORY_RECONCILIATION:
+
+- payloads usam ano/mês e respostas apresentam `competence_period=YYYY-MM`;
+- payload diário legado retorna 422;
+- CASH usa datas reais e `paid_at` para receitas;
+- ACCRUAL usa limites mensais explícitos e comparação cronológica ano/mês;
+- fronteiras dezembro/janeiro validadas;
+- lifecycle, autorização, CAS/ETag e trilha append-only preservados.
+
+FRONTEND_REPORTING_RECONCILIATION:
+
+- competência capturada por `input type=month`;
+- nenhum dia fictício no estado ou payload;
+- filtro ACCRUAL envia `start_year/start_month/end_year/end_month`;
+- filtro CASH mantém `start/end` diários;
+- relatórios e métricas continuam rotulados por regime.
+
+MIGRATION_RECONCILIATION:
+
+- candidato sintético usa ano/mês e rejeita fonte diária;
+- R1–R6 permanecem registrados como 2026/7;
+- R2 permanece `paid`, `paid_at` ausente/desconhecido;
+- R2: `REVIEW/BLOCK`, excluído de candidato canônico válido;
+- nenhuma inferência, migração operacional ou candidato operacional.
+
+SELECTIVE_INVALIDATION:
+
+- E002–E008 e E010: somente evidência dependente de `competence_date`
+  invalidada e revalidada;
+- E009: preservada por ausência de dependência causal e reexecutada em
+  regressão;
+- histórico anterior mantido sem reclassificação retroativa.
+
+VALIDATION:
+
+- harness RED: 2 failed / 6 passed pelas causas esperadas;
+- primeiro GREEN direcionado: 35 passed;
+- SPEC-005 final: 44 passed;
+- regressão afetada: 59 passed;
+- Python full suite: 281 passed;
+- frontend: 12 passed;
+- Vite build: PASS / 1,582 modules;
+- compileall: PASS;
+- git diff --check: PASS;
+- canonical `competence_date` scan: PASS / absent;
+- falhas ambientais ACL pytest e esbuild EPERM foram repetidas fora do
+  sandbox em ambientes temporários isolados.
+
+OPERATIONAL_SENTINEL_BEFORE_AND_AFTER:
+
+- Generation: 8/canonical -> 8/canonical;
+- pointer SHA-256:
+  d83a0654ce964f93c3191bb4a9bbe24fa78c55087666e6831f04f60630a1c50a
+  -> d83a0654ce964f93c3191bb4a9bbe24fa78c55087666e6831f04f60630a1c50a;
+- runtime manifest SHA-256:
+  cd806a300f182c5d0f70cb6a6e4b2b0b9a574ff2f4cf02d7271cfcdaec5ef519
+  -> cd806a300f182c5d0f70cb6a6e4b2b0b9a574ff2f4cf02d7271cfcdaec5ef519;
+- database SHA-256:
+  1edb9c5c77a8eb56da6cb5254e2bf795aa56a1d8c94dbbc855d0b70d40f404c8
+  -> 1edb9c5c77a8eb56da6cb5254e2bf795aa56a1d8c94dbbc855d0b70d40f404c8;
+- sidecars before/after: none;
+- operational mutation: none.
+
+EVIDENCE:
+
+- `docs/audit/spec005-20260922-d00508-reconciliation-report.md`;
+- `docs/audit/spec005-20260922-human-legacy-data-decision.json`;
+- reconciled SPEC/API/architecture/frontend documentation;
+- test and build results above.
+
+GIT_AND_EXECUTION_CONTROLS:
+
+- staged: NO;
+- commit/push/merge/rebase/tag/release: NO;
+- E011/E012: NOT EXECUTED;
+- mutation outside authorized scope: NONE;
+- `.context/COMMANDS.md` and forensic/homologation content preserved;
+- sandbox-created inaccessible temporary pytest directory preserved; no
+  destructive cleanup attempted.
+
+STOP_CONDITION:
+
+SPEC005_D005_08_RECONCILIATION_COMPLETE
+
+NEXT_READY:
+
+READY_FOR_SPEC005_D005_08_INDEPENDENT_REVIEW
+
+
+======================================================================
+82. SPEC-005 D005-08 INDEPENDENT REVIEW - 2026-09-23
+======================================================================
+
+INDEPENDENT_D00508_REVIEW: PASS
+SPEC-005: 44 passed; affected regression: 69 passed; full backend: 281 passed.
+Frontend: 12 passed; Vite build, compileall and git diff --check: PASS.
+No functional BLOCKER or MAJOR was demonstrated.
+Evidence: docs/audit/spec005-20260923-d00508-independent-review.md.
+Generation 8/canonical and pointer/manifest/database checksums unchanged.
+E011/E012 and operational migration: NOT EXECUTED.
+NEXT_READY: READY_FOR_SPEC005_D00508_COMMIT_GATE
