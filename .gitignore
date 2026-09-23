@@ -44,6 +44,11 @@ backups/
 *.log
 *.tmp
 *.temp
+.dev-runtime/
+.homologation/
+.forensics/
+.test-tmp*/
+.tmp/
 
 # OS and editor
 .DS_Store

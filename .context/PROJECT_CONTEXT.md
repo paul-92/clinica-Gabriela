@@ -1,5 +1,9 @@
 # Project Context
 
+> LEGADO: este arquivo registra o primeiro publish em `main` e nao descreve o
+> estado corrente. Redescubra Git/runtime e consulte
+> `CLINICA_GABRIELA_PROJECT_HANDOFF.txt` e `DEVELOPMENT_BOOTSTRAP.md`.
+
 ## Visao geral do projeto
 
 Sistema para clinica de psicologia com tres superficies principais: aplicacao desktop Python/Tkinter, backend FastAPI e frontend Electron + React. O projeto tambem inclui banco SQLite com SQLAlchemy, scripts Windows, documentacao, imagens de previa, licenciamento local e testes Python.

@@ -7,6 +7,8 @@ LAST_DOCUMENT_UPDATE:
 2026-09-23
 
 DOCUMENT_PURPOSE:
+Para retomada em outro Windows, consultar DEVELOPMENT_BOOTSTRAP.md. Esse fluxo exige raiz DEV explicita, banco sintetico isolado e validacao; nao reidrata runtime operacional. Os arquivos .context/PROJECT_CONTEXT.md e .context/AI_HANDOFF.md sao snapshots legados. Redescobrir branch, HEAD, status, upstream e Evidence real.
+
 Preservar o estado técnico, operacional, metodológico e decisório do
 projeto Clínica Gabriela para permitir continuidade segura por outro
 agente, provedor ou sessão caso:
@@ -71,11 +73,11 @@ OPEN - D005-08 RECONCILED / INDEPENDENT REVIEW PASS
 
 CURRENT_PHASE:
 
-D005-08 COMMIT GATE
+DEVELOPMENT PORTABILITY COMMIT GATE
 
 CURRENT_STATE:
 
-READY_FOR_SPEC005_D00508_COMMIT_GATE
+READY_FOR_REMOTE_PUBLICATION_GATE
 
 LAST_VERIFIED_CHECKPOINT:
 
@@ -92,7 +94,7 @@ operacional permanecem inalterados.
 
 NEXT_READY:
 
-READY_FOR_SPEC005_D00508_COMMIT_GATE
+READY_FOR_REMOTE_PUBLICATION_GATE
 
 ======================================================================
 2. REPOSITORY
@@ -4313,3 +4315,36 @@ Evidence: docs/audit/spec005-20260923-d00508-independent-review.md.
 Generation 8/canonical and pointer/manifest/database checksums unchanged.
 E011/E012 and operational migration: NOT EXECUTED.
 NEXT_READY: READY_FOR_SPEC005_D00508_COMMIT_GATE
+
+======================================================================
+83. DEVELOPMENT PORTABILITY REMEDIATION - 2026-09-23
+======================================================================
+
+Portability bootstrap copies an allowlisted source workspace to an external
+DEV root. Python venv, npm dependencies, database, tests, cache and frontend
+build run there. No generated artifact is placed in the source working tree.
+Python 3.12.10 and Node 24.19.0 are validated baselines, not exclusive product
+requirements. The complete Python transitive set is pinned in
+requirements-dev.lock, generated from a fresh external venv.
+
+Fresh external bootstrap: pip install/check PASS; npm ci PASS; synthetic DEV
+database PASS. Validation: compileall PASS; Python 281 passed; frontend 12
+passed; Vite build PASS. Operational path, override, missing marker and junction
+negative guards rejected. Generation 8/canonical and pointer/manifest/database
+checksums stayed unchanged. D005-08 functional work was not edited or reviewed.
+Remote clone remains NOT READY because these local files are unpublished.
+No stage, commit, push, E011 or E012 was executed.
+
+STOP_CONDITION: DEVELOPMENT_PORTABILITY_REMEDIATION_COMPLETE
+NEXT_READY: READY_FOR_PORTABILITY_RE_REVIEW
+
+======================================================================
+84. DEVELOPMENT PORTABILITY COMMIT GATE - 2026-09-23
+======================================================================
+
+D005-08 functional commit: 1ead29c39ba5a6153ec589fc33bc889253b7a171.
+D005-08 Independent Review: PASS; E011/E012 remain NOT EXECUTED.
+Development portability is prepared as a separate local commit.
+The remote branch remains unpublished pending explicit push authorization.
+Generation 8/canonical and pointer/manifest/database remain unchanged.
+NEXT_READY: READY_FOR_REMOTE_PUBLICATION_GATE

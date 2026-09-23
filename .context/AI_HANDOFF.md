@@ -1,5 +1,9 @@
 # AI Handoff
 
+> LEGADO: snapshot do primeiro publish em `main`. Para retomada atual, redescubra
+> Git/runtime e consulte `CLINICA_GABRIELA_PROJECT_HANDOFF.txt` e
+> `DEVELOPMENT_BOOTSTRAP.md`. O estado verificado prevalece.
+
 ## Repositorio
 
 Remoto local `origin`: `https://github.com/paul-92/clinica-Gabriela.git`

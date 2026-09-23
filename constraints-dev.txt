@@ -1,0 +1,11 @@
+# Versoes diretas observadas no venv validado em Windows/Python 3.12.10.
+# Dependencias transitivas continuam resolvidas pelo pip; isto nao e lock completo.
+SQLAlchemy==2.0.52
+fastapi==0.141.1
+uvicorn==0.52.4
+pydantic==2.13.4
+pyinstaller==6.22.2
+pytest==9.1.1
+tzdata==2026.4
+PyJWT==2.13.0
+httpx2==2.12.0

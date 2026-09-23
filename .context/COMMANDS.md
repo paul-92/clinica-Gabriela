@@ -1,5 +1,23 @@
 # Commands
 
+## Ambiente de desenvolvimento isolado (Windows)
+
+Ver `DEVELOPMENT_BOOTSTRAP.md`. Escolha caminho absoluto novo fora do
+repositorio e do runtime operacional:
+
+```powershell
+& .\scripts\bootstrap-dev.ps1 -DevRoot 'C:\dev\clinica-gabriela-sintetico' -DryRun
+& .\scripts\bootstrap-dev.ps1 -DevRoot 'C:\dev\clinica-gabriela-sintetico'
+& .\scripts\validate-dev.ps1 -DevRoot 'C:\dev\clinica-gabriela-sintetico'
+```
+
+O script copia apenas codigo e contratos permitidos para `DevRoot\workspace`, cria
+venv/banco/temp na raiz DEV e executa npm/build/testes na copia externa.
+`requirements-dev.lock` fixa diretas e transitivas na baseline Windows/Python 3.12.10.
+
+Os comandos de instalacao gerais abaixo sao legados e nao garantem isolamento
+do runtime operacional; para novo desenvolvimento, use o fluxo acima.
+
 ## Instalacao
 
 Python:
