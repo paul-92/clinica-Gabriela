@@ -20,7 +20,7 @@ import {
   UsersRound
 } from "lucide-react";
 import "./styles.css";
-import { ApiError, apiRequest, authenticate, buildAppointmentPatch, buildFinancePeriodQuery, canAccessFinancialUi, formatCompetencePeriod, formatMoneyFromCents, nextCompetencePeriod, parseCompetencePeriod, parseMoneyToCents } from "./api.js";
+import { ApiError, apiRequest, authenticate, buildAppointmentPatch, buildFinancePeriodQuery, buildSettingsPayload, canAccessFinancialUi, canAccessUserManagement, formatCompetencePeriod, formatMoneyFromCents, nextCompetencePeriod, parseCompetencePeriod, parseMoneyToCents } from "./api.js";
 import { clearFrontendSession } from "./session.js";
 
 const today = new Date().toISOString().slice(0, 10);
@@ -33,101 +33,6 @@ const defaultPeriodEnd = (() => {
 const defaultCompetencePeriod = today.slice(0, 7);
 const defaultCompetenceEnd = nextCompetencePeriod(defaultCompetencePeriod);
 
-const fallback = {
-  dashboard: {
-    active_patients: 2,
-    active_psychologists: 1,
-    appointments_today: 1,
-    finance_regime: "cash",
-    finance_start: defaultPeriodStart,
-    finance_end: defaultPeriodEnd,
-    receivable_cents: 0,
-    received_cents: 0,
-    expense_cents: 0,
-    balance_cents: 0,
-    recent_appointments: []
-  },
-  patients: [
-    {
-      id: 1,
-      full_name: "Paciente 01",
-      cpf: "123.456.789-00",
-      phone: "(11) 97777-6666",
-      email: "paciente01@email.local",
-      active: true
-    },
-    {
-      id: 2,
-      full_name: "Paciente 02",
-      cpf: "987.654.321-00",
-      phone: "(11) 95555-1212",
-      email: "paciente02@email.local",
-      active: true
-    }
-  ],
-  psychologists: [
-    {
-      id: 1,
-      full_name: "Marilia Gabriela Gaspar",
-      crp: "11/20433",
-      specialty: "Desenvolvimento Infantil",
-      phone: "(11) 98888-7777",
-      active: true
-    }
-  ],
-  appointments: [
-    {
-      id: 1,
-      scheduled_at: `${today}T09:00:00`,
-      patient_id: 1,
-      psychologist_id: 1,
-      duration_minutes: 50,
-      status: "scheduled",
-      notes: "Primeira sessao"
-    }
-  ],
-  records: [
-    {
-      id: 1,
-      patient_id: 1,
-      psychologist_id: 1,
-      appointment_date: `${today}T09:00:00`,
-      main_complaint: "Responsaveis relatam dificuldade de concentracao e organizacao da rotina.",
-      session_goals: "Acolher demanda inicial, observar comportamento e orientar rotina familiar.",
-      observed_mood: "Colaborativo, com oscilacao de atencao durante atividades longas.",
-      clinical_evolution: "Paciente relata melhora do sono e reducao de ansiedade.",
-      interventions: "Escuta qualificada, psicoeducacao e atividade ludica de reconhecimento emocional.",
-      referrals: "Sem encaminhamentos externos nesta sessao.",
-      next_steps: "Manter observacao, envolver responsaveis e revisar combinados na proxima sessao.",
-      private_notes: "Observar padrao de evitacao em sessoes futuras.",
-      clinical_hypotheses: "Ansiedade generalizada em avaliacao.",
-      therapeutic_plan: "Acolhimento, psicoeducacao familiar e acompanhamento do desenvolvimento.",
-      future_attachments: ""
-    }
-  ],
-  payments: [],
-  expenses: [],
-  categories: [],
-  finance: {
-    regime: "cash",
-    start: defaultPeriodStart,
-    end: defaultPeriodEnd,
-    income_cents: 0,
-    receivable_cents: 0,
-    expense_cents: 0,
-    balance_cents: 0
-  },
-  license: {
-    valid: true,
-    reason: "fallback",
-    message: "Modo local de demonstracao.",
-    customer: "Cliente em teste",
-    type: "trial",
-    expires_at: "",
-    days_left: 14
-  }
-};
-
 const navItems = [
   { id: "dashboard", label: "Dashboard", icon: Home },
   { id: "patients", label: "Pacientes", icon: UsersRound },
@@ -137,6 +42,7 @@ const navItems = [
   { id: "finance", label: "Financeiro", icon: BadgeDollarSign },
   { id: "reports", label: "Relatorios", icon: ChartNoAxesColumnIncreasing },
   { id: "settings", label: "Configuracoes", icon: Cog }
+  ,{ id: "users", label: "Usuarios", icon: UsersRound }
 ];
 
 const statusLabels = {
@@ -156,7 +62,7 @@ function App() {
   const [session, setSession] = useState(null);
   const [activeView, setActiveView] = useState("dashboard");
   const [state, setState] = useState({
-    dashboard: fallback.dashboard,
+    dashboard: null,
     patients: [],
     psychologists: [],
     appointments: [],
@@ -164,8 +70,11 @@ function App() {
     payments: [],
     expenses: [],
     categories: [],
-    finance: fallback.finance,
+    settings: null,
+    users: [],
+    finance: null,
     financeError: "",
+    error: "",
     license: null,
     online: false,
     loading: true
@@ -185,7 +94,9 @@ function App() {
         : Promise.resolve([]);
       const financeAllowed = canAccessFinancialUi(currentSession.user.role);
       const financeQuery = `start=${defaultPeriodStart}&end=${defaultPeriodEnd}&regime=cash`;
-      const [health, license, dashboard, patients, psychologists, appointments, records, payments, expenses, finance, categories] =
+      const settingsRequest = currentSession.user.role === "admin" ? apiRequest("/settings", { token }) : Promise.resolve(null);
+      const usersRequest = canAccessUserManagement(currentSession.user.role) ? apiRequest("/users", { token }) : Promise.resolve([]);
+      const [health, license, dashboard, patients, psychologists, appointments, records, payments, expenses, finance, categories, settings, users] =
       await Promise.all([
         apiRequest("/health"),
         apiRequest("/license/status"),
@@ -196,17 +107,20 @@ function App() {
         recordsRequest,
         financeAllowed ? apiRequest(`/finance/payments?${financeQuery}`, { token }) : Promise.resolve([]),
         financeAllowed ? apiRequest(`/finance/expenses?${financeQuery}`, { token }) : Promise.resolve([]),
-        financeAllowed ? apiRequest(`/finance/summary?${financeQuery}`, { token }) : Promise.resolve(fallback.finance),
-        financeAllowed ? apiRequest("/finance/categories", { token }) : Promise.resolve([])
+        financeAllowed ? apiRequest(`/finance/summary?${financeQuery}`, { token }) : Promise.resolve(null),
+        financeAllowed ? apiRequest("/finance/categories", { token }) : Promise.resolve([]),
+        settingsRequest, usersRequest
       ]);
-      setState({ license, dashboard, patients, psychologists, appointments, records, payments, expenses, finance, categories, financeError: "", online: Boolean(health), loading: false });
+      setState({ license, dashboard, patients, psychologists, appointments, records, payments, expenses, finance, categories, settings, users, financeError: "", error: "", online: Boolean(health), loading: false });
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) logout();
       setState((current) => ({
         ...current,
-        payments: [], expenses: [], categories: [], finance: fallback.finance,
+        dashboard: null, patients: [], psychologists: [], appointments: [], records: [],
+        payments: [], expenses: [], categories: [], settings: null, users: [], finance: null,
         financeError: error instanceof ApiError ? error.message : "Nao foi possivel carregar o financeiro.",
-        online: error.status !== null, loading: false
+        error: "Nao foi possivel carregar os dados operacionais. Verifique a API e tente novamente.",
+        online: false, loading: false
       }));
     }
   };
@@ -225,10 +139,9 @@ function App() {
       setState((current) => ({
         ...current,
         payments: [], expenses: [], finance: {
-          ...fallback.finance,
+          regime: period.regime,
           start: period.regime === "cash" ? period.cashStart : period.accrualStart,
-          end: period.regime === "cash" ? period.cashEnd : period.accrualEnd,
-          regime: period.regime
+          end: period.regime === "cash" ? period.cashEnd : period.accrualEnd
         },
         loading: false,
         financeError: error instanceof ApiError ? error.message : "Nao foi possivel carregar o periodo financeiro."
@@ -350,6 +263,7 @@ function Sidebar({ activeView, setActiveView, user, onLogout }) {
   const visibleNavItems = navItems.filter((item) => {
     if (item.id === "records") return user.role === "psychologist";
     if (item.id === "settings") return user.role === "admin";
+    if (item.id === "users") return canAccessUserManagement(user.role);
     if (item.id === "finance" || item.id === "reports") return canAccessFinancialUi(user.role);
     return true;
   });
@@ -420,6 +334,8 @@ function Topbar({ online, loading, onRefresh, activeView, license }) {
 }
 
 function ViewRouter({ activeView, data, submit, reload, loadFinance, user }) {
+  if (data.loading && !data.dashboard) return <LoadingState />;
+  if (data.error) return <ErrorState text={data.error} onRetry={reload} />;
   const map = {
     dashboard: <Dashboard data={data} />,
     patients: <Patients data={data} reload={reload} />,
@@ -428,7 +344,8 @@ function ViewRouter({ activeView, data, submit, reload, loadFinance, user }) {
     records: <ClinicalRecords data={data} submit={submit} />,
     finance: user.role === "psychologist" ? <EmptyState text="Modulo financeiro indisponivel para este perfil." /> : <Finance data={data} submit={submit} loadFinance={loadFinance} user={user} />,
     reports: <Reports data={data} />,
-    settings: <Settings />
+    settings: <Settings data={data.settings} submit={submit} />,
+    users: user.role === "admin" ? <Users data={data.users} submit={submit} reload={reload} currentUser={user} /> : <EmptyState text="Modulo de usuarios indisponivel para este perfil." />
   };
   return <section className="view">{map[activeView]}</section>;
 }
@@ -510,7 +427,7 @@ function Psychologists({ data }) {
 }
 
 function Agenda({ data, submit, user }) {
-  const [filters, setFilters] = useState({ targetDate: today, psychologistId: "" });
+  const [filters, setFilters] = useState({ targetDate: today, psychologistId: "", view: "day" });
   const [editingAppointment, setEditingAppointment] = useState(null);
   const [editForm, setEditForm] = useState(null);
   const [editError, setEditError] = useState("");
@@ -524,8 +441,17 @@ function Agenda({ data, submit, user }) {
   });
   const patientById = Object.fromEntries(data.patients.map((patient) => [patient.id, patient]));
   const psychologistById = Object.fromEntries(data.psychologists.map((psychologist) => [psychologist.id, psychologist]));
+  const range = useMemo(() => {
+    const start = new Date(`${filters.targetDate}T00:00:00`);
+    const end = new Date(start);
+    if (filters.view === "week") end.setDate(end.getDate() + 7);
+    else if (filters.view === "list") end.setDate(end.getDate() + 31);
+    else end.setDate(end.getDate() + 1);
+    return { start, end };
+  }, [filters.targetDate, filters.view]);
   const filtered = data.appointments.filter((appointment) => {
-    const sameDate = appointment.scheduled_at.slice(0, 10) === filters.targetDate;
+    const appointmentDate = new Date(appointment.scheduled_at);
+    const sameDate = appointmentDate >= range.start && appointmentDate < range.end;
     const samePsychologist = !filters.psychologistId || Number(filters.psychologistId) === appointment.psychologist_id;
     return sameDate && samePsychologist;
   });
@@ -611,6 +537,13 @@ function Agenda({ data, submit, user }) {
               </option>
             ))}
           </select>
+          <div className="viewTabs" role="tablist" aria-label="Visualizacao da agenda">
+            {[['list', 'Lista'], ['day', 'Dia'], ['week', 'Semana']].map(([value, label]) => (
+              <button key={value} type="button" role="tab" aria-selected={filters.view === value}
+                className={filters.view === value ? "tabButton active" : "tabButton"}
+                onClick={() => setFilters({ ...filters, view: value })}>{label}</button>
+            ))}
+          </div>
         </div>
         <div className="appointmentList">
           {filtered.map((appointment) => (
@@ -1081,32 +1014,117 @@ function Reports({ data }) {
   );
 }
 
-function Settings() {
+function Users({ data, submit, reload, currentUser }) {
+  const [form, setForm] = useState({ name: "", username: "", password: "", role: "reception", active: true });
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const create = async (event) => {
+    event.preventDefault();
+    setError(""); setMessage(""); setSaving(true);
+    try {
+      await submit("/users", form);
+      setForm({ name: "", username: "", password: "", role: "reception", active: true });
+      setMessage("Usuario criado com sucesso.");
+    } catch (requestError) {
+      setError(requestError instanceof ApiError ? requestError.message : "Nao foi possivel criar o usuario.");
+    } finally { setSaving(false); }
+  };
+
+  const toggleActive = async (user) => {
+    if (!window.confirm(`${user.active ? "Desativar" : "Ativar"} o usuario ${user.name}?`)) return;
+    setError(""); setMessage("");
+    try {
+      await submit(`/users/${user.id}`, { active: !user.active }, "PATCH");
+      setMessage("Status do usuario atualizado.");
+    } catch (requestError) {
+      setError(requestError instanceof ApiError ? requestError.message : "Nao foi possivel atualizar o usuario.");
+    }
+  };
+
+  const changeRole = async (user, role) => {
+    if (role === user.role || !window.confirm(`Alterar o perfil de ${user.name}?`)) return;
+    setError(""); setMessage("");
+    try {
+      await submit(`/users/${user.id}`, { role }, "PATCH");
+      setMessage("Perfil do usuario atualizado.");
+    } catch (requestError) {
+      setError(requestError instanceof ApiError ? requestError.message : "Nao foi possivel atualizar o perfil.");
+    }
+  };
+
+  return <>
+    <Panel title="Gestao de usuarios" action={<button className="iconTextButton" onClick={reload}><RefreshCw size={17} /> Recarregar</button>}>
+      <p className="muted">Administracao restrita ao perfil admin. Senhas nunca sao exibidas.</p>
+      {error ? <div className="formError" role="alert">{error}</div> : null}
+      {message ? <div className="successNotice" role="status">{message}</div> : null}
+      <form className="settingsGrid" onSubmit={create}>
+        <label>Nome<input required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
+        <label>Usuario<input required value={form.username} onChange={(event) => setForm({ ...form, username: event.target.value })} /></label>
+        <label>Senha inicial<input required minLength="8" type="password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} /></label>
+        <label>Perfil<select value={form.role} onChange={(event) => setForm({ ...form, role: event.target.value })}><option value="reception">Recepcao</option><option value="psychologist">Psicologo</option><option value="admin">Administrador</option></select></label>
+        <button className="primaryButton" disabled={saving}><Plus size={18} />{saving ? "Criando..." : "Criar usuario"}</button>
+      </form>
+      <DataTable columns={["Nome", "Usuario", "Perfil", "Status", "Acoes"]} rows={data.map((user) => [
+        user.name, user.username,
+        <select aria-label={`Perfil de ${user.name}`} value={user.role} onChange={(event) => changeRole(user, event.target.value)} disabled={user.id === currentUser.id}>
+          <option value="reception">Recepcao</option><option value="psychologist">Psicologo</option><option value="admin">Administrador</option>
+        </select>,
+        user.active ? "Ativo" : "Inativo",
+        <button disabled={user.id === currentUser.id} onClick={() => toggleActive(user)}>{user.active ? "Desativar" : "Ativar"}</button>
+      ])} />
+      {!data.length ? <EmptyState text="Nenhum usuario cadastrado." /> : null}
+    </Panel>
+  </>;
+}
+
+function Settings({ data, submit }) {
+  const [form, setForm] = useState(data || { clinic_name: "", phone: "", email: "", address: "", default_session_value: 0, timezone_name: "America/Sao_Paulo" });
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const save = async (event) => {
+    event.preventDefault();
+    setMessage("");
+    setError("");
+    setSaving(true);
+    try {
+      await submit("/settings", buildSettingsPayload(form), "PUT");
+      setMessage("Configuracoes salvas com sucesso.");
+    } catch (requestError) {
+      setError(requestError instanceof ApiError ? requestError.message : "Nao foi possivel salvar as configuracoes.");
+    } finally {
+      setSaving(false);
+    }
+  };
   return (
     <Panel title="Configuracoes da clinica">
-      <div className="settingsGrid">
+      <form className="settingsGrid" onSubmit={save}>
         <label>
           Nome da clinica
-          <input defaultValue="Marilia Gabriela Gaspar | Psicologa" />
+          <input value={form.clinic_name} onChange={(event) => setForm({ ...form, clinic_name: event.target.value })} />
         </label>
         <label>
           Telefone
-          <input defaultValue="(11) 3000-0000" />
+          <input value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} />
         </label>
         <label>
           E-mail
-          <input defaultValue="contato@clinicapsi.local" />
+          <input value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} />
         </label>
         <label>
           Valor padrao da sessao
-          <input defaultValue="180,00" />
+          <input type="number" min="0" step="0.01" value={form.default_session_value} onChange={(event) => setForm({ ...form, default_session_value: event.target.value })} />
         </label>
-      </div>
-      <div className="settingsActions">
-        <button className="primaryButton">
+        <button className="primaryButton" type="submit" disabled={saving}>
           <CheckCircle2 size={18} />
-          Salvar configuracoes
+          {saving ? "Salvando..." : "Salvar configuracoes"}
         </button>
+      </form>
+      <div className="settingsActions">
+        {error ? <div className="formError" role="alert">{error}</div> : null}
+        {message ? <div className="successNotice" role="status">{message}</div> : null}
       </div>
     </Panel>
   );
@@ -1207,6 +1225,20 @@ function InfoRow({ label, value, strong }) {
 
 function EmptyState({ text }) {
   return <div className="emptyState">{text}</div>;
+}
+
+function LoadingState() {
+  return <div className="statePanel" role="status" aria-live="polite">Carregando dados da Clínica Gabriela...</div>;
+}
+
+function ErrorState({ text, onRetry }) {
+  return (
+    <div className="statePanel errorState" role="alert">
+      <strong>API indisponível</strong>
+      <span>{text}</span>
+      <button className="iconTextButton" onClick={() => onRetry()}>Tentar novamente</button>
+    </div>
+  );
 }
 
 createRoot(document.getElementById("root")).render(<App />);

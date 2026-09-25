@@ -13,8 +13,8 @@ router = APIRouter(prefix="/clinical-records", tags=["clinical-records"], depend
 
 
 @router.get("", response_model=list[ClinicalRecordRead])
-def list_records(patient_id: int | None = None, db: Session = Depends(get_db)):
-    return ClinicalRecordService(db).list_records(patient_id)
+def list_records(patient_id: int | None = None, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    return ClinicalRecordService(db).list_records(patient_id, current_user)
 
 
 @router.post("", response_model=ClinicalRecordRead, status_code=201)
@@ -23,21 +23,21 @@ def create_record(payload: ClinicalRecordCreate, db: Session = Depends(get_db), 
 
 
 @router.get("/{record_id}", response_model=ClinicalRecordRead)
-def get_record(record_id: int, response: Response, db: Session = Depends(get_db)):
-    record = ClinicalRecordService(db).get_record(record_id)
+def get_record(record_id: int, response: Response, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    record = ClinicalRecordService(db).get_record(record_id, current_user)
     response.headers["ETag"] = f'"{record.version}"'
     return record
 
 
 @router.put("/{record_id}", response_model=ClinicalRecordRead, deprecated=True)
-def update_record(record_id: int, payload: ClinicalRecordUpdate, db: Session = Depends(get_db)):
+def update_record(record_id: int, payload: ClinicalRecordUpdate, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     data = payload.model_dump(exclude_unset=True)
-    return ClinicalRecordService(db).update_record(record_id, data, None)
+    return ClinicalRecordService(db).update_record(record_id, data, None, current_user)
 
 
 @router.patch("/{record_id}", response_model=ClinicalRecordRead)
-def patch_record(record_id: int, payload: ClinicalRecordUpdate, if_match: str | None = Header(None), db: Session = Depends(get_db)):
-    return ClinicalRecordService(db).update_record(record_id, payload.model_dump(exclude_unset=True), parse_if_match(if_match))
+def patch_record(record_id: int, payload: ClinicalRecordUpdate, if_match: str | None = Header(None), db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    return ClinicalRecordService(db).update_record(record_id, payload.model_dump(exclude_unset=True), parse_if_match(if_match), current_user)
 
 
 @router.post("/{record_id}/finalize", response_model=ClinicalRecordRead)

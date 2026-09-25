@@ -24,6 +24,7 @@ def make_user(role: str):
         username=f"teste_{role}",
         role=role,
         active=True,
+        psychologist_id=1 if role == "psychologist" else None,
         created_at=None,
     )
 
@@ -106,7 +107,7 @@ def test_psychologist_can_access_clinical_records(monkeypatch):
     monkeypatch.setattr(
         clinical_records.ClinicalRecordService,
         "list_records",
-        lambda self, patient_id=None: [],
+        lambda self, patient_id=None, current_user=None: [],
     )
 
     app = build_app(make_user("psychologist"))

@@ -693,6 +693,18 @@ O instalador deverá incluir corretamente o build final do Electron/React.
 
 Não depender de Vite dev server em produção.
 
+### 65.1 Gates de homologação vinculados à D009-06
+Durante a implementação e homologação da SPEC-010, deverão ser executados e evidenciados os gates ambientais deferidos pela SPEC-009:
+
+- build real do Electron;
+- smoke real do Electron;
+- responsividade em 1366×768 e 1920×1080;
+- escalas Windows 100% e 125%, quando reproduzível;
+- validação runtime de acessibilidade;
+- regressão integrada da SPEC-009.
+
+Os resultados deverão produzir Evidence referenciável pela reconciliação da SPEC-009. Nenhum desses gates poderá ser tratado como `PASS` apenas por inspeção estática ou por build web.
+
 ## 66. Compatibilidade com SPEC-008
 O backend empacotado deverá usar somente a fonte de verdade definida.
 

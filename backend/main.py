@@ -13,6 +13,7 @@ from backend.api.routes import (
     patients,
     psychologists,
     settings,
+    users,
 )
 from backend.database.seed import seed_database
 from backend.database.migrations import run_light_migrations
@@ -96,6 +97,7 @@ def create_app(*, lifespan_context=lifespan) -> FastAPI:
     app.include_router(clinical_records.router)
     app.include_router(finance.router)
     app.include_router(settings.router)
+    app.include_router(users.router)
     return app
 
 

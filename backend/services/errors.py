@@ -2,6 +2,14 @@ from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 
 
+class ConflictError(Exception):
+    pass
+
+
+class NotFoundError(Exception):
+    pass
+
+
 def translate_integrity_error(db, exc: IntegrityError):
     db.rollback()
     message = str(getattr(exc, "orig", "")).lower()

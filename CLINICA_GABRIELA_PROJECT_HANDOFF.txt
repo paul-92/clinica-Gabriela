@@ -232,6 +232,69 @@ Generation 8/canonical sentinel unchanged. PROMOTION NOT AUTHORIZED / NOT EXECUT
 No stage, commit or push. Historical E011 text below is superseded for current status.
 STOP_CONDITION: SPEC005_E012_INDEPENDENT_QUALITY_REVIEW_PASS
 NEXT_READY: HUMAN_SPEC005_PROMOTION_DECISION
+
+======================================================================
+100. SPEC-009 TARGETED INDEPENDENT REREVIEW - 2026-09-25
+======================================================================
+
+Independent Evidence: docs/audit/spec009-20260925-targeted-independent-rereview.md.
+MAJOR-001 and MAJOR-002 passed targeted independent rereview and are closed by
+remediation and independent rereview. No blockers or new majors. One new minor
+was recorded for patient-existence inference through the patient_id filter;
+clinical record content remains protected and this does not reopen MAJOR-001.
+Targeted Python: 20 passed. Frontend: 14 passed. Web build: passed outside the
+sandbox after environmental esbuild EPERM. Full suite remains environmentally
+blocked by Windows/OneDrive TEMP ACL setup/cleanup errors. Static validation and
+sensitive-data review passed with synthetic fixture hits only.
+SPEC009_VERIFIABLE_SCOPE_REVIEW=PASS.
+SPEC009_INDEPENDENT_REVIEW=PASS_WITH_DEFERRED_RUNTIME_VALIDATION.
+SPEC009_RUNTIME_VALIDATION_DEBT=OPEN_TRACKED.
+SPEC009_FINAL_STATE=OPEN; SPEC009_CLOSURE_READINESS=NOT_READY_FOR_FINAL_CLOSURE.
+SPEC009_REPOSITORY_CHECKPOINT_READINESS=READY.
+Electron build, Electron smoke, responsiveness runtime and accessibility runtime
+remain deferred to SPEC-010. Generation 9/canonical and operational state were
+not mutated. No staging, commit or push.
+STOP_CONDITION: SPEC009_TARGETED_INDEPENDENT_REREVIEW_PASS
+NEXT_READY: SPEC009_REPOSITORY_CHECKPOINT
+
+======================================================================
+100. SPEC-009 D009-06 ENVIRONMENTAL VALIDATION DEFERRAL - 2026-09-25
+======================================================================
+
+Human decision artifact: docs/audit/spec009-20260925-d00906-environmental-validation-deferral.md.
+The prior E009-08 executor Evidence remains preserved and is not rewritten.
+No BLOCKED_BY_ENVIRONMENT result was converted to PASS; E009-08 is not declared
+PASS and SPEC-009 remains open.
+
+SPEC009_FUNCTIONAL_IMPLEMENTATION_STATE = IMPLEMENTED_PENDING_INDEPENDENT_REVIEW
+E00908_VALIDATION_RESULT = INCOMPLETE_ENVIRONMENTALLY_BLOCKED
+SPEC009_RUNTIME_VALIDATION_DEBT = OPEN_TRACKED
+SPEC009_INDEPENDENT_REVIEW_READINESS = READY_FOR_VERIFIABLE_SCOPE_ONLY
+SPEC009_FINAL_STATE = OPEN
+SPEC009_CLOSURE_READINESS = NOT_READY_FOR_FINAL_CLOSURE
+
+The independent review may cover only the verifiable scope. Electron build,
+Electron smoke, responsiveness runtime and accessibility runtime must be
+recorded as DEFERRED_ENVIRONMENTAL_VALIDATION. A satisfactory review may be
+PASS_WITH_DEFERRED_RUNTIME_VALIDATION, not SPEC009 closure.
+
+SPEC-010 must execute and evidence the deferred gates: real Electron build and
+smoke, 1366x768 and 1920x1080, Windows 100% and reproducible 125% scale,
+accessibility runtime and integrated SPEC-009 regression.
+
+Documentation-only reconciliation completed. No functional code, operational
+runtime, database, license, migration, cleanup, staging, commit or push was
+performed.
+CONTEXT_RECOVERY_RESULT = PASS
+D00906_APPLICATION_RESULT = APPLIED_DOCUMENTALLY
+DOCUMENTATION_RESULT = REGISTERED_IN_SPEC009_HANDOFF_EVIDENCE_AND_SPEC010_BINDING
+REPOSITORY_MUTATED = YES_DOCUMENTATION_ONLY
+OPERATIONAL_STATE_MUTATED = NO
+STAGED = NO
+COMMIT_EXECUTED = NO
+PUSH_EXECUTED = NO
+STOP_CONDITION: SPEC009_ENVIRONMENTAL_VALIDATION_DEFERRAL_RECONCILED
+NEXT_READY: SPEC009_INDEPENDENT_REVIEW_WITH_DEFERRED_RUNTIME_VALIDATION
 CURRENT CLOSURE UPDATE — SPEC-005 E011 — 2026-09-24
 E011: CLOSED / PASS / INDEPENDENTLY_VERIFIED.
 Closure Evidence: docs/audit/spec005-20260924-e011-closure.md.

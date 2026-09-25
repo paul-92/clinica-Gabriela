@@ -147,10 +147,12 @@ def test_clinical_record_lifecycle_is_immutable_and_rectifiable(tmp_path):
     init_db(runtime.engine)
     session = runtime.session_factory()
     try:
-        user = User(name="Profissional Ficticio", username="psi", password_hash="disabled", role="psychologist", active=True)
         patient = Patient(full_name="Paciente Ficticio", active=True)
         psychologist = Psychologist(full_name="Profissional Ficticio", crp_region="06", crp_number="12345", crp="06/12345", crp_status="apt", active=True)
-        session.add_all([user, patient, psychologist])
+        session.add_all([patient, psychologist])
+        session.flush()
+        user = User(name="Profissional Ficticio", username="psi", password_hash="disabled", role="psychologist", active=True, psychologist_id=psychologist.id)
+        session.add(user)
         session.commit()
         service = ClinicalRecordService(session)
         record = service.create_record({
@@ -162,7 +164,7 @@ def test_clinical_record_lifecycle_is_immutable_and_rectifiable(tmp_path):
         finalized = service.finalize_record(record.id, record.version, user)
         assert finalized.status == "finalized"
         with pytest.raises(Exception) as immutable:
-            service.update_record(record.id, {"clinical_evolution": "sobrescrita"}, finalized.version)
+            service.update_record(record.id, {"clinical_evolution": "sobrescrita"}, finalized.version, user)
         assert immutable.value.status_code == 409
         revision = service.rectify_record(record.id, {
             "reason": "correcao ficticia", "clinical_evolution": "texto retificado",
@@ -180,10 +182,11 @@ def test_only_eligible_draft_can_be_deleted_and_audit_has_metadata_only(tmp_path
     init_db(runtime.engine)
     session = runtime.session_factory()
     try:
-        user = User(name="Profissional Ficticio", username="psi2", password_hash="disabled", role="psychologist", active=True)
         patient = Patient(full_name="Paciente Ficticio", active=True)
         psychologist = Psychologist(full_name="Profissional Ficticio", crp_region="06", crp_number="54321", crp="06/54321", crp_status="apt", active=True)
-        session.add_all([user, patient, psychologist]); session.commit()
+        session.add_all([patient, psychologist]); session.flush()
+        user = User(name="Profissional Ficticio", username="psi2", password_hash="disabled", role="psychologist", active=True, psychologist_id=psychologist.id)
+        session.add(user); session.commit()
         service = ClinicalRecordService(session)
         record = service.create_record({"patient_id": patient.id, "psychologist_id": psychologist.id,
             "appointment_date": datetime(2030, 1, 1, 10), "private_notes": "nao copiar"}, user)

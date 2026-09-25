@@ -27,3 +27,12 @@ class UserRepository(BaseRepository):
             )
             .first()
         )
+
+    def list_for_administration(self):
+        return self.db.query(User).order_by(User.name.asc(), User.id.asc()).all()
+
+    def get_by_id_for_administration(self, user_id):
+        return self.db.get(User, user_id)
+
+    def get_by_username_including_inactive(self, username):
+        return self.db.query(User).filter(User.username == username).first()

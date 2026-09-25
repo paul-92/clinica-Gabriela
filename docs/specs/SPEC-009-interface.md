@@ -1,11 +1,19 @@
 # SPEC-009 — Interface Clínica e Design System
 
-**Status:** DRAFT — especificação detalhada de interface, pendente de validação visual e implementação.  
+**Status:** IMPLEMENTAÇÃO FUNCIONAL CONCLUÍDA; validação ambiental E009-08 incompleta e deferida; revisão independente pendente; fechamento ainda não autorizado.
 **Prioridade:** P1  
 **Origem:** evolução funcional e visual da Clínica Gabriela  
 **Dependências:** SPEC-002, SPEC-004, SPEC-005, SPEC-007 e SPEC-008  
 **Relacionada:** SPEC-010  
-**Implementação:** Não iniciada.
+**Implementação:** Executor em andamento; revisão independente pendente.
+
+## 0.1 Decisões HUMAN congeladas para a execução E009
+
+- Direção visual oficial: sage, blush e creme; `Segoe UI` permanece como base funcional.
+- Agenda obrigatoriamente oferece Lista, Dia e Semana; conflitos, concorrência e autorização permanecem no backend.
+- Gestão de usuários é exclusiva de `admin` e depende de contratos reais do backend.
+- API indisponível usa `FAIL_CLOSED_VISUALLY`: sem dados fictícios operacionais, com mensagem sanitizada e tentativa controlada.
+- A sequência autorizada é E009-01 → E009-08. Esta execução não fecha a SPEC nem altera Generation/pointer operacional.
 
 ## 1. Objetivo
 Definir a experiência visual, a navegação, os componentes reutilizáveis e os padrões de interação da Clínica Gabriela, consolidando o Electron/React como interface principal da aplicação.
@@ -994,3 +1002,27 @@ Esta SPEC define a direção de interface e design system, mas não representa r
 A implementação deverá ocorrer sobre o Electron/React existente, após inventário do frontend e respeitando a arquitetura definida na SPEC-008.
 
 Nenhum gate, critério de aceitação ou item do Definition of Done foi declarado concluído.
+
+## 85. D009-06 — deferimento de validação ambiental
+Em 2026-09-25, HUMAN reconheceu que a E009-08 foi executada até o limite tecnicamente disponível no ambiente atual. A Evidence anterior permanece preservada e não converte resultados `BLOCKED_BY_ENVIRONMENT` em `PASS`.
+
+Estado corrente:
+
+```text
+SPEC009_FUNCTIONAL_IMPLEMENTATION_STATE = IMPLEMENTED_PENDING_INDEPENDENT_REVIEW
+E00908_VALIDATION_RESULT = INCOMPLETE_ENVIRONMENTALLY_BLOCKED
+SPEC009_RUNTIME_VALIDATION_DEBT = OPEN_TRACKED
+SPEC009_FINAL_STATE = OPEN
+SPEC009_CLOSURE_READINESS = NOT_READY_FOR_FINAL_CLOSURE
+```
+
+As validações deferidas e obrigatórias antes do fechamento integrado final são:
+
+1. Electron build;
+2. Electron smoke;
+3. responsiveness runtime;
+4. accessibility runtime.
+
+A revisão independente está autorizada somente sobre o escopo verificável e deverá registrar `DEFERRED_ENVIRONMENTAL_VALIDATION` para esses quatro critérios. Uma revisão satisfatória poderá resultar em `PASS_WITH_DEFERRED_RUNTIME_VALIDATION`, sem fechar esta SPEC.
+
+Após a revisão independente satisfatória, o próximo passo autorizado é `SPEC010_CONTRACT_RECOVERY_AND_IMPLEMENTATION`. O projeto não poderá ser declarado concluído enquanto `SPEC009_RUNTIME_VALIDATION_DEBT = OPEN_TRACKED`.

@@ -8,6 +8,15 @@ export class ApiError extends Error {
   }
 }
 
+const REQUEST_TIMEOUT_MS = 10000;
+
+function sanitizeApiDetail(detail, status) {
+  if (typeof detail !== "string" || detail.length > 180 || /traceback|exception|sql|select |password|token|secret/i.test(detail)) {
+    return status === 401 ? "Sessao invalida ou expirada." : `Falha na API (HTTP ${status}).`;
+  }
+  return detail;
+}
+
 export function parseMoneyToCents(value) {
   const normalized = String(value).trim().replace(/\s/g, "").replace("R$", "").replace(",", ".");
   if (!/^\d+(?:\.\d{1,2})?$/.test(normalized)) {
@@ -34,6 +43,10 @@ export function formatMoneyFromCents(value) {
 
 export function canAccessFinancialUi(role) {
   return role === "admin" || role === "reception";
+}
+
+export function canAccessUserManagement(role) {
+  return role === "admin";
 }
 
 export function parseCompetencePeriod(value) {
@@ -85,6 +98,10 @@ export function buildAppointmentPatch(appointment, form) {
   return changes;
 }
 
+export function buildSettingsPayload(form) {
+  return { ...form, default_session_value: Number(form.default_session_value) };
+}
+
 export async function apiRequest(path, { token, fetchImpl = fetch, ...options } = {}) {
   const headers = new Headers(options.headers || {});
   headers.set("Content-Type", "application/json");
@@ -93,17 +110,21 @@ export async function apiRequest(path, { token, fetchImpl = fetch, ...options } 
   }
 
   let response;
+  const controller = options.signal ? null : new AbortController();
+  const timeout = controller ? setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS) : null;
   try {
-    response = await fetchImpl(`${API_BASE}${path}`, { ...options, headers });
+    response = await fetchImpl(`${API_BASE}${path}`, { ...options, headers, ...(controller ? { signal: controller.signal } : {}) });
   } catch (cause) {
     throw new ApiError("API indisponivel.", { cause });
+  } finally {
+    if (timeout) clearTimeout(timeout);
   }
 
   if (!response.ok) {
     let detail = `Falha na API (HTTP ${response.status}).`;
     try {
       const payload = await response.json();
-      if (typeof payload.detail === "string") detail = payload.detail;
+      if (typeof payload.detail === "string") detail = sanitizeApiDetail(payload.detail, response.status);
     } catch { /* resposta sem JSON: manter mensagem sanitizada */ }
     throw new ApiError(detail, { status: response.status });
   }
