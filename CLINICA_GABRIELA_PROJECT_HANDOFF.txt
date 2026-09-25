@@ -1,5 +1,95 @@
-======================================================================
+﻿======================================================================
 CLÍNICA GABRIELA — PROJECT HANDOFF CANÔNICO
+CURRENT FINAL UPDATE — SPEC-005 INDEPENDENTLY VERIFIED — 2026-09-24
+SPEC005_FINAL_STATE = CLOSED_PASS_PROMOTED_INDEPENDENTLY_VERIFIED.
+QUALITY_GATE_RESULT = QUALITY_GATE_PASS; BLOCKERS = 0; MAJORS = 0; MINORS = 0.
+Operational authority: Generation 9/canonical.
+Pointer SHA: bc93237792fb51d538a9168c883ac9be7f4866d6941a571eecb048c1014d47c0.
+Runtime manifest SHA: 47e7805a1745cd01a59b3b59a2ebf3c5330177bc3f00343b0d4e878276260017.
+Operational DB SHA: bcad54253b1eb5684cd145ad0e2225600fe3c5f63ac1542eaa0a3078c5a850cb.
+Independent Evidence: docs/audit/spec005-20260924-post-promotion-independent-verification.md.
+Generation 8 and recovery backups remain available; rollback was not executed.
+All dated updates below, including prior FAILs, are historical checkpoints.
+NEXT_READY: SPEC005_FINAL_REPOSITORY_CHECKPOINT.
+No operational mutation, stage, commit or push at this independent verification.
+======================================================================
+CURRENT OPERATIONAL UPDATE — SPEC-005 PROMOTED — 2026-09-24
+Promotion: PASS; SPEC-005 = PROMOTED_PENDING_FINAL_INDEPENDENT_OPERATIONAL_VERIFICATION.
+Execution Evidence: runtime/evidence/spec005-promotion-20260924T205031Z.json.
+Repo report: docs/audit/spec005-20260924-promotion-execution-report.md.
+E012 remains CLOSED / QUALITY_GATE_PASS / INDEPENDENTLY_VERIFIED; not repeated.
+HUMAN promotion authorization was GRANTED after E012 for candidate SHA
+bcad54253b1eb5684cd145ad0e2225600fe3c5f63ac1542eaa0a3078c5a850cb.
+Current authoritative Generation: 9/canonical.
+Pointer SHA: bc93237792fb51d538a9168c883ac9be7f4866d6941a571eecb048c1014d47c0.
+Runtime manifest SHA: 47e7805a1745cd01a59b3b59a2ebf3c5330177bc3f00343b0d4e878276260017.
+Operational DB SHA: bcad54253b1eb5684cd145ad0e2225600fe3c5f63ac1542eaa0a3078c5a850cb.
+Generation 8 source preserved; integrity ok, FK 0, sidecars 0, lock absent.
+Post-switch smoke and stabilization PASS; final independent operational verification PENDING.
+Historical references below to Generation 8 as authoritative, promotion pending,
+or promotion unauthorized are superseded. No stage, commit or push.
+STOP_CONDITION: SPEC005_PROMOTION_STABILIZED
+NEXT_READY: SPEC005_POST_PROMOTION_INDEPENDENT_VERIFICATION
+CURRENT GOVERNANCE UPDATE — SPEC-005 PROMOTION AUTHORIZED — 2026-09-24
+E012: CLOSED / QUALITY_GATE_PASS / INDEPENDENTLY_VERIFIED.
+HUMAN PROMOTION AUTHORIZATION: GRANTED after E012 for candidate
+bcad54253b1eb5684cd145ad0e2225600fe3c5f63ac1542eaa0a3078c5a850cb.
+Reconstructed Orchestrator: docs/audit/spec005-20260924-promotion-orchestrator-reconstructed.md.
+Read-only preflight Evidence: docs/audit/spec005-20260924-promotion-preflight-v2.json;
+PASS. Generation 8/canonical remains authoritative before first mutation.
+Promotion execution: AUTHORIZED / PREFLIGHT_PASS / NOT YET STARTED at this checkpoint.
+Historical statements below that promotion is not authorized are superseded.
+No stage, commit or push authorized.
+CURRENT CLOSURE UPDATE — SPEC-005 E012 — 2026-09-24
+E012: CLOSED / QUALITY_GATE_PASS / INDEPENDENTLY_VERIFIED.
+Evidence: docs/audit/spec005-20260924-e012-independent-quality-review.md.
+E001-E011 11/11 PASS; AC-001-AC-012 12/12 PASS; BLOCKERS 0; MAJORS 0.
+SPEC-005: IMPLEMENTATION_AND_QUALITY_REVIEW_COMPLETE /
+PENDING_HUMAN_PROMOTION_DECISION; not ACCEPTED/DONE.
+Candidate: VALIDATED / INDEPENDENTLY_VERIFIED / UNPROMOTED.
+Generation 8/canonical sentinel unchanged. PROMOTION NOT AUTHORIZED / NOT EXECUTED.
+No stage, commit or push. Historical E011 text below is superseded for current status.
+STOP_CONDITION: SPEC005_E012_INDEPENDENT_QUALITY_REVIEW_PASS
+NEXT_READY: HUMAN_SPEC005_PROMOTION_DECISION
+CURRENT CLOSURE UPDATE — SPEC-005 E011 — 2026-09-24
+E011: CLOSED / PASS / INDEPENDENTLY_VERIFIED.
+Closure Evidence: docs/audit/spec005-20260924-e011-closure.md.
+Executor Evidence: PASS. Independent Verification: QUALITY_GATE_PASS;
+BLOCKERS 0; MAJORS 0.
+Candidate SHA: bcad54253b1eb5684cd145ad0e2225600fe3c5f63ac1542eaa0a3078c5a850cb.
+Candidate: VALIDATED / ISOLATED / UNPROMOTED; integrity ok, FK 0, user_version 5.
+Reconciliation: SOURCE 6 = CANONICAL 5 + QUARANTINED 1.
+payment/4: QUARANTINED_UNRESOLVED / PAID_WITH_UNKNOWN_PAID_AT;
+paid_at invented: NO.
+ENVIRONMENTAL_TEST_HARNESS_OBSERVATION: three selected independent pytest
+cases could not create temporary fixtures due to Windows permissions; direct
+read-only checks passed and executor recorded 329 backend tests PASS.
+Generation 8/canonical unchanged; pointer, runtime manifest and operational DB
+hashes, integrity, FK, sidecars and maintenance lock are recorded in closure Evidence.
+E012: PLANNED / NOT AUTHORIZED / NOT EXECUTED.
+PROMOTION: NOT AUTHORIZED / NOT EXECUTED.
+No stage, commit or push. SPEC-005 remains in progress.
+STOP_CONDITION: SPEC005_E011_CLOSED
+NEXT_READY: SPEC005_E012_PRE_EXECUTION_GATE
+The historical text below records earlier checkpoints and is superseded by this update.
+======================================================================
+CURRENT EXECUTION UPDATE — SPEC-005 E011 — 2026-09-24
+E011: EXECUTED / CANDIDATE_CREATED / UNPROMOTED /
+EXECUTOR_VALIDATION_PASS / PENDING_INDEPENDENT_VERIFICATION.
+BLOCKER-01: CLOSED_BY_INDEPENDENT_REREVIEW.
+E012: NOT AUTHORIZED / NOT EXECUTED. PROMOTION: NOT AUTHORIZED / NOT EXECUTED.
+Migration Identity v9: 90754472d5c15012e1caecf73cec272f3339bb6bc22ef2f6b1c3bb6b3b77649c.
+Transformation Identity: 3dfcdd7c719a89fed15a7f15da0757adfc09ae2a592ddc4d16dcd412f2223035.
+Real review authority: docs/audit/spec005-e011-independent-review-authority.json.
+Binding checkpoint: docs/audit/spec005-20260924-e011-binding-checkpoint-v9.json.
+Execution Evidence: docs/audit/spec005-20260924-e011-execution-evidence.json
+  SHA-256 db71cd7153901eef9a331b101b98173aa6975ab5303d1328213444ff7a48bf99.
+Candidate identity: bcad54253b1eb5684cd145ad0e2225600fe3c5f63ac1542eaa0a3078c5a850cb.
+Candidate location: C:\Users\PAULO~1.TRA\AppData\Local\Temp\spec005-e011-v9-78781bd6fa70\candidate.db.
+Operational Generation 8/canonical and pointer, runtime manifest, database hashes
+remain unchanged. Targeted tests: 79 PASS; backend suite: 329 PASS.
+NEXT_READY: READY_FOR_SPEC005_E011_INDEPENDENT_VERIFICATION.
+The historical text below records earlier checkpoints and is superseded by this update.
 VERSÃO 2 — CONTEXTO + METODOLOGIA + CONTINUIDADE
 ======================================================================
 
@@ -4348,3 +4438,407 @@ Development portability is prepared as a separate local commit.
 The remote branch remains unpublished pending explicit push authorization.
 Generation 8/canonical and pointer/manifest/database remain unchanged.
 NEXT_READY: READY_FOR_REMOTE_PUBLICATION_GATE
+
+
+======================================================================
+85. SPEC-005 D005-09 CONTRACT FORMALIZATION - 2026-09-23
+======================================================================
+
+HUMAN approved D005-09 = QUARANTINE_PERSISTED. Contract and implementation plan:
+docs/specs/SPEC-005-financeiro.md,
+docs/audit/spec005-20260923-d00509-human-decision.json and
+docs/audit/spec005-20260923-d00509-contract-and-implementation-plan.md.
+
+R2 remains paid with unknown paid_at and will be QUARANTINED_UNRESOLVED, not a
+canonical payment. The future migration must reconcile every source payment and
+expense into exactly one canonical or quarantine disposition. R1-R6 require a
+verified privacy-safe mapping to source identities; the existing HUMAN decision
+does not persist that binding. D005-09 is NOT IMPLEMENTED. No candidate, E011,
+E012, operational migration or promotion has occurred.
+
+At this checkpoint, Generation 8/canonical, pointer, runtime manifest and DB
+hashes remain d83a0654ce964f93c3191bb4a9bbe24fa78c55087666e6831f04f60630a1c50a,
+cd806a300f182c5d0f70cb6a6e4b2b0b9a574ff2f4cf02d7271cfcdaec5ef519,
+and 1edb9c5c77a8eb56da6cb5254e2bf795aa56a1d8c94dbbc855d0b70d40f404c8.
+Existing local residues are preserved. No stage, commit or push was performed.
+
+STOP_CONDITION: SPEC005_D00509_CONTRACT_FORMALIZED
+NEXT_READY: READY_FOR_SPEC005_D00509_IMPLEMENTATION_AUTHORIZATION
+
+======================================================================
+86. SPEC-005 D005-10 / D005-09 IMPLEMENTATION - 2026-09-23
+======================================================================
+
+HUMAN approved D005-10 LEGACY SOURCE IDENTITY NORMALIZATION after
+MAP_RECOVERY=FAILED. Historical R1-R6 labels are not technical identities and
+are not used for migration, disposition or reconciliation. The privacy-safe
+identity manifest binds the six Generation 8 records by source database hash,
+entity type, internal ID and versioned row fingerprint. D005-08's historical
+mapping_persisted=false remains unchanged.
+
+D005-10 = APPROVED / APPLIED.
+D005-09 = IMPLEMENTED / VALIDATED_BY_IMPLEMENTATION_EXECUTOR.
+Payment/4 = QUARANTINED_UNRESOLVED / PAID_WITH_UNKNOWN_PAID_AT in synthetic
+migration and read-only real-source classification. No paid_at was inferred.
+Payments/3,5 and expenses/3,4,5 = CANONICAL_MIGRATED eligible, conditional on
+all SPEC-005 invariants. No real candidate or operational migration was made.
+
+Evidence: docs/audit/spec005-20260923-d00509-d00510-implementation-evidence.md.
+Targeted D005-10: 7 passed. Affected SPEC-005: 38 passed. Full backend suite:
+288 passed. Compile and git diff --check PASS. Frontend tests/build skipped
+proportionately because frontend and normal API contracts were not changed.
+E004 and E010 dependent Evidence selectively invalidated and revalidated;
+historical Evidence preserved. Independent review remains PENDING.
+
+Generation 8/canonical, pointer SHA
+d83a0654ce964f93c3191bb4a9bbe24fa78c55087666e6831f04f60630a1c50a,
+manifest SHA cd806a300f182c5d0f70cb6a6e4b2b0b9a574ff2f4cf02d7271cfcdaec5ef519,
+database SHA 1edb9c5c77a8eb56da6cb5254e2bf795aa56a1d8c94dbbc855d0b70d40f404c8
+remain unchanged; integrity ok, zero FK violations, zero sidecars/locks.
+E011 = NOT EXECUTED. E012 = NOT EXECUTED. No stage, commit or push.
+
+STOP_CONDITION: SPEC005_D00509_D00510_IMPLEMENTATION_COMPLETE
+NEXT_READY: READY_FOR_SPEC005_D00509_D00510_INDEPENDENT_REVIEW
+
+87. SPEC-005 D005-09 / D005-10 REMEDIATION AFTER INDEPENDENT REVIEW - 2026-09-23
+======================================================================
+
+The prior Independent Review result was QUALITY_GATE_FAIL (0 blockers,
+3 majors, 1 observation). That historical FAIL remains recorded. HUMAN
+authorized technical remediation of those findings only.
+
+MAJOR-01: migration/classification now derives verified source identity from
+the operational pointer, database checksum and validated runtime freeze before
+accepting the legacy identity manifest. Generation, source database SHA and
+runtime manifest SHA must all match. MAJOR-02: post-load reconciliation now
+compares full semantic projections of canonical payments/expenses and the
+quarantined source record, in addition to disjoint/comprehensive identity and
+exact monetary totals. MAJOR-03: isolated subprocess harness exercises normal
+config/bootstrap, freeze, pointer, source identity and classification with
+public runtime configuration; tampering fails. OBSERVATION-01: declarative
+quarantine constraints were aligned with migration DDL.
+
+Evidence and selective E004/E010 revalidation:
+docs/audit/spec005-20260923-d00509-d00510-implementation-evidence.md.
+D005-09 = IMPLEMENTED / REMEDIATED / VALIDATED_BY_IMPLEMENTATION_EXECUTOR.
+D005-10 = APPROVED / APPLIED.
+Independent Review = FAIL - remediation completed, re-review required.
+E011 = NOT EXECUTED. E012 = NOT EXECUTED. No operational candidate, stage,
+commit, push, pointer/manifest mutation or Generation 8 mutation.
+
+
+======================================================================
+88. SPEC-005 D005-09 / D005-10 INDEPENDENT RE-REVIEW - 2026-09-24
+======================================================================
+
+Initial Independent Review = QUALITY_GATE_FAIL (historical: 3 majors,
+1 observation). Remediation = COMPLETE / VALIDATED_BY_IMPLEMENTATION_EXECUTOR.
+Independent Re-review Evidence:
+docs/audit/spec005-20260924-d00509-d00510-independent-rereview.md.
+
+The independent reviewer closed MAJOR-01 (provenance binding), MAJOR-02
+(full canonical/quarantine reconciliation), MAJOR-03 (isolated default
+operational path) and OBSERVATION-01 (schema alignment). Independent runs:
+26 targeted passed, 42 affected regression passed, 307 full backend passed.
+Generation 8/canonical pointer, manifest and database hashes, integrity,
+FKs, sidecars and maintenance-lock state remained unchanged.
+
+NEW_BLOCKER-01: verification of the current operational runtime freeze
+against the local code root fails with RuntimeFreezeError. The isolated
+coherent-runtime harness passes, but cannot establish that the current
+operational code/freeze binding is valid. Independent Re-review =
+QUALITY_GATE_FAIL (new blocker 1; new majors/minors/observations 0).
+E011_READINESS = NOT_READY. D005-09 = IMPLEMENTED / REMEDIATED /
+INDEPENDENTLY_REVIEWED_WITH_OPERATIONAL_BLOCKER. D005-10 = APPROVED /
+APPLIED / INDEPENDENTLY_REVIEWED_WITH_OPERATIONAL_BLOCKER.
+
+HUMAN E011 AUTHORIZATION = GRANTED / PENDING EXECUTION, subject to the
+pre-execution gate. E011 = AUTHORIZED / NOT EXECUTED. E012 = NOT AUTHORIZED /
+NOT EXECUTED. No candidate, promotion, operational mutation, stage, commit
+or push was performed by this review.
+
+STOP_CONDITION: SPEC005_D00509_D00510_INDEPENDENT_REREVIEW_FAIL
+NEXT_READY: REMEDIATION_REQUIRED
+SPEC-005 D005-11 checkpoint (2026-09-24): HUMAN aprovou identidades separadas
+da fonte operacional e do código migrador. Implementados preflight, manifest
+content-addressed de 29 arquivos com closure de imports, binding e testes
+adversariais. Suíte backend: 312 passed. Manifest v4 proposto SHA-256
+33de0cbaeb3b4e96552af1495303d27a31a04a3c21d876404337b05ad7528cff;
+builds anteriores foram superados. A baseline histórica real da Generation 8 não foi
+reconstruída byte a byte do Git (primeiro bloqueio: app/views/main_view.py,
+EOL misto); probe bloqueou corretamente. Evidence:
+docs/audit/spec005-20260924-d00511-implementation-evidence.md. D005-11
+implementada e validada pelo executor em fixtures, mas precondition operacional
+real e revisão independente pendentes. E011 suspensa; E012 não autorizada.
+Generation 8/pointer/manifest/banco preservados. Sem stage, commit ou push.
+
+======================================================================
+89. SPEC-005 D005-12 PERSISTED OPERATIONAL SOURCE AUTHORITY - 2026-09-24
+======================================================================
+
+HUMAN approved D005-12 after the historical Generation 8 code recovery was
+exhausted. The result remains PARTIAL: 111/128 byte-exact runtime manifest
+entries recovered, 17 unrecovered, zero missing paths. The final source
+`.review-spec005-rereview` was empty. Do not claim a complete historical
+runtime code baseline or regenerate the active manifest.
+
+D005-12 source authority now verifies persisted operational artifacts directly:
+Generation 8/canonical, externally pinned pointer and manifest SHA, database
+and snapshot SHA, schema/user_version, integrity, FK, sidecars and lock.
+The actual read-only source identity passed. Source identity SHA:
+4a9dbef317a982a626ab7cf6fc2aa5bebec62e256f6d3a9e4edaceb38c9c4ffe.
+
+The D005-11 v4 migration manifest remains preserved (SHA
+33de0cbaeb3b4e96552af1495303d27a31a04a3c21d876404337b05ad7528cff).
+D005-12 superseding v5 has 29 files and SHA
+a5e9f0bf65e32845acb71fff459d3a88bfbab0adc9f3f023bd747ccf4bf38893;
+verification passed. Transformation Identity:
+03832f1350b5b527216603fb2285f6dcda7bd0e322b582fb6a4434ed8dc940f0.
+The proposed binding checkpoint is
+docs/audit/spec005-20260924-d00512-binding-checkpoint.json (SHA
+3cb27129cb2343684a57d55119d73a4bbffc553861842f7f6ce5be1b88c0bfe5).
+It is not E011 authorization.
+
+Targeted D005-12/D005-11/D005-10/runtime tests: 55 passed. Affected SPEC-005
+regression: 32 passed. Full backend suite: 315 passed. Evidence:
+docs/audit/spec005-20260924-d00512-implementation-evidence.md.
+
+D005-12 = APPROVED / IMPLEMENTED / VALIDATED_BY_IMPLEMENTATION_EXECUTOR.
+Historical Runtime Recovery = EXHAUSTED / PARTIAL 111/128.
+Generation 8 = ACTIVE / UNCHANGED.
+D005-11 = IMPLEMENTED / REAL_BINDING_VALIDATED_BY_IMPLEMENTATION_EXECUTOR /
+INDEPENDENT_REVIEW_PENDING.
+E011 = AUTHORIZED_PREVIOUSLY / SUSPENDED_PENDING_INDEPENDENT_REVIEW.
+E012 = NOT_AUTHORIZED / NOT_EXECUTED.
+No candidate, E011, E012, promotion, stage, commit or push was executed.
+
+======================================================================
+90. SPEC-005 D005-11 / D005-12 INDEPENDENT REVIEW - 2026-09-24
+======================================================================
+
+Independent artifact: docs/audit/spec005-20260924-d00511-d00512-independent-review.md.
+Operational source, migration v5 (29 files) and transformation hashes were
+independently reproduced. Targeted/runtime tests: 45 passed; full backend:
+315 passed. Generation 8, pointer, manifest, database, integrity, FK, sidecars
+and lock remained unchanged. Earlier independent FAIL and runtime freeze blocker
+remain historical findings. D005-12 remains a source-specific migration
+authority, not a general runtime freeze bypass.
+
+QUALITY_GATE_FAIL: MAJOR-01. The recorded historical recovery is
+EXHAUSTED / PARTIAL 111/128, 17 unrecovered; independent current-byte and
+source-commit verification found 126/128 exact SHA matches, leaving 2 without
+a matching candidate. This does not establish 128/128 or change the operational
+source, but the persisted 111/128 provenance needs reconciliation and another
+independent review. No implementation repair was performed.
+
+D005-11/D005-12 = REVIEWED / NOT INDEPENDENTLY CLOSED.
+E011 = SUSPENDED / NOT_READY / NOT EXECUTED.
+E012 = NOT AUTHORIZED / NOT EXECUTED. No promotion, stage, commit or push.
+STOP_CONDITION: SPEC005_D00511_D00512_INDEPENDENT_REVIEW_FAIL
+NEXT_READY: REMEDIATION_OR_HUMAN_DECISION_REQUIRED
+
+======================================================================
+91. SPEC-005 D005-13 HISTORICAL RECOVERY EVIDENCE RECONCILIATION - 2026-09-24
+======================================================================
+
+D005-13 = HUMAN APPROVED / FORMALIZED / VALIDATED_BY_EXECUTOR.
+Decision: docs/audit/spec005-20260924-d00513-human-decision.json.
+Evidence: docs/audit/spec005-20260924-d00513-evidence-reconciliation.md.
+Matrix: docs/audit/spec005-20260924-d00511-d00512-recovery-matrix.json.
+
+Historical Baseline Reconstruction = INCOMPLETE; full 128/128 not established.
+Original Recovery Observation = 111/128; original 111 path membership = UNKNOWN.
+Independent Review Observation = 126/128; 3 EOL-derived matches excluded
+from direct-byte recovery. Current Direct Byte Matches = 123/128.
+Origin Provenance Confirmed = 109/128. Current-only Exact Matches = 14/128,
+temporal provenance unknown. No Direct Exact Exemplar = 5/128.
+These checkpoints used different methods/times and are not retrospectively
+interchangeable. The previous Independent Review remains FAIL / MAJOR-01.
+MAJOR-01 = REMEDIATED_BY_D00513 / PENDING_INDEPENDENT_REREVIEW, not closed.
+
+Matrix regeneration byte-identical; 128 entries and unique paths, counts
+94+15+14+5. Targeted D005-11/D005-12: 7 passed. Full backend not repeated:
+no production or migration code changed (prior full run: 315 passed).
+Critical source, migration v5 and transformation identities preserved.
+Generation 8/canonical, pointer, manifest, database, integrity, FK,
+sidecars and lock unchanged. D005-11/D005-12 = IMPLEMENTED /
+CRITICAL_IDENTITIES_PRESERVED. E011 = SUSPENDED / NOT_READY / NOT EXECUTED.
+E012 = NOT AUTHORIZED / NOT EXECUTED. No operational mutation, promotion,
+stage, commit or push.
+STOP_CONDITION: SPEC005_D00513_FORMALIZATION_COMPLETE
+NEXT_READY: READY_FOR_TARGETED_INDEPENDENT_REREVIEW
+
+======================================================================
+92. SPEC-005 D005-13 TARGETED INDEPENDENT RE-REVIEW - 2026-09-24
+======================================================================
+
+Independent artifact: docs/audit/spec005-20260924-d00513-targeted-independent-rereview.md.
+Previous D005-11/D005-12 Independent Review remains historically FAIL.
+MAJOR-01 = CLOSED_BY_INDEPENDENT_REREVIEW. D005-13 = INDEPENDENTLY_VERIFIED.
+D005-11/D005-12 = INDEPENDENT REVIEW QUALITY GATE PASS after MAJOR-01 closure.
+Original 111/128 path membership remains UNKNOWN; independent observation
+126/128 included 3 EOL-derived matches. Direct current matches = 123/128,
+origin provenance confirmed = 109/128, temporal provenance unknown = 14/128,
+no direct exact exemplar = 5/128. Full 128 reconstruction NOT ESTABLISHED.
+Matrix regenerated byte-identical, 128 unique paths; all five unrecovered
+classified, including app/views/main_view.py. Source, migration v5 and
+transformation identities preserved. Targeted tests: 7 passed; static and
+diff checks passed. No causal production/migration change; prior full suite:
+315 passed. Operational sentinel unchanged at Generation 8/canonical.
+BLOCKERS=0; NEW_MAJORS=0; QUALITY_GATE_RESULT=QUALITY_GATE_PASS.
+E011 = NOT EXECUTED / READY_FOR_HUMAN_RECONFIRMATION. E012 = NOT EXECUTED.
+No operational mutation, stage, commit, push or promotion.
+STOP_CONDITION: SPEC005_D00513_TARGETED_INDEPENDENT_REREVIEW_PASS
+NEXT_READY: HUMAN_E011_RECONFIRMATION_REQUIRED
+
+======================================================================
+93. SPEC-005 E011 PRE-WRITE CHECKPOINT BLOCKED - 2026-09-24
+======================================================================
+
+HUMAN reconfirmed and authorized E011 in the current instruction. Quality
+gate PASS and MAJOR-01 closure independently verified. Source identity,
+migration manifest v5 (29 files), transformation identity and Generation 8
+operational sentinel all revalidated read-only. Source financial counts: 3
+payments and 3 expenses. Evidence:
+docs/audit/spec005-20260924-e011-precondition-blocked.md.
+
+The frozen E011 CLI still unconditionally exits after identity preflight
+with the stale E011-suspended error. The persisted D005-12 checkpoint also
+retains its pre-review flags. Changing the bound CLI invalidates migration
+and transformation identities; bypassing it is not an authorized E011 path.
+E011_FIRST_WRITE_PRECONDITIONS = FAIL. No snapshot or candidate created.
+E011 = NOT EXECUTED / PRECONDITION_BLOCKED. Generation 8 unchanged.
+E012 = NOT AUTHORIZED / NOT EXECUTED. No promotion, stage, commit or push.
+STOP_CONDITION: SPEC005_E011_PRECONDITION_BLOCKED
+NEXT_READY: REMEDIATION_OR_HUMAN_DECISION_REQUIRED
+
+======================================================================
+94. SPEC-005 E011 CLI GATE REMEDIATION - 2026-09-24
+======================================================================
+
+Evidence: docs/audit/spec005-20260924-e011-cli-remediation-evidence.md.
+HUMAN E011 authorization = GRANTED / RECONFIRMED. E011 execution = NOT EXECUTED.
+The frozen CLI's unconditional stop is REMEDIATED_BY_EXECUTOR /
+PENDING_INDEPENDENT_REREVIEW. The CLI now requires pinned persisted
+authorization Evidence, independent D005-13 PASS, MAJOR-01 closure,
+persisted source authority, manifest and binding verification. No ordinary
+CLI path bypasses this gate; E012/promotion remain unauthorized.
+
+Migration Manifest v5 SHA a5e9f0bf65e32845acb71fff459d3a88bfbab0adc9f3f023bd747ccf4bf38893
+is preserved and SUPERSEDED FOR FUTURE E011 EXECUTION. Its Transformation
+Identity 03832f1350b5b527216603fb2285f6dcda7bd0e322b582fb6a4434ed8dc940f0
+is historically preserved and invalidated for future E011 by code change.
+Manifest v6 (29 entries) SHA b0bc52392cb40bd4e4c19d8c89651452a3651b6adbaa88cbc3ba87e505cff36b
+was built and separately verified against real bytes. New Transformation
+Identity = 41b1c6f91fae82530f3a28bbb8baa348f4209212bb49f43a6a36e6d1ff6b81c3.
+Both new identities = EXECUTOR VERIFIED / PENDING INDEPENDENT VERIFICATION.
+Source Identity 4a9dbef317a982a626ab7cf6fc2aa5bebec62e256f6d3a9e4edaceb38c9c4ffe
+UNCHANGED. New v6 binding checkpoint remains PENDING_INDEPENDENT_IDENTITY_REREVIEW.
+Targeted tests 10 passed; full backend 318 passed; static and diff checks pass.
+Generation 8/canonical sentinel unchanged. No snapshot, candidate, E011,
+E012, promotion, stage, commit or push.
+STOP_CONDITION: SPEC005_E011_CLI_REMEDIATION_COMPLETE
+NEXT_READY: READY_FOR_E011_IDENTITY_INDEPENDENT_REREVIEW
+
+======================================================================
+95. SPEC-005 E011 CLI / IDENTITY v6 INDEPENDENT RE-REVIEW - 2026-09-24
+======================================================================
+
+Independent artifact: docs/audit/spec005-20260924-e011-cli-independent-rereview.md.
+Manifest v5 and prior Transformation Identity remain historically preserved
+and superseded for E011. Source Identity unchanged. Manifest v6 (29 files),
+SHA b0bc52392cb40bd4e4c19d8c89651452a3651b6adbaa88cbc3ba87e505cff36b,
+and Transformation Identity 41b1c6f91fae82530f3a28bbb8baa348f4209212bb49f43a6a36e6d1ff6b81c3
+were independently reproduced. Tampering with an isolated participating
+file caused manifest VERIFY to fail closed. Targeted tests: 37 passed.
+
+QUALITY_GATE_FAIL: BLOCKER-01. A caller can supply a self-authored v6 review
+JSON and binding checkpoint with mutually consistent SHA values. The CLI
+accepts their independent-review claim without a separately trusted
+authority binding; an isolated harness reached the pre-migration boundary
+with such artifacts, while intercepting migration before any write. No code
+repair was performed. The current pending checkpoint still blocks E011.
+CLI_BLOCKER_STATUS = OPEN. E011 = AUTHORIZED / EXECUTION SUSPENDED / NOT_READY.
+E012 = NOT AUTHORIZED / NOT EXECUTED. Generation 8 sentinel unchanged.
+No snapshot, candidate, E011, promotion, stage, commit or push.
+STOP_CONDITION: SPEC005_E011_IDENTITY_INDEPENDENT_REREVIEW_FAIL
+NEXT_READY: REMEDIATION_OR_HUMAN_DECISION_REQUIRED
+
+======================================================================
+96. SPEC-005 E011 BLOCKER-01 EXECUTOR REMEDIATION - 2026-09-24
+======================================================================
+
+Evidence: docs/audit/spec005-20260924-e011-blocker01-remediation-progress.md.
+BLOCKER-01 = REMEDIATED_BY_EXECUTOR / PENDING INDEPENDENT REREVIEW.
+E011 = AUTHORIZED / NOT EXECUTED / NOT_READY. E012 = NOT AUTHORIZED.
+The E011 CLI resolves a fixed canonical review authority provisioned by a
+separate reviewer command. No real PASS authority was provisioned. Synthetic
+fixtures proved self-asserted PASS blocks and independently provisioned PASS
+reaches an intercepted pre-write boundary. No real snapshot or candidate.
+
+Source Identity 4a9dbef317a982a626ab7cf6fc2aa5bebec62e256f6d3a9e4edaceb38c9c4ffe
+reconfirmed read-only. v6 and v7 migration/transformation identities are
+historical and superseded for future E011. Final executor-verified v8 migration
+manifest (29 files) SHA d4efc92187d615c3d04808c140dfa6d1a24501cd935ac2fcf8683c88ce73f968.
+Final executor-calculated Transformation Identity
+6d6d93d2769bc2370f632d3f82f574ed586940a1974bf916636e34d0e2ce6bd8.
+Both await independent verification. Full Python/backend suite: 328 passed.
+Generation 8/canonical sentinel unchanged, integrity ok, FK 0, sidecars 0.
+No E011, E012, promotion, stage, commit or push.
+STOP_CONDITION: SPEC005_E011_BLOCKER01_REMEDIATION_COMPLETE
+NEXT_READY: READY_FOR_E011_BLOCKER01_INDEPENDENT_REREVIEW
+
+======================================================================
+97. SPEC-005 E011 TRUST CLOSURE v9 EXECUTOR REMEDIATION - 2026-09-24
+======================================================================
+
+Evidence: docs/audit/spec005-20260924-e011-trust-closure-v9-remediation-evidence.md.
+The v8 independent rereview found the authority provisioner outside the
+content-addressed trust closure. It is now an entrypoint of the v9 Migration
+Execution Identity. Closure: 30 files; manifest SHA
+90754472d5c15012e1caecf73cec272f3339bb6bc22ef2f6b1c3bb6b3b77649c;
+Transformation Identity 3dfcdd7c719a89fed15a7f15da0757adfc09ae2a592ddc4d16dcd412f2223035.
+v8 and its transformation identity remain historical. Source Identity unchanged.
+Isolated provisioner/CLI/identity/infrastructure tamper checks fail closed;
+A-J targeted checks pass. Full backend tests: 329 passed. Generation 8
+sentinel unchanged. BLOCKER-01 = REMEDIATED_BY_EXECUTOR /
+PENDING_TARGETED_INDEPENDENT_REREVIEW. E011 = AUTHORIZED / NOT EXECUTED /
+NOT_READY. E012 and promotion not authorized. No real PASS authority,
+snapshot, candidate, stage, commit or push.
+STOP_CONDITION: SPEC005_E011_TRUST_CLOSURE_REMEDIATION_COMPLETE
+NEXT_READY: TARGETED_INDEPENDENT_REREVIEW_ONLY
+
+======================================================================
+98. SPEC-005 E011 CANDIDATE INDEPENDENT VERIFICATION - 2026-09-24
+======================================================================
+
+Independent opinion: docs/audit/spec005-20260924-e011-candidate-independent-review.md.
+E011 = EXECUTED / CANDIDATE_CREATED / UNPROMOTED / INDEPENDENTLY_VERIFIED /
+READY_FOR_CLOSURE. QUALITY_GATE_PASS; BLOCKERS 0; MAJORS 0.
+Candidate SHA bcad54253b1eb5684cd145ad0e2225600fe3c5f63ac1542eaa0a3078c5a850cb
+independently recalculated. Integrity ok, FK 0, user_version 5, schema PASS.
+Source fingerprints and semantic fields reconcile 6 = 5 canonical + 1 quarantine.
+payment/4 remains paid with unknown paid_at in quarantine only; no invented date.
+Money, monthly competence and repository/query isolation PASS.
+Generation 8/canonical pointer, manifest and operational database hashes unchanged;
+integrity ok, FK 0, no sidecars or maintenance lock.
+One targeted pytest case passed; three were blocked at tmp_path setup by local
+filesystem permissions. Direct read-only candidate and repository checks passed.
+E012 = NOT AUTHORIZED / NOT EXECUTED. PROMOTION = NOT AUTHORIZED / NOT EXECUTED.
+No stage, commit or push.
+STOP_CONDITION: SPEC005_E011_INDEPENDENT_VERIFICATION_PASS
+NEXT_READY: SPEC005_E011_CLOSURE
+
+======================================================================
+99. SPEC-005 E012 INDEPENDENT QUALITY REVIEW - 2026-09-24
+======================================================================
+
+Independent artifact: docs/audit/spec005-20260924-e012-independent-quality-review.md.
+HUMAN E012 authorization GRANTED; repair and promotion authority NONE.
+Repo feature/spec-008-architecture-foundation, HEAD/upstream c5100dd3cc347a9263c64a52a64d6bb0967b1db5; preexisting working tree preserved.
+E001-E011: 11/11 PASS. AC-001-AC-012: 12/12 PASS. Contract and HUMAN decisions adhered to; traceability and data, financial, authorization, privacy/security checks PASS. Candidate SHA bcad54253b1eb5684cd145ad0e2225600fe3c5f63ac1542eaa0a3078c5a850cb rechecked; integrity ok, FK 0, user_version 5; 6 source = 5 canonical + 1 quarantined. payment/4 remains unresolved with unknown paid_at; none invented. Candidate VALIDATED / INDEPENDENTLY_VERIFIED / ISOLATED / UNPROMOTED.
+Targeted tests 7 PASS; additional selection 12 PASS, 14 tmp_path setup errors from Windows permissions. Direct immutable SQLite checks and prior independent E011 Evidence support the affected properties. Previous full backend suite 329 PASS was not repeated without causal change. BLOCKERS 0; MAJORS 0; MINORS 0; OBSERVATIONS 2 (Windows harness; stale status text in frozen SPEC/historical handoff). No material NOT_PROVEN.
+Operational sentinel before/after unchanged: Generation 8/canonical; pointer d83a0654ce964f93c3191bb4a9bbe24fa78c55087666e6831f04f60630a1c50a; manifest cd806a300f182c5d0f70cb6a6e4b2b0b9a574ff2f4cf02d7271cfcdaec5ef519; DB 1edb9c5c77a8eb56da6cb5254e2bf795aa56a1d8c94dbbc855d0b70d40f404c8; integrity ok, FK 0, sidecars 0, lock absent.
+QUALITY_GATE_RESULT=QUALITY_GATE_PASS. E012=CLOSED/QUALITY_GATE_PASS/INDEPENDENTLY_VERIFIED. SPEC-005=IMPLEMENTATION_AND_QUALITY_REVIEW_COMPLETE/PENDING_HUMAN_PROMOTION_DECISION; not ACCEPTED/DONE. PROMOTION=NOT_AUTHORIZED/NOT_EXECUTED. No repair, operational mutation, staging, commit or push.
+STOP_CONDITION: SPEC005_E012_INDEPENDENT_QUALITY_REVIEW_PASS
+NEXT_READY: HUMAN_SPEC005_PROMOTION_DECISION

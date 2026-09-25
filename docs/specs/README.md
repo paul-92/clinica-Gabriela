@@ -14,7 +14,7 @@ Este diretório reúne as especificações funcionais, técnicas, arquiteturais,
 | SPEC-002 | Autenticação e autorização seguras | READY FOR IMPLEMENTATION | P0 | implementar primeiro |
 | SPEC-003 | Integridade clínica | ACCEPTED / DONE | P1 | preservar Evidence e recovery; manutenção futura somente |
 | SPEC-004 | Agenda e atendimentos | BASELINE FUNCTIONAL APPROVED | P1 | pronta para implementação orquestrada; implementação ainda não iniciada |
-| SPEC-005 | Financeiro | D005-08 RECONCILED — executor validated | P1 | revisão independente D005-08; E011 permanece sem autorização |
+| SPEC-005 | Financeiro | CLOSED_PASS_PROMOTED_INDEPENDENTLY_VERIFIED; Generation 9/canonical | P1 | [verificação independente pós-promoção](../audit/spec005-20260924-post-promotion-independent-verification.md); próximo checkpoint do repositório |
 | SPEC-006 | Backup e recuperação | DRAFT detalhada | P1 | implementar antes de migrations críticas |
 | SPEC-007 | Testes automatizados | DRAFT detalhada | P1 transversal | aplicar desde o início |
 | SPEC-008 | Unificação arquitetural | DRAFT detalhada | P1 | inventário e decisão após SPEC-002 |

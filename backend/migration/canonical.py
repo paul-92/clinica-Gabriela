@@ -50,10 +50,12 @@ EXPECTED_TABLES = frozenset(
         "expenses",
         "expense_categories",
         "financial_events",
+        "legacy_financial_quarantine",
+        "legacy_financial_quarantine_events",
         "clinic_settings",
     }
 )
-CANONICAL_SCHEMA_VERSION = "backend-models-v6-spec005-finance"
+CANONICAL_SCHEMA_VERSION = "backend-models-v7-spec005-d00510-quarantine"
 
 
 class CanonicalDatabaseError(Exception):

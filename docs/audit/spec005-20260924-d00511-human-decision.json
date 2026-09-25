@@ -1,0 +1,19 @@
+{
+  "specification": "SPEC-005",
+  "decision_id": "D005-11",
+  "title": "Separated Operational Source and Migration Code Identity",
+  "authority": "HUMAN",
+  "status": "APPROVED",
+  "principle": "Operational Source Identity and Migration Code Identity are distinct, independently verified authorities",
+  "source_generation": 8,
+  "source_pointer_sha256": "d83a0654ce964f93c3191bb4a9bbe24fa78c55087666e6831f04f60630a1c50a",
+  "source_runtime_manifest_sha256": "cd806a300f182c5d0f70cb6a6e4b2b0b9a574ff2f4cf02d7271cfcdaec5ef519",
+  "source_database_sha256": "1edb9c5c77a8eb56da6cb5254e2bf795aa56a1d8c94dbbc855d0b70d40f404c8",
+  "migration_manifest_schema": "spec005-migration-execution-v1",
+  "migration_manifest_sha256_proposed_for_review": "33de0cbaeb3b4e96552af1495303d27a31a04a3c21d876404337b05ad7528cff",
+  "migration_manifest_approved_for_e011": false,
+  "independent_review_complete": false,
+  "e011_suspended": true,
+  "e012_authorized": false,
+  "operational_mutation_authorized": false
+}

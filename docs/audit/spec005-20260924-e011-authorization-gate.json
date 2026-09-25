@@ -1,0 +1,18 @@
+{
+  "schema_version": "spec005-e011-authorization-gate-v1",
+  "specification": "SPEC-005",
+  "execution_item": "E011",
+  "quality_gate_result": "QUALITY_GATE_PASS",
+  "major01_status": "CLOSED_BY_INDEPENDENT_REREVIEW",
+  "d00513_independent_review": "PASS",
+  "d00513_status": "INDEPENDENTLY_VERIFIED",
+  "independent_review_artifact": "docs/audit/spec005-20260924-d00513-targeted-independent-rereview.md",
+  "independent_review_sha256": "35d9fdf126e286b135570b5aa3265cc9fa8e96835c365d1814c0e976a867453c",
+  "human_e011_reconfirmation": "GRANTED",
+  "human_authorization_text": "Reconfirmo e autorizo a execução da E011.",
+  "human_authorization_attachment_sha256": "068e116c7f2e664b2e60927e048195d2fdbc629ceff94d347fc8523abb0bfb16",
+  "source_authority": "PERSISTED_OPERATIONAL_SOURCE_IDENTITY/D005-12",
+  "source_identity_sha256": "4a9dbef317a982a626ab7cf6fc2aa5bebec62e256f6d3a9e4edaceb38c9c4ffe",
+  "e012_authorized": false,
+  "promotion_authorized": false
+}

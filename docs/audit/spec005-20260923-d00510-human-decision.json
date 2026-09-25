@@ -1,0 +1,25 @@
+{
+  "decision_id": "D005-10",
+  "authority": "HUMAN",
+  "status": "APPROVED_APPLIED",
+  "decision": "LEGACY_SOURCE_IDENTITY_NORMALIZATION",
+  "historical_mapping_recovery": "FAILED",
+  "historical_labels_are_technical_keys": false,
+  "source_generation": 8,
+  "source_database_sha256": "1edb9c5c77a8eb56da6cb5254e2bf795aa56a1d8c94dbbc855d0b70d40f404c8",
+  "identity_components": ["source_database_sha", "entity_type", "source_internal_id", "source_row_fingerprint"],
+  "identity_manifest": "spec005-20260923-d00510-legacy-source-identity-manifest.json",
+  "special_disposition": {
+    "entity_type": "payment",
+    "source_internal_id": 4,
+    "disposition": "QUARANTINED_UNRESOLVED",
+    "reason": "PAID_WITH_UNKNOWN_PAID_AT",
+    "paid_at_inference_authorized": false
+  },
+  "other_records": "CANONICAL_MIGRATED only after every SPEC-005 invariant passes",
+  "competence_year": 2026,
+  "competence_month": 7,
+  "operational_mutation_authorized": false,
+  "e011_authorized": false,
+  "e012_authorized": false
+}

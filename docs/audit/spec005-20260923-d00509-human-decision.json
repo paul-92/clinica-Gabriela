@@ -1,0 +1,39 @@
+{
+  "specification": "SPEC-005",
+  "decision_id": "D005-09",
+  "authority": "HUMAN",
+  "decision": "QUARANTINE_PERSISTED",
+  "status": "APPROVED_CONTRACT_FORMALIZED",
+  "source": "HUMAN instruction supplied to CODEX on 2026-09-23",
+  "baseline": {
+    "generation": 8,
+    "state": "canonical",
+    "database_sha256": "1edb9c5c77a8eb56da6cb5254e2bf795aa56a1d8c94dbbc855d0b70d40f404c8",
+    "pointer_sha256": "d83a0654ce964f93c3191bb4a9bbe24fa78c55087666e6831f04f60630a1c50a",
+    "runtime_manifest_sha256": "cd806a300f182c5d0f70cb6a6e4b2b0b9a574ff2f4cf02d7271cfcdaec5ef519"
+  },
+  "r2": {
+    "disposition": "QUARANTINED_UNRESOLVED",
+    "reason_code": "PAID_WITH_UNKNOWN_PAID_AT",
+    "observed_legacy_status": "paid",
+    "paid_at": null,
+    "paid_at_inference_authorized": false,
+    "competence_year": 2026,
+    "competence_month": 7,
+    "canonical_payment_authorized": false
+  },
+  "reconciliation": "SOURCE_FINANCIAL_RECORDS = CANONICAL_MIGRATED_RECORDS + QUARANTINED_LEGACY_RECORDS",
+  "legacy_mapping": {
+    "labels": ["R1", "R2", "R3", "R4", "R5", "R6"],
+    "source_record_binding_persisted": false,
+    "required_before_e011": true
+  },
+  "restrictions": {
+    "operational_mutation_authorized": false,
+    "implementation_authorized": false,
+    "candidate_creation_authorized": false,
+    "e011_authorized": false,
+    "e012_authorized": false,
+    "promotion_authorized": false
+  }
+}

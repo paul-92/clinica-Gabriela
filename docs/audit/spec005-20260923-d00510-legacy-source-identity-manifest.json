@@ -1,0 +1,63 @@
+{
+  "decision_id": "D005-10",
+  "source_generation": 8,
+  "source_manifest_sha256": "cd806a300f182c5d0f70cb6a6e4b2b0b9a574ff2f4cf02d7271cfcdaec5ef519",
+  "canonicalization_version": "spec005-row-v1",
+  "records": [
+    {
+      "entity_type": "expense",
+      "source_internal_id": 3,
+      "source_row_fingerprint": "75b64c9e17848a5c1cc9ce58865c245ace052da7a93c78804190c13cb26605f8",
+      "source_database_sha": "1edb9c5c77a8eb56da6cb5254e2bf795aa56a1d8c94dbbc855d0b70d40f404c8",
+      "competence_year": 2026,
+      "competence_month": 7,
+      "intended_disposition": "CANONICAL_MIGRATED"
+    },
+    {
+      "entity_type": "expense",
+      "source_internal_id": 4,
+      "source_row_fingerprint": "a22e2f98713e11926634f5316e342988973efe6c3a785f55571922424865abb8",
+      "source_database_sha": "1edb9c5c77a8eb56da6cb5254e2bf795aa56a1d8c94dbbc855d0b70d40f404c8",
+      "competence_year": 2026,
+      "competence_month": 7,
+      "intended_disposition": "CANONICAL_MIGRATED"
+    },
+    {
+      "entity_type": "expense",
+      "source_internal_id": 5,
+      "source_row_fingerprint": "fc8610e423e9013ee6dec44611ead64055d7efab6afb0f116707e31ebaf2f3c1",
+      "source_database_sha": "1edb9c5c77a8eb56da6cb5254e2bf795aa56a1d8c94dbbc855d0b70d40f404c8",
+      "competence_year": 2026,
+      "competence_month": 7,
+      "intended_disposition": "CANONICAL_MIGRATED"
+    },
+    {
+      "entity_type": "payment",
+      "source_internal_id": 3,
+      "source_row_fingerprint": "81c89e1e05fe7bc4544dd4a4bab63b3b3270039fd8d34ec32270c05c7e0f6b8c",
+      "source_database_sha": "1edb9c5c77a8eb56da6cb5254e2bf795aa56a1d8c94dbbc855d0b70d40f404c8",
+      "competence_year": 2026,
+      "competence_month": 7,
+      "intended_disposition": "CANONICAL_MIGRATED"
+    },
+    {
+      "entity_type": "payment",
+      "source_internal_id": 4,
+      "source_row_fingerprint": "9fca7e449dd9fc44874418fecb605d923718879a8713ee5e492f595a8e739f19",
+      "source_database_sha": "1edb9c5c77a8eb56da6cb5254e2bf795aa56a1d8c94dbbc855d0b70d40f404c8",
+      "competence_year": 2026,
+      "competence_month": 7,
+      "intended_disposition": "QUARANTINED_UNRESOLVED",
+      "quarantine_reason": "PAID_WITH_UNKNOWN_PAID_AT"
+    },
+    {
+      "entity_type": "payment",
+      "source_internal_id": 5,
+      "source_row_fingerprint": "eec0a4608b96f8670cafbbc46482aa78b6acad546f8bcc5936ec99d68b5b4b55",
+      "source_database_sha": "1edb9c5c77a8eb56da6cb5254e2bf795aa56a1d8c94dbbc855d0b70d40f404c8",
+      "competence_year": 2026,
+      "competence_month": 7,
+      "intended_disposition": "CANONICAL_MIGRATED"
+    }
+  ]
+}

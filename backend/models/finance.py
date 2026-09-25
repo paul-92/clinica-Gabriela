@@ -133,6 +133,57 @@ class FinancialEvent(Base):
     created_at = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
 
+class LegacyFinancialQuarantine(Base):
+    __tablename__ = "legacy_financial_quarantine"
+    __table_args__ = (
+        CheckConstraint("length(source_database_sha256)=64 AND length(source_record_sha256)=64"),
+        CheckConstraint("length(source_manifest_sha256)=64 AND length(mapping_sha256)=64"),
+        CheckConstraint("source_generation > 0"),
+        CheckConstraint("source_entity_type IN ('payment','expense')"),
+        CheckConstraint("source_record_id > 0"),
+        CheckConstraint("reason_code = 'PAID_WITH_UNKNOWN_PAID_AT'"),
+        CheckConstraint("decision_id = 'D005-10'"),
+        CheckConstraint("resolution_state = 'unresolved'"),
+        CheckConstraint("amount_cents > 0"),
+        CheckConstraint("competence_year BETWEEN 1 AND 9999"),
+        CheckConstraint("competence_month BETWEEN 1 AND 12"),
+        Index("ux_legacy_quarantine_source", "source_database_sha256", "source_entity_type", "source_record_id", unique=True),
+    )
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    source_database_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    source_generation: Mapped[int] = mapped_column(Integer, nullable=False)
+    source_entity_type: Mapped[str] = mapped_column(String(16), nullable=False)
+    source_record_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    source_record_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    legacy_status: Mapped[str] = mapped_column(String(30), nullable=False)
+    legacy_amount_text: Mapped[str] = mapped_column(Text, nullable=False)
+    legacy_currency: Mapped[str] = mapped_column(String(3), nullable=False, server_default="BRL")
+    amount_cents: Mapped[int] = mapped_column(Integer, nullable=False)
+    competence_year: Mapped[int] = mapped_column(Integer, nullable=False)
+    competence_month: Mapped[int] = mapped_column(Integer, nullable=False)
+    reason_code: Mapped[str] = mapped_column(String(40), nullable=False)
+    quarantined_at = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    decision_id: Mapped[str] = mapped_column(String(20), nullable=False)
+    source_manifest_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    mapping_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    migration_execution_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    resolution_state: Mapped[str] = mapped_column(String(20), nullable=False, server_default="unresolved")
+    legacy_row_json: Mapped[str] = mapped_column(Text, nullable=False)
+
+
+class LegacyFinancialQuarantineEvent(Base):
+    __tablename__ = "legacy_financial_quarantine_events"
+    __table_args__ = (
+        CheckConstraint("length(trim(actor))>0 AND length(trim(action))>0 AND length(evidence_sha256)=64"),
+    )
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    quarantine_id: Mapped[int] = mapped_column(ForeignKey("legacy_financial_quarantine.id", ondelete="NO ACTION"), nullable=False)
+    actor: Mapped[str] = mapped_column(String(40), nullable=False)
+    action: Mapped[str] = mapped_column(String(40), nullable=False)
+    evidence_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+
+
 for table in (Payment.__table__, Expense.__table__, ExpenseCategory.__table__):
     event.listen(table, "after_create", DDL(f"""
 CREATE TRIGGER IF NOT EXISTS spec005_{table.name}_no_delete
@@ -144,6 +195,13 @@ event.listen(FinancialEvent.__table__, "after_create", DDL("""
 CREATE TRIGGER IF NOT EXISTS spec005_financial_events_no_update
 BEFORE UPDATE ON financial_events
 BEGIN SELECT RAISE(ABORT, 'financial_events is append-only'); END
+"""))
+for table in (LegacyFinancialQuarantine.__table__, LegacyFinancialQuarantineEvent.__table__):
+    for action in ("update", "delete"):
+        event.listen(table, "after_create", DDL(f"""
+CREATE TRIGGER IF NOT EXISTS spec005_{table.name}_no_{action}
+BEFORE {action.upper()} ON {table.name}
+BEGIN SELECT RAISE(ABORT, '{table.name} is append-only'); END
 """))
 event.listen(FinancialEvent.__table__, "after_create", DDL("""
 CREATE TRIGGER IF NOT EXISTS spec005_financial_events_no_delete

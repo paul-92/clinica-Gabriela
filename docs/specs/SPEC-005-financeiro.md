@@ -1,9 +1,10 @@
 # SPEC-005 — Financeiro
 
-**Status:** D005-08 RECONCILED BY EXECUTOR — revisão independente pendente; E011–E012 não executados
+**Estado atual (2026-09-24):** `CLOSED_PASS_PROMOTED_INDEPENDENTLY_VERIFIED`; Generation 9/canonical é autoritativa; `QUALITY_GATE_PASS`. [Verificação independente pós-promoção](../audit/spec005-20260924-post-promotion-independent-verification.md). As declarações de status e gates nas seções históricas abaixo registram seus checkpoints de origem.
+**Status histórico do checkpoint D005-09:** D005-08 independent review PASS; D005-09 HUMAN APPROVED / CONTRACT FORMALIZED; E011–E012 não executados
 **Prioridade:** P1  
 **Dependências preservadas:** SPEC-002, SPEC-003, SPEC-004 e SPEC-008
-**Autoridade:** decisões HUMAN D005-01 a D005-08
+**Autoridade:** decisões HUMAN D005-01 a D005-09
 **Implementação:** E002–E010 reconciliados com D005-08 e revalidados pelo executor
 **Migração operacional:** não autorizada / não executada
 
@@ -169,6 +170,53 @@ de demonstração não podem parecer dados reais.
 
 ## 11. Migração futura
 
+### D005-11 — Identidades separadas (HUMAN APPROVED)
+
+A origem operacional e o código migrador possuem autoridades independentes. A
+identidade da origem vincula Generation, pointer, runtime manifest, SHA-256 do
+banco, schema e checks de integridade/FK. O freeze da Generation 8 é verificado
+contra uma baseline histórica byte a byte comprovada pelo manifest ativo; o
+working tree de desenvolvimento não precisa coincidir com ela.
+
+A identidade do migrador é o SHA-256 de um manifest canônico UTF-8, JSON com
+chaves ordenadas, separadores compactos e LF final. Seu inventário ordenado é a
+closure dos imports Python locais dos entrypoints SPEC-005, inclusive os
+`__init__.py` executados. Cada SHA-256 é dos bytes reais, sem normalização EOL.
+BUILD cria arquivo novo; VERIFY recalcula a closure e os hashes sem atualizar a
+baseline. Git é provenance auxiliar. Arquivos fora do inventário não invalidam
+essa identidade.
+
+O vínculo de transformação inclui identidade da origem, SHA do manifest migrador,
+SPEC-005 e D005-09/D005-10/D005-11. A futura E011 exige as duas identidades e o
+vínculo verificados, revisões independentes D005-09/D005-10 e D005-11 válidas e
+autorização HUMAN E011. Um checkpoint proposto não constitui autorização. A
+reconstrução byte a byte da baseline operacional real segue bloqueada em arquivo
+histórico com finais de linha mistos; E011 permanece suspensa.
+
+### D005-12 — Evidência operacional persistida como autoridade da fonte (HUMAN APPROVED)
+
+Após o bloqueio do freeze, a validação sintética D005-11 e a busca histórica
+exaustiva, foram recuperados bytes exatos para 111 das 128 entradas do manifest
+ativo. As outras 17 continuam sem fonte verificável; a última pasta examinada,
+`.review-spec005-rereview`, estava vazia. A recuperação histórica permanece
+`PARTIAL_111_OF_128`, sem alegação de verificação integral do código antigo.
+
+Para a Generation 8, D005-12 permite estabelecer a identidade da fonte por
+artefatos operacionais persistidos: hash externo esperado e bytes reais do pointer,
+estado e número da Generation, hash e inventário do runtime manifest, hash do banco
+apontado e do snapshot isolado, schema, `user_version`, integridade, FKs, ausência
+de sidecars e maintenance lock. Qualquer divergência bloqueia. O runtime manifest
+continua Evidence histórica, sem regeneração ou reconstrução presumida de seus
+arquivos. O snapshot futuro deve coincidir byte a byte com o SHA verificado do
+banco apontado.
+
+O código migrador mantém verificação independente da closure de imports e de cada
+SHA. Seu manifest v4 fica preservado como baseline D005-11 anterior; mudanças
+D005-12 exigem manifest sucessor. A transformação vincula a identidade operacional
+persistida, o SHA do manifest migrador, SPEC-005 e D005-09/D005-10/D005-11/D005-12.
+O checkpoint não autoriza E011. D005-12 e o binding real requerem revisão
+independente antes de reabrir E011; E012 continua sem autorização.
+
 **FORWARD_ONLY / ISOLATED_CANDIDATE / FAIL_CLOSED**
 
 A migração operacional não foi executada. O migrador reconciliado foi validado
@@ -192,6 +240,48 @@ somente com snapshots e candidatos sintéticos isolados. Execução futura exige
 Generation 8/canonical não pode ser mutada. Falha interrompe o candidato sem
 promoção. Recovery preserva fonte/backup e descarta ou substitui somente o
 candidato isolado mediante autorização.
+
+### 11.1 Legado financeiro não resolvido — D005-09
+
+D005-09 aprova **quarentena persistida**, separada de `payments` e `expenses`
+canônicos, exclusivamente para preservar e reconciliar legado incompatível. Não é
+um segundo sistema financeiro. A estrutura mínima terá identidade interna estável,
+identidade/hash da fonte, geração, tipo e ID interno da linha, fingerprint versionado,
+status e valor legados, competência mensal, código do bloqueio, instante de entrada,
+proveniência, estado de resolução e eventos append-only. Dados necessários à futura
+resolução ficam restritos; Evidence, logs e manifests não levam PII.
+
+R2 tem disposition `QUARANTINED_UNRESOLVED`, reason
+`PAID_WITH_UNKNOWN_PAID_AT`, status legado `paid`, competência `2026/7` e valor
+legado preservados. R2 não vira payment canônico enquanto `paid_at` for desconhecido.
+É proibido inferir, sintetizar ou estimar `paid_at` de competência, vencimento,
+criação ou qualquer timestamp não comprovado. `paid -> paid_at` permanece sem
+exceção. Quarentena não participa de CASH, ACCRUAL, receitas, indicadores, totais,
+relatórios, repositório, API ou UI financeiros normais.
+
+Para payments e expenses separadamente e no conjunto, o conjunto de registros da
+fonte deve ser particionado sem perda ou duplicação:
+
+`SOURCE_FINANCIAL_RECORDS = CANONICAL_MIGRATED_RECORDS + QUARANTINED_LEGACY_RECORDS`.
+
+Reconciliar contagens, tipo/ID/fingerprint, valor, status observado e disposition.
+D005-10 substitui a antiga precondition de vínculo R1–R6: esses labels são
+referências históricas, não identidades técnicas. A recuperação do vínculo foi
+`FAILED` e não será reconstruída por inferência. A identidade operacional é
+`source_database_sha + entity_type + source_internal_id + source_row_fingerprint`.
+O [manifesto D005-10](../audit/spec005-20260923-d00510-legacy-source-identity-manifest.json)
+vincula os seis registros autorizados à competência `2026/7` e à disposition
+pretendida; payment/4 vai para `QUARANTINED_UNRESOLVED` somente após verificação
+de hash e atributos. Ausência, duplicidade ou divergência bloqueiam.
+
+Resolução futura de R2 exige evidência confiável do `paid_at` real ou nova decisão
+HUMAN explícita. A ação terá autorização, transação única, idempotência, before
+state, ator, evidência, resultado, timestamp e evento append-only; o original não
+será apagado. Consulta administrativa da quarentena requer contrato próprio.
+Detalhes de implementação e testes estão no
+[plano D005-09](../audit/spec005-20260923-d00509-contract-and-implementation-plan.md).
+A implementação D005-09/D005-10 é autorizada apenas em código, fixtures e
+ambientes isolados; E011 continua sem autorização.
 
 ## 12. Critérios de aceitação congelados
 
@@ -339,14 +429,14 @@ Cada unidade depende de autorização futura.
 - **STOP CONDITIONS:** regressão, vazamento ou lacuna.
 
 ### E011 — Operational Candidate
-- **INPUTS:** E004/E010 e backup/recovery.
-- **OUTPUTS:** candidato não promovido.
-- **DEPENDENCIES:** E010 e gates HUMAN.
+- **INPUTS:** E004/E010, backup/recovery, decisão D005-09 implementada/validada e mapa R1–R6 verificável.
+- **OUTPUTS:** candidato não promovido com dispositions `CANONICAL_MIGRATED` e `QUARANTINED_UNRESOLVED` reconciliadas.
+- **DEPENDENCIES:** E010, validação independente D005-09, preconditions verdes e autorização HUMAN separada de E011.
 - **AUTHORITY:** preparar, não promover.
-- **VALIDATION:** smoke, integridade, reconciliação/recovery.
+- **VALIDATION:** smoke, integridade, partição sem perda/duplicação por tipo/ID/valor, isolamento de queries e recovery.
 - **EVIDENCE:** manifesto/checkpoint sanitizado.
 - **ROLLBACK/RECOVERY BOUNDARY:** descartar; preservar Generation 8.
-- **STOP CONDITIONS:** divergência, Evidence incompleta ou promoção sem gate.
+- **STOP CONDITIONS:** mapa/R2 ambíguo, divergência, Evidence incompleta ou promoção sem gate.
 
 ### E012 — Independent Quality Review
 - **INPUTS:** candidato e Evidence E001..E011.
@@ -360,7 +450,7 @@ Cada unidade depende de autorização futura.
 
 ## 15. Estado e gates
 
-O contrato possui 8/8 decisões normativas/rastreáveis, AC-001..012 e DAG. A
+O contrato possui 9 decisões normativas/rastreáveis, AC-001..012 e DAG. A
 representação anterior `competence_date: DATE` e sua Evidence dependente foram
 invalidadas seletivamente. As camadas afetadas foram reconciliadas e revalidadas pelo
 executor conforme o
@@ -368,7 +458,7 @@ executor conforme o
 e o
 [relatório D005-08](../audit/spec005-20260922-d00508-reconciliation-report.md).
 
-- D005-01..D005-08: HUMAN APPROVED / RECORDED.
+- D005-01..D005-09: HUMAN APPROVED / RECORDED; D005-09 apenas contrato formalizado.
 - Contrato: AMENDED / MONTHLY COMPETENCE CANONICAL.
 - Implementação E002–E010: D005-08 RECONCILED / EXECUTOR VALIDATED.
 - E011/E012: NOT AUTHORIZED / NOT EXECUTED.
@@ -376,8 +466,9 @@ e o
 - Generation 8/canonical: deve permanecer preservada e inalterada.
 - R1–R6: competência HUMAN `2026-07`, a materializar futuramente como ano `2026`
   e mês `7`, nunca como data diária.
-- R2: `status=paid`, `paid_at` ausente/desconhecido, `REVIEW/BLOCK`; deve ficar fora
-  de qualquer candidato que exija cobrança canônica válida. A invariant
+- R2: `status=paid`, `paid_at` ausente/desconhecido; disposition futura
+  `QUARANTINED_UNRESOLVED`, fora de `payments` canônicos. A invariant
   `paid → paid_at obrigatório` permanece sem exceção.
-- Próximo gate: `READY_FOR_SPEC005_D005_08_INDEPENDENT_REVIEW`. A revisão não é E012
-  e uma autorização HUMAN posterior e separada continua obrigatória para E011.
+- Revisão independente D005-08: PASS. Próximo gate:
+  `READY_FOR_SPEC005_D00509_IMPLEMENTATION_AUTHORIZATION`; autorização HUMAN
+  posterior e separada continua obrigatória para E011.

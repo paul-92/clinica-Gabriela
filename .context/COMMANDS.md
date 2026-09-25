@@ -177,7 +177,26 @@ Dry-run/candidato explícito da SPEC-003 (nunca troca o pointer operacional):
 python scripts/spec003_candidate_migration.py --source <generation-2.db> --output-dir <diretorio-novo>
 ```
 
+Migração financeira SPEC-005 somente sobre snapshot/cópia isolada (nunca aceita
+caminho operacional nem promove o candidato):
+
+```powershell
+python scripts/spec005_candidate_migration.py --source <snapshot-isolado.db> --output <candidato-novo.db> --identity-manifest <manifesto-D005-10.json>
+```
+
 ## Scripts uteis
+
+Identidade D005-11 (somente build/verify/preflight; não executa E011):
+
+```powershell
+python -B -m scripts.spec005_d00511_identity build --code-root . --manifest <novo-manifest.json>
+python -B -m scripts.spec005_d00511_identity verify --code-root . --manifest <manifest.json> --manifest-sha256 <sha256-aprovado>
+python -B -m scripts.spec005_d00511_historical_probe
+```
+
+O probe histórico é somente leitura para a Generation 8, mas cria uma cópia
+temporária do código. Falha fechada se os bytes históricos não puderem ser
+reconstruídos do Git e conferidos com o runtime manifest.
 
 Backup:
 
@@ -216,3 +235,38 @@ GERAR_LICENCA_COMPLETA.bat
 ```
 
 Scripts PowerShell equivalentes estao em `scripts/`.
+
+SPEC-005 D005-12: verificar o manifest migrador sucessor (somente leitura):
+
+```powershell
+.venv\Scripts\python.exe -B -m scripts.spec005_d00511_identity verify --code-root . --manifest docs/audit/spec005-20260924-d00512-migration-execution-manifest-v5.json --manifest-sha256 a5e9f0bf65e32845acb71fff459d3a88bfbab0adc9f3f023bd747ccf4bf38893
+```
+
+O preflight D005-12 usa `--source-authority persisted`, pointer, diretório do
+runtime manifest, banco/snapshot e checkpoint externo com SHA fornecido
+separadamente. Ele lê a fonte e não cria candidato nem autoriza E011.
+
+SPEC-005 E011: provisionamento exclusivo da revisão da identidade, somente
+pelo revisor independente após aprovação real. O executor de implementação
+não deve executar este comando para a autoridade operacional:
+
+```powershell
+.venv\Scripts\python.exe -m scripts.spec005_provision_e011_review --review <parecer-aprovado.json>
+```
+
+O comando criou `docs/audit/spec005-e011-review-<SHA256>.json` e o registro
+canônico `docs/audit/spec005-e011-independent-review-authority.json` na E011.
+O CLI E011 lê esse registro por localização fixa; não aceita sua localização
+por argumento. Estes comandos de execução histórica não devem ser repetidos.
+
+SPEC-005 promotion (executed once on 2026-09-24; do not rerun against Generation 9):
+
+```powershell
+.venv\Scripts\python.exe -m scripts.spec005_operational_promotion preflight
+.venv\Scripts\python.exe -m scripts.spec005_operational_promotion execute
+```
+
+The reconstructed orchestrator and preflight Evidence are in `docs/audit/`.
+Execution Evidence is in `%LOCALAPPDATA%\ClinicaGabriela\runtime\evidence\spec005-promotion-20260924T205031Z.json`.
+Current authoritative Generation is 9/canonical. Further promotion requires a new
+contractual gate; the commands above are bound to Generation 8 and fail closed.
