@@ -1,5 +1,37 @@
 ﻿======================================================================
 CLÍNICA GABRIELA — PROJECT HANDOFF CANÔNICO
+CURRENT IMPLEMENTATION UPDATE — SPEC-007 FOUNDATION — 2026-09-25
+HUMAN_SPEC007_FOUNDATION_IMPLEMENTATION_AUTHORIZATION = GRANTED.
+CONTEXT_RECOVERY_RESULT = PASS; branch feature/spec-008-architecture-foundation; preexisting changes preserved.
+FOUNDATION_DELTA_ANALYSIS = EXISTING_PYTEST_ISOLATION_EXTENDED_WITH_DETERMINISTIC_CONFIG_SYNTHETIC_FACTORIES_RUNTIME_GUARD_AND_COVERAGE_CONFIG.
+SPEC007_FOUNDATION_IMPLEMENTATION_RESULT = IMPLEMENTED_AND_TARGETED_VALIDATED.
+FOUNDATION_COMPONENTS_IMPLEMENTED = pytest.ini; .coveragerc; tests/support/factories.py; tests/support/runtime_guard.py; tests/conftest.py fixtures; tests/test_spec007_foundation.py.
+REUSED_EXISTING_CAPABILITIES = tests/conftest.py SQLite guard and temp env isolation; existing Python suite; frontend npm test/api tests.
+AC_TRACEABILITY_RESULT = AC001_FOUNDATION_PASS; AC002_FOUNDATION_PASS; AC012_FOUNDATION_PASS; AC010_PARTIAL_PENDING_SPEC009; INSTALLER_SCENARIOS_PARTIAL_PENDING_SPEC010; FINAL_INTEGRATION_PENDING.
+TARGETED_TESTS = 3 passed.
+AFFECTED_REGRESSION = 36 passed; 28 setup errors caused by Windows/OneDrive TEMP ACL.
+FULL_BACKEND_SUITE = 146 passed; 206 setup errors caused by Windows/OneDrive TEMP ACL; no functional regression classified.
+FRONTEND_VALIDATION = 12 passed; 0 failed.
+STATIC_VALIDATION = 352 collected; git diff --check PASS; sensitive-data scan PASS.
+TEST_FAILURE_CLASSIFICATION = ENVIRONMENTAL_NON_CAUSAL_TMP_PATH_ACL.
+SENSITIVE_DATA_CHECK_RESULT = PASS; synthetic-only foundation data; no secrets or PII.
+OPERATIONAL_SENTINEL_RESULT = READ_ONLY; runtime workspace absent; canonical Generation 9 state declared unchanged.
+BLOCKERS = 0.
+MAJORS = 0.
+MINORS = 0.
+OBSERVATIONS = 1; TEMP/pytest ACL limitation remains for independent harness handling.
+EVIDENCE = docs/audit/spec007-foundation-20260925.md.
+SPEC007_CURRENT_STATE = FOUNDATION_IMPLEMENTED; OPEN; NOT_CLOSED.
+SPEC007_FOUNDATION_REVIEW_READINESS = READY_FOR_INDEPENDENT_REVIEW.
+FILES_CHANGED = pytest.ini; .coveragerc; tests/conftest.py; tests/support/__init__.py; tests/support/factories.py; tests/support/runtime_guard.py; tests/test_spec007_foundation.py; docs/audit/spec007-foundation-20260925.md; CLINICA_GABRIELA_PROJECT_HANDOFF.txt.
+REPOSITORY_MUTATED = YES.
+OPERATIONAL_STATE_MUTATED = NO.
+STAGED = NO.
+COMMIT_EXECUTED = NO.
+PUSH_EXECUTED = NO.
+STOP_CONDITION = SPEC007_FOUNDATION_IMPLEMENTATION_COMPLETE.
+NEXT_READY = SPEC007_FOUNDATION_INDEPENDENT_REVIEW.
+SPEC-009, SPEC-010, final integrated validation and SPEC-007 closure were not executed.
 CURRENT CLOSURE UPDATE — SPEC-002 CLOSED PASS — 2026-09-25
 SPEC002_FINAL_STATE = CLOSED_PASS_INDEPENDENTLY_VERIFIED.
 SPEC002_QUALITY_GATE_RESULT = QUALITY_GATE_PASS.
@@ -69,6 +101,99 @@ All dated updates below, including prior FAILs, are historical checkpoints.
 NEXT_READY: SPEC005_FINAL_REPOSITORY_CHECKPOINT.
 No operational mutation, stage, commit or push at this independent verification.
 ======================================================================
+CURRENT INDEPENDENT REVIEW — SPEC-007 FOUNDATION — 2026-09-25
+CONTEXT_RECOVERY_RESULT = PASS; branch feature/spec-008-architecture-foundation; HEAD/upstream 1820ab2; sync 0/0; staging absent; preexisting changes preserved.
+FOUNDATION_SCOPE_REVIEW_RESULT = PASS; scope limited to pytest/coverage configuration, synthetic factories, isolated fixtures and runtime guard; SPEC-009/SPEC-010 and closure not anticipated.
+FOUNDATION_IMPLEMENTATION_REVIEW_RESULT = FAIL; runtime guard bypass reproduced for Windows file:///C:/... and file://C:/... URI variants.
+RUNTIME_GUARD_INDEPENDENT_RESULT = FAIL; normal absolute, relative, .., file:C:/ and file:/C:/ paths blocked; standard Windows file URI variants not rejected preventively.
+TARGETED_TESTS_INDEPENDENT_RESULT = PASS; 3 passed.
+AFFECTED_REGRESSION_INDEPENDENT_RESULT = 37 passed; 47 setup errors in tmp_path/ACL-affected selection; frontend 12 passed, 0 failed.
+TMP_PATH_FAILURE_INDEPENDENT_CLASSIFICATION = ENVIRONMENTAL_NON_CAUSAL.
+STATIC_VALIDATION_RESULT = PASS; AST, diff check and foundation review passed.
+SENSITIVE_DATA_CHECK_RESULT = PASS; synthetic-only foundation data; no secrets or PII.
+OPERATIONAL_SENTINEL_RESULT = READ_ONLY_PASS; Generation 9/canonical, pointer/manifest/database hashes consistent, integrity ok, FK 0, user_version 5, no sidecars or maintenance lock.
+AC_TRACEABILITY_INDEPENDENT_RESULT = AC-001/AC-002/AC-012 FOUNDATION_CANDIDATE_NOT_PROMOTED; SPEC-009/SPEC-010 partial; final integration pending.
+BLOCKERS = 1; runtime URI canonicalization bypass.
+MAJORS = 0.
+MINORS = 0.
+OBSERVATIONS = 2; TEMP/OneDrive ACL limitation and restricted temporary residues preserved.
+QUALITY_GATE_RESULT = QUALITY_GATE_FAIL.
+SPEC007_FOUNDATION_STATE = REMEDIATION_REQUIRED.
+SPEC007_FINAL_STATE = OPEN.
+SPEC009_READINESS = NOT_READY_BLOCKED_BY_FOUNDATION_REMEDIATION.
+EVIDENCE_RESULT = docs/audit/spec007-foundation-independent-review-20260925.md.
+OPERATIONAL_STATE_MUTATED = NO.
+STAGED = NO.
+COMMIT_EXECUTED = NO.
+PUSH_EXECUTED = NO.
+STOP_CONDITION = SPEC007_FOUNDATION_INDEPENDENT_REVIEW_FAIL.
+NEXT_READY = REMEDIATION_OR_HUMAN_DECISION_REQUIRED.
+
+CURRENT REMEDIATION UPDATE — SPEC-007 FOUNDATION BLOCKER-001 — 2026-09-25
+BLOCKER001_ROOT_CAUSE_RESULT = PASS; manual file: parsing did not canonicalize URI netloc, percent-encoding or malformed local filesystem URIs.
+REMEDIATION_SCOPE_RESULT = PASS; runtime guard, targeted tests, Evidence and handoff only; product/runtime operational state untouched.
+ORIGINAL_BYPASS_REGRESSION_RESULT = PASS; file:///C:/... and file://C:/... now BLOCK_BEFORE_FILESYSTEM_ACCESS.
+ADVERSARIAL_RUNTIME_GUARD_TEST_RESULT = PASS; 8 targeted tests covering Windows paths, URI variants, encoding, malformed input, positive paths and synthetic UNC.
+POSITIVE_PATH_RESULT = PASS; synthetic path and file URI remain allowed.
+TARGETED_TESTS = 8 passed.
+AFFECTED_REGRESSION = auth/authorization 27 passed; frontend 12 passed; agenda 6 setup errors from TEMP/OneDrive ACL before functional code.
+TEST_FAILURE_CLASSIFICATION = ENVIRONMENTAL_NON_CAUSAL_TMP_PATH_ACL.
+STATIC_VALIDATION_RESULT = PASS; AST/import review and restricted diff inspection passed.
+DIFF_CHECK_RESULT = PASS.
+SENSITIVE_DATA_CHECK_RESULT = PASS; synthetic-only delta; no secrets or PII.
+OPERATIONAL_SENTINEL_RESULT = READ_ONLY_PASS; Generation 9/canonical unchanged; hashes consistent; integrity ok; FK 0; user_version 5; no sidecars or maintenance lock.
+BLOCKER001_REMEDIATION_RESULT = PASS.
+BLOCKER001_STATE = REMEDIATED_PENDING_INDEPENDENT_REREVIEW.
+SPEC007_FOUNDATION_STATE = REMEDIATED_PENDING_INDEPENDENT_REREVIEW.
+SPEC007_FINAL_STATE = OPEN.
+SPEC009_READINESS = NOT_READY_PENDING_FOUNDATION_REREVIEW.
+NEW_BLOCKERS = 0.
+NEW_MAJORS = 0.
+NEW_MINORS = 0.
+EVIDENCE_RESULT = docs/audit/spec007-foundation-blocker001-remediation-20260925.md.
+REPOSITORY_MUTATED = YES.
+OPERATIONAL_STATE_MUTATED = NO.
+STAGED = NO.
+COMMIT_EXECUTED = NO.
+PUSH_EXECUTED = NO.
+STOP_CONDITION = SPEC007_FOUNDATION_BLOCKER001_REMEDIATION_COMPLETE.
+NEXT_READY = SPEC007_FOUNDATION_TARGETED_INDEPENDENT_REREVIEW.
+
+CURRENT TARGETED INDEPENDENT REREVIEW — SPEC-007 FOUNDATION BLOCKER-001 — 2026-09-25
+CONTEXT_RECOVERY_RESULT = PASS; branch feature/spec-008-architecture-foundation; HEAD/upstream 1820ab2; sync 0/0; staging vazio; alterações preexistentes preservadas.
+REMEDIATION_SCOPE_INDEPENDENT_RESULT = PASS; delta material limitado ao runtime guard, testes, Evidence e handoff; nenhum produto, banco, Generation, pointer ou manifest alterado.
+ORIGINAL_BYPASS_INDEPENDENT_RESULT = PASS; file:///C:/... e file://C:/... bloqueados antes do filesystem.
+ADVERSARIAL_CANONICALIZATION_INDEPENDENT_RESULT = PASS; 11/11 targets protegidos bloqueados; drive/case/separadores, percent-encoding, localhost, query, malformed, traversal e UNC sintético cobertos.
+POSITIVE_PATH_INDEPENDENT_RESULT = PASS; 4 targets sintéticos legítimos preservados, incluindo path temporário e URI.
+PREVIOUS_GUARD_REGRESSION_RESULT = PASS; absolute, relative, traversal, aliases/case e file URI variantes permanecem bloqueados.
+TARGETED_REREVIEW_TEST_RESULT = PASS; foundation/security 8 passed; regressão representativa auth/authorization 31 passed.
+TEST_FAILURE_INDEPENDENT_CLASSIFICATION = ENVIRONMENTAL_NON_CAUSAL; nenhuma falha funcional; limitações históricas de TEMP/OneDrive ACL não causais.
+STATIC_VALIDATION_RESULT = PASS; AST/import validation passou.
+DIFF_CHECK_RESULT = PASS.
+SENSITIVE_DATA_CHECK_RESULT = PASS; somente dados sintéticos, sem secrets ou PII.
+OPERATIONAL_SENTINEL_RESULT = READ_ONLY_PASS; Generation 9/canonical, pointer/manifest/DB hashes consistentes, integrity ok, FK 0, user_version 5, sidecars 0, maintenance lock ausente.
+BLOCKER001_INDEPENDENT_REREVIEW = PASS.
+BLOCKER001_STATE = CLOSED_BY_REMEDIATION_AND_INDEPENDENT_REREVIEW.
+NEW_BLOCKERS = 0.
+NEW_MAJORS = 0.
+NEW_MINORS = 0.
+BLOCKERS = 0.
+MAJORS = 0.
+MINORS = 0.
+QUALITY_GATE_RESULT = QUALITY_GATE_PASS.
+SPEC007_FOUNDATION_STATE = INDEPENDENTLY_VERIFIED.
+SPEC007_FINAL_STATE = OPEN.
+SPEC009_READINESS = READY_AFTER_FOUNDATION_REPOSITORY_CHECKPOINT.
+EVIDENCE_RESULT = docs/audit/spec007-foundation-blocker001-targeted-independent-rereview-20260925.md.
+REPOSITORY_MUTATED = YES; somente Evidence e handoff.
+OPERATIONAL_STATE_MUTATED = NO.
+STAGED = NO.
+COMMIT_EXECUTED = NO.
+PUSH_EXECUTED = NO.
+STOP_CONDITION = SPEC007_FOUNDATION_TARGETED_INDEPENDENT_REREVIEW_PASS.
+NEXT_READY = SPEC007_FOUNDATION_REPOSITORY_CHECKPOINT.
+SPEC-007 não foi declarada encerrada; SPEC-009 ainda depende do checkpoint de repositório.
+
 CURRENT OPERATIONAL UPDATE — SPEC-005 PROMOTED — 2026-09-24
 Promotion: PASS; SPEC-005 = PROMOTED_PENDING_FINAL_INDEPENDENT_OPERATIONAL_VERIFICATION.
 Execution Evidence: runtime/evidence/spec005-promotion-20260924T205031Z.json.

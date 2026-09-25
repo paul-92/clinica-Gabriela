@@ -3,8 +3,25 @@
 **Status:** DRAFT — especificação detalhada, pendente de validação e implementação.  
 **Prioridade:** P1  
 **Origem:** SPEC-001 — Auditoria  
-**Dependências:** SPEC-002, SPEC-003, SPEC-004, SPEC-005, SPEC-006, SPEC-008, SPEC-009 e SPEC-010  
+**Dependências de fundação:** SPEC-002, SPEC-003, SPEC-004, SPEC-005, SPEC-006 e SPEC-008
+**Relação transversal:** a fundação da SPEC-007 não depende de SPEC-009 ou SPEC-010 para iniciar. A SPEC-009 e a SPEC-010 deverão ser validadas incrementalmente pela SPEC-007 após suas respectivas implementações, seguida de uma validação integrada final da SPEC-007.
 **Implementação:** Não iniciada.
+
+## Contrato de sequência e dependências
+
+A execução contratual desta SPEC deverá seguir a sequência:
+
+```text
+SPEC-007 foundation
+→ SPEC-009 implementation + incremental validation
+→ SPEC-010 implementation + incremental validation
+→ SPEC-007 final integrated validation/closure
+```
+
+A remoção de SPEC-009 e SPEC-010 da linha de dependências bloqueantes não remove
+seus requisitos funcionais, critérios de aceitação, Evidence, testes ou controles
+de qualidade. Eles permanecem obrigatórios como entradas de validação incremental
+e de fechamento integrado da SPEC-007.
 
 ## 1. Objetivo
 Definir uma estratégia de testes automatizados para a Clínica Gabriela que permita validar regras de negócio, segurança, persistência, API, integrações internas e fluxos críticos antes de considerar qualquer funcionalidade concluída.

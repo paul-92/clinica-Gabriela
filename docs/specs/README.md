@@ -106,7 +106,10 @@ SPEC-010
 FASE 7 — Homologação
 ```
 
-A SPEC-007 é transversal: seus testes deverão acompanhar todas as fases, e não apenas começar na Fase 4.
+A SPEC-007 é transversal: sua fundação pode iniciar antes de SPEC-009 e
+SPEC-010, e seus testes deverão acompanhar incrementalmente a implementação
+dessas duas SPECs. O fechamento da SPEC-007 ocorre somente após a validação
+integrada final.
 
 ## 6. Fase 0 — Auditoria
 
@@ -561,7 +564,17 @@ SPEC-009
 SPEC-010
 ```
 
-A SPEC-007 acompanha todas as setas.
+Lane de qualidade transversal:
+
+```text
+SPEC-007 foundation
+    → SPEC-009 implementation + incremental validation
+    → SPEC-010 implementation + incremental validation
+    → SPEC-007 final integrated validation/closure
+```
+
+A SPEC-007 acompanha todas as setas sem tornar SPEC-009 ou SPEC-010
+dependências bloqueantes para iniciar sua fundação.
 
 ## 16. Estratégia de branches
 
