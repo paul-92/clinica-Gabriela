@@ -1,6 +1,6 @@
 # SPEC-002 — Autenticação e Autorização Seguras
 
-Status: IMPLEMENTED. Prioridade: P0.
+Status: CLOSED_PASS_INDEPENDENTLY_VERIFIED. Prioridade: P0.
 Branch proposta: feature/spec-002-auth-security.
 Dependência: SPEC-001.
 
@@ -64,3 +64,10 @@ Não fazer commit/push/merge sem autorização explícita.
 - Desktop restringe prontuário a psychologist e configurações a admin.
 - Primeiro admin provisionado por ambiente, sem senha operacional fixa versionada.
 - Testes Python/frontend, build e verificação de whitespace aprovados.
+
+## Closure formal
+
+- Estado: `CLOSED_PASS_INDEPENDENTLY_VERIFIED`.
+- Quality gate: `QUALITY_GATE_PASS`.
+- Evidence: `docs/audit/spec002-20260925-closure.md`.
+- Blockers: 0; open majors: 0; open minors: 0.
