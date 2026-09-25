@@ -1,5 +1,22 @@
 # SPEC-006 — Backup e Recuperação
 
+> **ESTADO FINAL DE CLOSURE — 2026-09-25:** SPEC-006 está
+> `CLOSED_PASS_INDEPENDENTLY_VERIFIED`. A matriz final, a reconciliação dos
+> findings e o checkpoint de repositório estão em
+> `docs/audit/spec006-20260925-closure.md`. A targeted independent rereview
+> está registrada em `docs/audit/spec006-20260925-targeted-independent-rereview.md`.
+
+> Este bloco final prevalece sobre o status histórico abaixo; o histórico
+> original e os findings FAIL permanecem preservados.
+
+> **ADENDO CONTRATUAL ATUAL — 2026-09-25:** As decisões D006-01, D006-02 e
+> D006-03 e a Evidence em
+> `docs/audit/spec006-20260925-post-human-decision-dependency-reconciliation.md`
+> prevalecem sobre trechos anteriores. A unidade inicial não contém arquivos
+> físicos externos; a autoridade é Generation 9/canonical; o destino é
+> `%LOCALAPPDATA%\ClinicaGabriela\runtime\backups`; uninstall preserva dados
+> por padrão; e pre-update usa installer hook fail-closed.
+
 **Status:** DRAFT — especificação detalhada, pendente de validação funcional e implementação.  
 **Prioridade:** P1  
 **Origem:** SPEC-001 — Auditoria  

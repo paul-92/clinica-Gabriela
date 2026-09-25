@@ -1,6 +1,52 @@
 ﻿======================================================================
 CLÍNICA GABRIELA — PROJECT HANDOFF CANÔNICO
+CURRENT CLOSURE UPDATE — SPEC-006 CLOSED PASS — 2026-09-25
+SPEC006_FINAL_STATE = CLOSED_PASS_INDEPENDENTLY_VERIFIED.
+SPEC006_QUALITY_GATE_RESULT = QUALITY_GATE_PASS.
+SPEC006_CLOSURE_EVIDENCE = docs/audit/spec006-20260925-closure.md.
+SPEC006_TARGETED_REREVIEW = docs/audit/spec006-20260925-targeted-independent-rereview.md.
+MAJOR-001 = CLOSED_BY_REMEDIATION_AND_INDEPENDENT_REREVIEW.
+MAJOR-002 = CLOSED_BY_REMEDIATION_AND_INDEPENDENT_REREVIEW.
+SPEC006_BLOCKERS = 0; SPEC006_OPEN_MAJORS = 0; SPEC006_OPEN_MINORS = 0.
+FULL_SUITE_FAILURE_CLASSIFICATION = ENVIRONMENTAL_NON_CAUSAL.
+Generation 9/canonical remains authoritative; operational sentinel unchanged.
+No restore, migration, promotion, cleanup, stage, commit or push was executed.
+NEXT_READY: SPEC006_FINAL_REPOSITORY_CHECKPOINT.
+CURRENT FINAL UPDATE — SPEC-006 INDEPENDENT REVIEW — 2026-09-25
+CURRENT CONTRACT UPDATE — SPEC-006 QUALITY GATE FAILED — 2026-09-25
+CURRENT REMEDIATION UPDATE — SPEC-006 MAJORS REMEDIATED — 2026-09-25
+MAJOR001_REMEDIATION_RESULT = PASS.
+MAJOR002_REMEDIATION_RESULT = PASS.
+Evidence: docs/audit/spec006-20260925-major-remediation.md.
+TARGETED_TESTS = 21 direct targeted cases passed; formal pytest remains ACL-limited.
+FULL_BACKEND_SUITE = 279 passed / 68 failed / 1 skipped under isolated harness;
+environmental failures documented in Evidence.
+BLOCKERS = 0; NEW_MAJORS = 0; NEW_MINORS = 0.
+NEXT_READY: SPEC006_TARGETED_INDEPENDENT_REREVIEW.
+No operational mutation, stage, commit or push.
+SPEC006_INDEPENDENT_REVIEW = COMPLETE_WITH_FINDINGS.
+SPEC006_QUALITY_GATE_RESULT = QUALITY_GATE_FAIL.
+SPEC006_CLOSURE_READINESS = NOT_READY.
+SPEC006_BLOCKERS = 0; SPEC006_MAJORS = 2.
+Independent Evidence: docs/audit/spec006-20260925-independent-review.md.
+Findings: compatibility/manifest fail-closed gap and retention policy gap.
+NEXT_READY: REMEDIATION_REQUIRED.
+No operational mutation, stage, commit or push.
+---------------------------------------------------------------------
 CURRENT FINAL UPDATE — SPEC-005 INDEPENDENTLY VERIFIED — 2026-09-24
+CURRENT CONTRACT UPDATE — SPEC-006 DEPENDENCIES RESOLVED — 2026-09-25
+SPEC006_PRE_IMPLEMENTATION_DEPENDENCIES = RESOLVED.
+SPEC006_IMPLEMENTATION = NOT AUTHORIZED.
+Evidence: docs/audit/spec006-20260925-post-human-decision-dependency-reconciliation.md.
+Persistent binding: %LOCALAPPDATA%\ClinicaGabriela\runtime.
+Database root: %LOCALAPPDATA%\ClinicaGabriela\runtime\generations.
+Backup root: %LOCALAPPDATA%\ClinicaGabriela\runtime\backups.
+Uninstall preserves persistent recovery data by default.
+Pre-update boundary: installer hook -> SPEC-006 backup -> validation -> update/migration;
+failure blocks the update fail-closed.
+Current attachment scope: NONE; no physical external files in the first recovery unit.
+NEXT_READY: HUMAN_SPEC006_IMPLEMENTATION_AUTHORIZATION.
+No operational mutation, stage, commit or push.
 SPEC005_FINAL_STATE = CLOSED_PASS_PROMOTED_INDEPENDENTLY_VERIFIED.
 QUALITY_GATE_RESULT = QUALITY_GATE_PASS; BLOCKERS = 0; MAJORS = 0; MINORS = 0.
 Operational authority: Generation 9/canonical.
